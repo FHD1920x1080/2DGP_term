@@ -196,13 +196,13 @@ def effect123():
     pass
 
 while running:
-    idle_1()
-    idle_2()
-    die()
-    right_move()
+    #idle_1()
+    #idle_2()
+    #die()
+    #right_move()
     test()
-    attack()
-    effect123()
-    update_canvas()
+    #attack()
+    #effect123()
+    #update_canvas()
 
 close_canvas()
