@@ -3,7 +3,7 @@ import random
 
 open_canvas()
 character = load_image('marine250x2.png')
-effect = load_image('image2.png')
+effect = load_image('image3.png')
 running = True
 x = 800 // 2
 y = 600 // 2
@@ -192,7 +192,7 @@ def effect123():
         effect.clip_draw(0, 1200-80*frame, 80, 80, x, y)
         frame = (frame + 1) % 15
         update_canvas()
-        delay(0.08)
+        delay(0.1)
     pass
 
 while running:
@@ -200,9 +200,9 @@ while running:
     #idle_2()
     #die()
     #right_move()
-    test()
+    #test()
     #attack()
-    #effect123()
+    effect123()
     #update_canvas()
 
 close_canvas()
