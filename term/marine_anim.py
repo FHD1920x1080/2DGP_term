@@ -2,8 +2,8 @@ from pico2d import *
 import random
 
 open_canvas()
-character = load_image('marine250x2.png')
-effect = load_image('image3.png')
+character = load_image('resource\\others\\marine250x2.png')
+effect = load_image('resource\\others\\image2.png')
 running = True
 x = 800 // 2
 y = 600 // 2
@@ -194,8 +194,16 @@ def effect123():
         update_canvas()
         delay(0.1)
     pass
-
+def handle_events():
+    global running
+    for event in get_events():
+        if event.type == SDL_QUIT:
+            running = False
+        if event.type == SDL_KEYDOWN:
+            if event.key == SDLK_ESCAPE:
+                running = False
 while running:
+    handle_events()
     #idle_1()
     #idle_2()
     #die()

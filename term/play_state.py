@@ -1,12 +1,12 @@
 from pico2d import *
-
+import game_framework
 import random
 import math
 
 # 1. 게임 초기화
 window_size = [900, 900]
-open_canvas(window_size[0], window_size[1])
-background_img = load_image('tile.png')
+#open_canvas(window_size[0], window_size[1], sync=True)
+background_img = None
 
 
 # 2. 게임창 옵션 설정
@@ -43,17 +43,18 @@ class Bullet_anim:
         self.img_now[0] = self.frame * self.sx
         self.frame = (self.frame + 1) % 5
 
+
 class Bullet_32:
     def __init__(self, marine, x2, y2):
-        self.x1, self.y1 = self.get_bullet_start(marine)#x1, y1  # 시작 좌표
+        self.x1, self.y1 = self.get_bullet_start(marine)  # x1, y1  # 시작 좌표
         self.x2, self.y2 = x2, y2  # 가야할 좌표, 지나치고 계속 가도 됨.
         self.x, self.y = self.x1, self.x2  # 현재 좌표
         self.speed = marine.bullet_speed  # 생성되는 곳에서 마린의 탄속으로 초기화해주고 있음.
-        self.t = 0 # 브리즌헴 변수
+        self.t = 0  # 브리즌헴 변수
         self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
 
         self.num = self.get_bullet_num(get_rad(self.x1, self.y1, self.x2, self.y2))
-        self.img = load_image("bullet_blue32\\" + str( self.num ) + ".png")
+        self.img = load_image("resource\\bullet\\" + str(self.num) + ".png")
         self.sx, self.sy = self.get_bullet_size(self.num)
 
     def put_img(self, file):
@@ -273,9 +274,13 @@ class Bullet_32:
             else:  # num == 24
                 return 52, 5
 
+
 class Cursor:
+    arrow_img = None
+    cross_hair_img = None
+
     def __init__(self):
-        self.img = load_image('arrowx200.png')
+        self.img = Cursor.arrow_img
         self.img_now = [2, 2]  # 스프라이트 좌표
         self.x = round(window_size[0] / 2)
         self.y = round(window_size[1] / 2)
@@ -285,6 +290,14 @@ class Cursor:
 
     def show(self):
         self.img.clip_draw(self.img_now[0] + self.frame * 44, self.img_now[1], 40, 42, self.draw_x, self.draw_y)
+
+
+class Sound:
+    def __init__(self):
+        self.Marine_shoot = False
+        self.Marine_hit = False
+        self.Zergling_die = False
+
 
 class Obj:
     def __init__(self):
@@ -303,6 +316,7 @@ class Obj:
     def show(self):
         self.img.clip_draw(self.img_now[0], self.img_now[1], self.sx, self.sy, self.x, self.y)
 
+
 class RealObj(Obj):
     def __init__(self):
         super().__init__()
@@ -320,22 +334,29 @@ class RealObj(Obj):
         self.stand_y += y
         self.hit_y += y
 
+    def get_left(self):
+        return self.stand_x - self.stand_sx // 2
+
+    def get_right(self):
+        return self.stand_x + self.stand_sx // 2
+
+    def get_top(self):
+        return self.stand_y + self.stand_sy // 2
+
+    def get_bottom(self):
+        return self.stand_y - self.stand_sy // 2
+
+
 class Marine(RealObj):
     list = []
-    effect_img = load_image('attack_effect_blue.png')
-    img = load_image('marine250x2_blue.png')
-    hit_sound = load_wav('hit_sound\\06.wav')
-    hit_sound.set_volume(6)
+    effect_img = None
+    img = None
+    hit_sound = None
 
-    shoot_sound00 = load_wav('bullet_sound\\00.wav')
-    shoot_sound00.set_volume(16)
-    shoot_sound01 = load_wav('bullet_sound\\01.wav')
-    shoot_sound01.set_volume(16)
-    shoot_sound02 = load_wav('bullet_sound\\02.wav')
-    shoot_sound02.set_volume(16)
-    shoot_sound03 = load_wav('bullet_sound\\03.wav')
-    shoot_sound03.set_volume(16)
-
+    shoot_sound00 = None
+    shoot_sound01 = None
+    shoot_sound02 = None
+    shoot_sound03 = None
     def __init__(self):
         super().__init__()
         self.bullet_list = []  # 발사된 총알 리스트
@@ -624,13 +645,14 @@ class Marine(RealObj):
                     return
             if self.shoot_frame % self.nfs == 0:  # self.nfs은 마린이 몇프레임마다 쏠건지 1이 가장 빠름
                 # 여기에 사운드
-                self.play_shoot_sound()
+                # self.play_shoot_sound()
+                sound.Marine_shoot = True
                 for i in range(self.n_shot):
                     a = get_rad(self.x, self.y, cursor.x, cursor.y)
-                    self.look_now = marine.get_look_now(a)  # 각도를 가지고 마린이 바라볼 방향 정함.
+                    self.look_now = self.get_look_now(a)  # 각도를 가지고 마린이 바라볼 방향 정함.
                     x2, y2 = cursor.x + random.randint(-self.accuracy, self.accuracy), cursor.y + random.randint(
                         -self.accuracy, self.accuracy)
-                    bullet = Bullet_32(marine, x2, y2)
+                    bullet = Bullet_32(self, x2, y2)
                     self.bullet_list.append(bullet)
                     self.shoot_idle = False
                     self.idle = False
@@ -642,6 +664,9 @@ class Marine(RealObj):
 
     def state_update(self):
         self.move()
+        for mm in Marine.list:
+            if cheak_collision(self, mm):
+                break
         self.shoot()
         self.shoot_frame += 1  # 0~59
         if self.magazine_gun == False:
@@ -656,6 +681,7 @@ class Marine(RealObj):
             self.idle_frame += 1
         else:
             self.idle_frame = 0
+
 
 class Effect(Obj):
     def __init__(self, x, y):
@@ -672,18 +698,17 @@ class Effect(Obj):
     def show(self):
         Marine.effect_img.clip_draw(0, self.img_now_y, 80, 80, self.x, self.y)
 
+
 class Zergling(RealObj):
     sum = 0
     list = []
-    die_list = []
     sx = 80
     sy = 78
     hit_sx = 44
     hit_sy = 40
     hp = 3
     speed = 3
-    img = load_image("zerglingx200x2.png")
-    die_img = load_image("die_zergling.png")
+    img = None
 
     def __init__(self, x, y):
         super().__init__()
@@ -710,7 +735,7 @@ class Zergling(RealObj):
         Zergling.img.clip_draw(self.img_now[0], self.img_now[1], Zergling.sx, Zergling.sy, self.x, self.y)
 
     def show_All(self):
-        for zg in Zergling.die_list:
+        for zg in Die_Zergling.list:
             zg.show()
         for zg in Zergling.list:
             zg.show()
@@ -735,19 +760,19 @@ class Zergling(RealObj):
             return 2
 
     def move_down(self):
+        if self.stand_y < -self.sy:  # 아래쪽 화면 범위 밖으로 나갔을때
+            return 1  # 저글링이 화면 밖으로 나갔으니 없애버려라
         i = Zergling.get_speed(self) * self.speed / 3
         self.y_move(- i)
         self.img_now = 692, 1138 - 84 * self.move_frame
-        if self.stand_y < -self.sy:  # 아래쪽 화면 범위 밖으로 나갔을때
-            return 1  # 저글링이 화면 밖으로 나갔으니 없애버려라
 
     def move_left_down(self):
+        if self.stand_y < -self.sy:  # 아래쪽 화면 범위 밖으로 나갔을때
+            return 1  # 저글링이 화면 밖으로 나갔으니 없애버려라
         i = Zergling.get_speed(self) * self.speed / 3
         self.y_move(- i * 0.707)
         self.x_move(- i * 0.707)
         self.img_now = 692 + 86 * 2, 1138 - 84 * self.move_frame
-        if self.stand_y < -self.sy:  # 아래쪽 화면 범위 밖으로 나갔을때
-            return 1  # 저글링이 화면 밖으로 나갔으니 없애버려라
         if self.stand_x - self.speed * 0.707 <= round(self.stand_sx / 2):
             self.x_move(round(self.stand_sx / 2) - self.stand_x)
             self.direction = random.randrange(1, 3)
@@ -755,21 +780,22 @@ class Zergling(RealObj):
                 self.direction = 3
 
     def move_right_down(self):
+        if self.stand_y < -self.sy:  # 아래쪽 화면 범위 밖으로 나갔을때
+            return 1  # 저글링이 화면 밖으로 나갔으니 없애버려라
         i = Zergling.get_speed(self) * self.speed / 3
         # i = zgl.move_frame - 6 #0 1 2 3 4 5 6 -3 -2 -1 0 1 2 3
         self.y_move(- i * 0.707)
         self.x_move(+ i * 0.707)
         self.img_now = 520, 1138 - 84 * self.move_frame
-        if self.stand_y < -self.sy:  # 아래쪽 화면 범위 밖으로 나갔을때
-            return 1  # 저글링이 화면 밖으로 나갔으니 없애버려라
         if self.stand_x + self.speed * 0.707 >= window_size[0] - round(self.stand_sx / 2):
             self.x_move(window_size[0] - (self.stand_x + round(self.stand_sx / 2)))
             self.direction = random.randrange(1, 3)
 
-class Die_Zergling(Obj):
-    die_sound = load_wav('zzedth01.wav')
-    die_sound.set_volume(8)
 
+class Die_Zergling(Obj):
+    img = None
+    sound = None
+    list = []
     def __init__(self, x, y):
         super().__init__()
         self.x = x
@@ -783,10 +809,11 @@ class Die_Zergling(Obj):
         self.die_frame += 1
 
     def show(self):
-        Zergling.die_img.clip_draw(self.img_now_x, 0, 130, 106, self.x, self.y)
+        Die_Zergling.img.clip_draw(self.img_now_x, 0, 130, 106, self.x, self.y)
 
     def play_sound(self):
-        Die_Zergling.die_sound.play()
+        Die_Zergling.sound.play()
+
 
 def crash(a, b):
     if a.hit_sx <= 0 or b.hit_sx <= 0:
@@ -797,6 +824,7 @@ def crash(a, b):
         return True
     else:
         return False
+
 
 def bullet_crash(a, b):
     if a.sx <= 0:
@@ -809,24 +837,22 @@ def bullet_crash(a, b):
     else:
         return False
 
+
 def get_rad(x1, y1, x2, y2):
     return math.atan2(y2 - y1, x2 - x1)
 
-def marien_rotate():  # 현재 이미지와 움직임을 입력할때 바뀔 이미지의 갭을 메꾸기 위한 함수 자연스럽게 회전하둣이,근데 절대 오래걸리면 안됨, 항상 0.1초가 걸리게 조절해도 됨.
-    pass  # 양쪽 회전 해야할 정도를 비교해서 짧은쪽 우선, 180도 회전해야하면 항상 우회전
 
 def handle_events():
-    global SB
     for event in get_events():
         if event.type == SDL_QUIT:
-            SB = 1
+            game_framework.quit()
         if event.type == SDL_MOUSEMOTION:
             cursor.x, cursor.y = event.x, window_size[1] - 1 - event.y
             cursor.draw_x = cursor.x + 20
             cursor.draw_y = cursor.y - 21
         if event.type == SDL_KEYDOWN:
             if event.key == SDLK_ESCAPE:
-                SB = 1
+                game_framework.quit()
         for marine in Marine.list:
             marine.handle_events(event)
     for marine in Marine.list:
@@ -834,11 +860,12 @@ def handle_events():
 
 
 def make_zergling():
-    if random.random() > 0.95:
+    if random.random() > 0.9:
         Zergling.sum += 1
         zergling = Zergling(random.randrange(round(Zergling.sx / 2), window_size[0] - round(Zergling.sx / 2)),
                             window_size[1] + Zergling.sy)
         Zergling.list.append(zergling)
+
 
 def zergling_list_move():
     zd_list = []
@@ -851,14 +878,26 @@ def zergling_list_move():
             if zgl.move_down() == 1:
                 zd_list.append(i)
                 Zergling.sum -= 1
+            for zz in Zergling.list:
+                if cheak_collision(zgl, zz):
+                    break
         if (zgl.direction == 2):
             if zgl.move_left_down() == 1:
                 zd_list.append(i)
                 Zergling.sum -= 1
+            for zz in Zergling.list:
+                if cheak_collision(zgl, zz):
+                    break
         elif (zgl.direction == 3):
             if zgl.move_right_down() == 1:
                 zd_list.append(i)
                 Zergling.sum -= 1
+            for zz in Zergling.list:
+                if cheak_collision(zgl, zz):
+                    break
+        for mm in Marine.list:
+            if cheak_collision(zgl, mm):
+                break
         if zgl.time % zgl.direction_rand_time == 0:
             j = zgl.direction
             zgl.direction = random.randrange(0, 4)
@@ -868,11 +907,12 @@ def zergling_list_move():
                 zgl.direction_rand_time = zgl.time + random.randrange(10, 30)
             else:
                 zgl.direction_rand_time = zgl.time + random.randrange(50, 200)
-    if len(zd_list) > 1:
-        print(len(zd_list))
+    # if len(zd_list) > 1:
+    #     print(len(zd_list))
     zd_list.sort(reverse=True)
     for d in zd_list:
         del Zergling.list[d]
+
 
 def bullet_move_crash_chack():
     for marine in Marine.list:
@@ -890,7 +930,8 @@ def bullet_move_crash_chack():
                     if bullet_crash(blt, zgl) == True:
                         attack_effect = Effect(blt.x, blt.y)
                         marine.effect_list.append(attack_effect)
-                        marine.play_hit_sound()
+                        # marine.play_hit_sound()
+                        sound.Marine_hit = True
                         db_list.append(i)
                         blt.sx = 0  # 불릿 크기를 0으로 만듦, 겹쳐있는 저글링 동시에 패는걸 막기 위해,
                         zgl.hp -= marine.AD
@@ -898,17 +939,19 @@ def bullet_move_crash_chack():
                             Zergling.sum -= 1
                             dz_list.append(j)
                             # zgl.hit_sx = 0  # 저글링의 크기도 0으로 만듦, 동시에 여러발 흡수하느걸 막기 위해, 충돌체크 조건문에서 걸러짐 # hp 검사로 조건 바꿈
-                        break  # 이제 사라진 불sa릿이기 때문에 다른 저글링이랑 체크 할 필요 없음
+                        break  # 이제 사라진 불릿이기 때문에 다른 저글링이랑 체크 할 필요 없음
                     # elif 다른 유닛 충돌 체크 할 구문
         dz_list.sort(reverse=True)
         db_list.sort(reverse=True)
         for dz in dz_list:
             die_zergling = Die_Zergling(Zergling.list[dz].stand_x, Zergling.list[dz].stand_y - 5)
-            die_zergling.play_sound()
-            Zergling.die_list.append(die_zergling)  # 죽은 저글링 리스트에 추가함
+            # die_zergling.play_sound()
+            sound.Zergling_die = True
+            Die_Zergling.list.append(die_zergling)  # 죽은 저글링 리스트에 추가함
             del Zergling.list[dz]  # 실제 저글링은 삭제
         for db in db_list:
             del marine.bullet_list[db]  # 충돌하거나 나갔던 불릿들 삭제
+
 
 def show_All():
     Zergling.show_All(Zergling)
@@ -923,20 +966,21 @@ def show_All():
             eft.show()
     cursor.show()
 
+
 def animation(frame):
     if frame % 4 == 0:
         for marine in Marine.list:
             marine.move_frame = (marine.move_frame + 1) % 8
 
-    if (frame + every_3frame) % 3 == 0:  # 3프레임마다 저글링 사망 애니메이션 프레임 증가하는 구간
+    if (frame + every_3frame) % 4 == 0:  # 3프레임마다 저글링 사망 애니메이션 프레임 증가하는 구간
         dz2_list = []
-        for i in range(len(Zergling.die_list)):
-            Zergling.die_list[i].die_anim()
-            if Zergling.die_list[i].die_frame > FPS:  # 일정 시간이 지난 시체 3초
+        for i in range(len(Die_Zergling.list)):
+            Die_Zergling.list[i].die_anim()
+            if Die_Zergling.list[i].die_frame > FPS:  # 일정 시간이 지난 시체 3초
                 dz2_list.append(i)
         dz2_list.sort(reverse=True)
         for dz2 in dz2_list:
-            del Zergling.die_list[dz2]
+            del Die_Zergling.list[dz2]
 
     if (frame + every_6frame) % 6 == 0:
         for zgl in Zergling.list:
@@ -954,55 +998,164 @@ def animation(frame):
     if frame % 10 == 0:
         cursor.frame = (cursor.frame + 1) % 5  # 커서 프레임
 
-SB = 0
-FPS = 100
-frame = 0
-for asdasd in range(3):
-    marine1 = Marine()
-    marine1.x_move(50*asdasd)
-    Marine.list.append(marine1)
-for asdasd in range(3):
-    marine1 = Marine()
-    marine1.x_move(50*asdasd)
-    marine1.y_move(-50)
-    Marine.list.append(marine1)
-for asdasd in range(3):
-    marine1 = Marine()
-    marine1.x_move(50*asdasd)
-    marine1.y_move(-50*2)
-    Marine.list.append(marine1)
-cursor = Cursor()
-hide_cursor()
-every_6frame = 0
-every_3frame = 0
 
-while SB == 0:  # 종료 조건 1초에 한번만 검사
-    for frame in range(0, FPS):
-        # FPS 설정, 배경 초기화
-        SDL_Delay(7)
-        clear_canvas()
-        background_img.clip_draw(0, 0, 1500, 1000, window_size[0] // 2, window_size[1] // 2)
+def play_sound(frame):
+    if (frame + every_3frame) % 6 == 0:
+        if sound.Marine_shoot:
+            Marine.play_shoot_sound(Marine)
+            sound.Marine_shoot = False
+        if sound.Marine_hit:
+            Marine.play_hit_sound(Marine)
+            sound.Marine_hit = False
+        if sound.Zergling_die:
+            Die_Zergling.play_sound(Die_Zergling)
+            sound.Zergling_die = False
 
-        # 각종 입력 감지
-        handle_events()
-        # 입력에 따른 중인공 변화
-        for marine in Marine.list:
-            marine.state_update()
-        # 확률에 따른 적 생성 및 이동
-        make_zergling()
-        zergling_list_move()
-        # 주인공의 공격과 적 충돌체크
-        bullet_move_crash_chack()
+def load_resource():
+    global background_img
+    background_img = load_image('resource\\image\\tile.png')
+    Cursor.arrow_img = load_image('resource\\image\\arrowx200.png')
 
-        # 4-4. 그리기
-        show_All()
-        animation(frame)  # 애니메이션 재생 출력은 아님 상태값만 변경
-        update_canvas()
+    Marine.img = load_image('resource\\marine\\marine250x2_blue.png')
+    Marine.effect_img = load_image('resource\\marine\\attack_effect_blue.png')
+    Marine.hit_sound = load_wav('resource\\bullet\\hit_sound\\06.wav')
+    Marine.hit_sound.set_volume(6)
+    Marine.shoot_sound00 = load_wav('resource\\marine\\shoot_sound\\00.wav')
+    Marine.shoot_sound00.set_volume(16)
+    Marine.shoot_sound01 = load_wav('resource\\marine\\shoot_sound\\01.wav')
+    Marine.shoot_sound01.set_volume(16)
+    Marine.shoot_sound02 = load_wav('resource\\marine\\shoot_sound\\02.wav')
+    Marine.shoot_sound02.set_volume(16)
+    Marine.shoot_sound03 = load_wav('resource\\marine\\shoot_sound\\03.wav')
+    Marine.shoot_sound03.set_volume(16)
 
-    # 일정 프레임마다 수행해줘야 하는 조건문에 필요함 # FPS에 대해 나누어 떨어지면 필요 없음. ex) FPS가 100일때 2,4,5,10,25 등은 설정 안해줘도 됨.
-    # 애니메이션 재생에 필요
-    every_6frame = (FPS + every_6frame) % 6
-    every_3frame = (FPS + every_3frame) % 3
+    Zergling.img = load_image("resource\\zergling\\zerglingx200x2.png")
+    Die_Zergling.img = load_image("resource\\zergling\\die_zergling.png")
+    Die_Zergling.sound = load_wav('resource\\zergling\\zzedth01.wav')
+    Die_Zergling.sound.set_volume(8)
+
+def cheak_collision(unit1, unit2):
+    if unit1 == unit2:
+        return False
+    left = unit1.get_left() - unit2.get_right()
+    right = unit2.get_left() - unit1.get_right()
+
+    bottom = unit1.get_bottom() - unit2.get_top()
+    top = unit2.get_bottom() - unit1.get_top()
+
+    if right <= 0 and left <= 0 and top <= 0 and bottom <= 0:
+        if right >= left and right >= top and right >= bottom:
+            unit1.x_move(right)
+        elif left >= right and left >= top and left >= bottom:
+            unit1.x_move(-left)
+        elif top >= right and top >= left and top >= bottom:
+            unit1.y_move(top)
+        else:
+            unit1.y_move(-bottom)
+        return True
+    return False
+
+FPS = None
+frame = None
+sound = None
+cursor = None
+every_6frame = None
+every_3frame = None
+
+
+def enter():
+    global FPS, frame, sound,cursor, every_6frame, every_3frame
+
+    load_resource()
+    hide_cursor()
+    cursor = Cursor()
+    sound = Sound()
+    FPS = 100
+    frame = 0
+    for asdasd in range(1):
+        marine1 = Marine()
+        marine1.x_move(50 * asdasd)
+        Marine.list.append(marine1)
+    # for asdasd in range(3):
+    #     marine1 = Marine()
+    #     marine1.x_move(50 * asdasd)
+    #     marine1.y_move(-50)
+    #     Marine.list.append(marine1)
+    # for asdasd in range(3):
+    #     marine1 = Marine()
+    #     marine1.x_move(50 * asdasd)
+    #     marine1.y_move(-50 * 2)
+    #     Marine.list.append(marine1)
+    every_6frame = 0
+    every_3frame = 0
+
+#enter()
+
+def exit():
+    global cursor, sound
+    del Marine.list
+    del Zergling.list
+    del Die_Zergling.list
+    del cursor
+    del sound
+
+def update():
+    #SDL_Delay(6)
+    for marine in Marine.list:
+        marine.state_update()
+    # 확률에 따른 적 생성 및 이동
+    make_zergling()
+    zergling_list_move()
+    # 주인공의 공격과 적 충돌체크
+    bullet_move_crash_chack()
+
+
+def draw_woral():
+    show_All()
+
+def draw():
+    global frame
+    global every_6frame, every_3frame
+    # 게임 월드 렌더링
+    clear_canvas()
+    background_img.clip_draw(0, 0, 1500, 1000, window_size[0] // 2, window_size[1] // 2)
+    draw_woral()
+    update_canvas()
+    animation(frame)  # 애니메이션 재생 출력은 아님 상태값만 변경
+    play_sound(frame)
+    frame += 1
+    if frame == FPS:
+        frame = 0
+        every_6frame = (FPS + every_6frame) % 6
+        every_3frame = (FPS + every_3frame) % 3
+    #print(frame)
+
+def pause():
+    pass
+
+def resume():
+    pass
+
+def test_self():
+    import sys
+    this_module = sys.modules['__main__']
+    pico2d.open_canvas(window_size[0], window_size[1], sync=True)
+    game_framework.run(this_module)
+    pico2d.close_canvas()
+
+if __name__ == '__main__':
+    test_self()
+
+# while SB == 0:  # 종료 조건 1초에 한번만 검사
+#     for frame in range(0, FPS):
+#         handle_events()
+#         update()
+#         draw()
+#
+#     # 일정 프레임마다 수행해줘야 하는 조건문에 필요함 # FPS에 대해 나누어 떨어지면 필요 없음. ex) FPS가 100일때 2,4,5,10,25 등은 설정 안해줘도 됨.
+#     # 애니메이션 재생에 필요
+#     every_6frame = (FPS + every_6frame) % 6
+#     every_3frame = (FPS + every_3frame) % 3
 
 # 5. 게임 종료
-close_canvas()
+#close_canvas()
