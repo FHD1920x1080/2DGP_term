@@ -4,14 +4,16 @@ import random
 import math
 
 # 1. 게임 초기화
-window_size = [900, 900]
+window_size = [1200, 900]
 #open_canvas(window_size[0], window_size[1], sync=True)
 background_img = None
 
 
 # 2. 게임창 옵션 설정
 
+
 # 3. 게임 내 필요한 설정
+
 
 class Bullet_anim:
     def __init__(self):
@@ -70,60 +72,61 @@ class Bullet_32:
         self.img.clip_draw(0, 0, self.sx, self.sy, self.x, self.y)
 
     def get_bullet_start(self, marine):
-        x, y = 0, 0
-        if marine.look_now < 17:
-            if marine.look_now == 0:
-                x = marine.x + 8
-                y = marine.y + 30
-            elif marine.look_now == 2:
-                x = marine.x + 20
-                y = marine.y + 28
-            elif marine.look_now == 4:
-                x = marine.x + 34
-                y = marine.y + 22
-            elif marine.look_now == 6:
-                x = marine.x + 40
-                y = marine.y + 10
-            elif marine.look_now == 8:
-                x = marine.x + 40
-                y = marine.y - 2
-            elif marine.look_now == 10:
-                x = marine.x + 40
-                y = marine.y - 12
-            elif marine.look_now == 12:
-                x = marine.x + 34
-                y = marine.y - 26
-            elif marine.look_now == 14:
-                x = marine.x + 15
-                y = marine.y - 30
-            else:  # 16
-                x = marine.x - 5
-                y = marine.y - 30
-        else:  # marine.look_now >= 17
-            if marine.look_now == 30:
-                x = marine.x - 20
-                y = marine.y + 28
-            elif marine.look_now == 28:
-                x = marine.x - 34
-                y = marine.y + 22
-            elif marine.look_now == 26:
-                x = marine.x - 40
-                y = marine.y + 10
-            elif marine.look_now == 24:
-                x = marine.x - 40
-                y = marine.y - 2
-            elif marine.look_now == 22:
-                x = marine.x - 40
-                y = marine.y - 12
-            elif marine.look_now == 20:
-                x = marine.x - 34
-                y = marine.y - 26
-            elif marine.look_now == 18:
-                x = marine.x - 15
-                y = marine.y - 30
-            else:  # 17
-                x = marine.x + 5
-                y = marine.y - 30
+        x, y = marine.stand_x, marine.stand_y + 14
+        if marine.look_now < 10:
+            x += 8
+            y += 4
+        elif marine.look_now > 26:
+            x -= 6
+            y += 4
+        # if marine.look_now < 17:
+        #     if marine.look_now == 0:
+        #         x = marine.x + 7
+        #     elif marine.look_now == 2:
+        #         x = marine.x + 14
+        #     elif marine.look_now == 4:
+        #         x = marine.x + 10
+        #         x = marine.y - 4
+        #     elif marine.look_now == 6:
+        #         x = marine.x + 8
+        #         y = marine.y - 6
+        #     elif marine.look_now == 8:
+        #         x = marine.x + 5
+        #         y = marine.y - 2
+        #     elif marine.look_now == 10:
+        #         x = marine.x + 5
+        #         y = marine.y - 10
+        #     elif marine.look_now == 12:
+        #         x = marine.x + 5
+        #         y = marine.y - 8
+        #     elif marine.look_now == 14:
+        #         y = marine.y - 13
+        #     else:  # 16
+        #         x = marine.x - 8
+        # else:  # marine.look_now >= 17
+        #     if marine.look_now == 30:
+        #         x = marine.x - 18
+        #         y = marine.y + 9
+        #     elif marine.look_now == 28:
+        #         x = marine.x - 14
+        #         y = marine.y + 10
+        #     elif marine.look_now == 26:
+        #         x = marine.x - 20
+        #         y = marine.y + 10
+        #     elif marine.look_now == 24:
+        #         x = marine.x - 20
+        #         y = marine.y - 2
+        #     elif marine.look_now == 22:
+        #         x = marine.x - 20
+        #         y = marine.y - 12
+        #     elif marine.look_now == 20:
+        #         x = marine.x - 14
+        #         y = marine.y - 26
+        #     elif marine.look_now == 18:
+        #         x = marine.x - 10
+        #         y = marine.y - 30
+        #     else:  # 17
+        #         x = marine.x + 8
 
         return x, y
 
@@ -320,6 +323,8 @@ class Obj:
 class RealObj(Obj):
     def __init__(self):
         super().__init__()
+        self.hit_y = None
+        self.hit_x = None
         self.stand_x, self.stand_y = 0, 0  # 서있는 좌표의 중앙 그리는건 중앙점과 서있는점의 차이를 더해줌.
         self.stand_sx, self.stand_sy = 0, 0  # 유닛이 지나갈 수 있는 발판 크기
         self.look_now = 0  # 바라보고 있는방향 0 이 북쪽 0~15 16가지
@@ -334,6 +339,18 @@ class RealObj(Obj):
         self.stand_y += y
         self.hit_y += y
 
+    def move_point(self, x, y):
+        a = self.stand_x - self.x
+        b = self.stand_x - self.hit_x
+        self.stand_x = x
+        self.x = x - a
+        self.hit_x = x - b
+
+        c = self.stand_y - self.y
+        d = self.stand_y - self.hit_y
+        self.stand_y = y
+        self.y = y - c
+        self.hit_y = y - d
     def get_left(self):
         return self.stand_x - self.stand_sx // 2
 
@@ -390,13 +407,13 @@ class Marine(RealObj):
         self.move_frame = 0  # 마린의 걸어다니는 애니메이션을 위한 프레임
         self.idle_frame = 0  # 아무것도 안한 시간만큼의 프레임
         self.shoot_idle_frame = 0  # 총을 안쏜 시간만큼의 프레임
-        self.bullet_speed = 20  # 탄속
+        self.bullet_speed = 30  # 탄속
         self.moving_attack = False  # 1이면 움직이면서 공격 가능 g키
-        self.nfs = 6  # 몇프레임당 공격이 나갈건지
+        self.nfs = 12  # 몇프레임당 공격이 나갈건지
         self.n_shot = 1  # 산탄량
         self.accuracy = 10  # 총의 정확도, 정확이는 오차율 0이 가장 높은 스텟
         self.interrupted_fire = 5  # 몇점사, 쏘는 시간만큼 쉼
-        self.magazine_gun = False  # 연사모드
+        self.magazine_gun = True  # 연사모드
         self.LEFT_DOWN = False  # 마우스 왼쪽버튼이 눌렸었는지 선입력 체크하기위한 변수
         self.LEFT_UP = True  # 마우스버튼이 눌렸다가 때졌는지 선입력 체크하기위한 변수 # 스무스한 점사 무빙을 위해 필요함
 
@@ -648,11 +665,15 @@ class Marine(RealObj):
                 # self.play_shoot_sound()
                 sound.Marine_shoot = True
                 for i in range(self.n_shot):
-                    a = get_rad(self.x, self.y, cursor.x, cursor.y)
+                    a = get_rad(self.stand_x, self.stand_y, cursor.x, cursor.y)
                     self.look_now = self.get_look_now(a)  # 각도를 가지고 마린이 바라볼 방향 정함.
                     x2, y2 = cursor.x + random.randint(-self.accuracy, self.accuracy), cursor.y + random.randint(
                         -self.accuracy, self.accuracy)
                     bullet = Bullet_32(self, x2, y2)
+                    # if bullet.r == 0:
+                    #     print(bullet.x1, bullet.x2)
+                    #     del bullet
+                    #     return
                     self.bullet_list.append(bullet)
                     self.shoot_idle = False
                     self.idle = False
@@ -665,8 +686,7 @@ class Marine(RealObj):
     def state_update(self):
         self.move()
         for mm in Marine.list:
-            if cheak_collision(self, mm):
-                break
+            cheak_collision(self, mm)
         self.shoot()
         self.shoot_frame += 1  # 0~59
         if self.magazine_gun == False:
@@ -704,6 +724,8 @@ class Zergling(RealObj):
     list = []
     sx = 80
     sy = 78
+    stand_sx = 36
+    stand_sy = 32
     hit_sx = 44
     hit_sy = 40
     hp = 3
@@ -717,14 +739,14 @@ class Zergling(RealObj):
         self.img_now = [692, 1138]  ##86, 84 씩 옮겨야 함
         self.stand_x = x
         self.stand_y = y
+        self.stand_sx = Zergling.stand_sx
+        self.stand_sy = Zergling.stand_sy
         self.x = self.stand_x
-        self.y = self.stand_y
+        self.y = self.stand_y + 5
         self.hit_x = self.x
         self.hit_y = self.y
         self.hit_sx = Zergling.hit_sx
         self.hit_sy = Zergling.hit_sx
-        self.stand_sx = self.hit_sx
-        self.stand_sy = self.hit_sy
         self.speed = Zergling.speed
         self.move_frame = 0
         self.time = 0  # direction_rand_time
@@ -737,6 +759,7 @@ class Zergling(RealObj):
     def show_All(self):
         for zg in Die_Zergling.list:
             zg.show()
+
         for zg in Zergling.list:
             zg.show()
 
@@ -853,6 +876,14 @@ def handle_events():
         if event.type == SDL_KEYDOWN:
             if event.key == SDLK_ESCAPE:
                 game_framework.quit()
+            if event.key == SDLK_EQUALS:
+                marine1 = Marine()
+                last_marine = Marine.list[len(Marine.list)-1]
+                marine1.move_point(last_marine.stand_x+40, last_marine.stand_y)
+                Marine.list.append(marine1)
+            if event.key == SDLK_MINUS:
+                if len(Marine.list) > 1:
+                    del Marine.list[len(Marine.list)-1]
         for marine in Marine.list:
             marine.handle_events(event)
     for marine in Marine.list:
@@ -860,7 +891,7 @@ def handle_events():
 
 
 def make_zergling():
-    if random.random() > 0.9:
+    if random.random() > 0.97:
         Zergling.sum += 1
         zergling = Zergling(random.randrange(round(Zergling.sx / 2), window_size[0] - round(Zergling.sx / 2)),
                             window_size[1] + Zergling.sy)
@@ -879,25 +910,21 @@ def zergling_list_move():
                 zd_list.append(i)
                 Zergling.sum -= 1
             for zz in Zergling.list:
-                if cheak_collision(zgl, zz):
-                    break
+                cheak_collision(zgl, zz)
         if (zgl.direction == 2):
             if zgl.move_left_down() == 1:
                 zd_list.append(i)
                 Zergling.sum -= 1
             for zz in Zergling.list:
-                if cheak_collision(zgl, zz):
-                    break
+                cheak_collision(zgl, zz)
         elif (zgl.direction == 3):
             if zgl.move_right_down() == 1:
                 zd_list.append(i)
                 Zergling.sum -= 1
             for zz in Zergling.list:
-                if cheak_collision(zgl, zz):
-                    break
+                cheak_collision(zgl, zz)
         for mm in Marine.list:
-            if cheak_collision(zgl, mm):
-                break
+            cheak_collision(zgl, mm)
         if zgl.time % zgl.direction_rand_time == 0:
             j = zgl.direction
             zgl.direction = random.randrange(0, 4)
@@ -921,8 +948,7 @@ def bullet_move_crash_chack():
         for i in range(len(marine.bullet_list)):  # 불릿을 이동 시킨 후 범위탈출 및 충돌 체크
             blt = marine.bullet_list[i]
             blt.move()
-            if blt.y > window_size[1] + 60 or blt.y < - 60 or blt.x > window_size[
-                0] + 60 or blt.x < - 60:  # 지금은 화면 밖인데 나중에 벽으로 바꿀 예정, 화면 밖 멀리에 벽을 둘 예정, 또 벽에 충돌하면 먼지 이펙트같은것도 추가 예정
+            if blt.y > window_size[1] + 60 or blt.y < - 60 or blt.x > window_size[0] + 60 or blt.x < - 60:  # 지금은 화면 밖인데 나중에 벽으로 바꿀 예정, 화면 밖 멀리에 벽을 둘 예정, 또 벽에 충돌하면 먼지 이펙트같은것도 추가 예정
                 db_list.append(i)  # 총알이 범위 밖으로 나갔으니 삭제 리스트에 추가
             else:  # 나간 총알이랑은 충돌 체크 할 필요 없으니 안나간 것만 충돌체크
                 for j in range(len(Zergling.list)):
@@ -942,13 +968,13 @@ def bullet_move_crash_chack():
                         break  # 이제 사라진 불릿이기 때문에 다른 저글링이랑 체크 할 필요 없음
                     # elif 다른 유닛 충돌 체크 할 구문
         dz_list.sort(reverse=True)
-        db_list.sort(reverse=True)
         for dz in dz_list:
             die_zergling = Die_Zergling(Zergling.list[dz].stand_x, Zergling.list[dz].stand_y - 5)
             # die_zergling.play_sound()
             sound.Zergling_die = True
             Die_Zergling.list.append(die_zergling)  # 죽은 저글링 리스트에 추가함
             del Zergling.list[dz]  # 실제 저글링은 삭제
+        db_list.sort(reverse=True)
         for db in db_list:
             del marine.bullet_list[db]  # 충돌하거나 나갔던 불릿들 삭제
 
@@ -1074,7 +1100,7 @@ def enter():
     frame = 0
     for asdasd in range(1):
         marine1 = Marine()
-        marine1.x_move(50 * asdasd)
+        marine1.x_move(40 * asdasd)
         Marine.list.append(marine1)
     # for asdasd in range(3):
     #     marine1 = Marine()
@@ -1089,7 +1115,6 @@ def enter():
     every_6frame = 0
     every_3frame = 0
 
-#enter()
 
 def exit():
     global cursor, sound
@@ -1109,8 +1134,8 @@ def update():
     # 주인공의 공격과 적 충돌체크
     bullet_move_crash_chack()
 
-
 def draw_woral():
+    background_img.draw(window_size[0] // 2, window_size[1] // 2)
     show_All()
 
 def draw():
@@ -1118,9 +1143,10 @@ def draw():
     global every_6frame, every_3frame
     # 게임 월드 렌더링
     clear_canvas()
-    background_img.clip_draw(0, 0, 1500, 1000, window_size[0] // 2, window_size[1] // 2)
+    #print_fps()
     draw_woral()
     update_canvas()
+
     animation(frame)  # 애니메이션 재생 출력은 아님 상태값만 변경
     play_sound(frame)
     frame += 1
@@ -1145,17 +1171,3 @@ def test_self():
 
 if __name__ == '__main__':
     test_self()
-
-# while SB == 0:  # 종료 조건 1초에 한번만 검사
-#     for frame in range(0, FPS):
-#         handle_events()
-#         update()
-#         draw()
-#
-#     # 일정 프레임마다 수행해줘야 하는 조건문에 필요함 # FPS에 대해 나누어 떨어지면 필요 없음. ex) FPS가 100일때 2,4,5,10,25 등은 설정 안해줘도 됨.
-#     # 애니메이션 재생에 필요
-#     every_6frame = (FPS + every_6frame) % 6
-#     every_3frame = (FPS + every_3frame) % 3
-
-# 5. 게임 종료
-#close_canvas()
