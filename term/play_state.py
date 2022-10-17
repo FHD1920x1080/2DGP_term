@@ -407,7 +407,7 @@ class Marine(RealObj):
         self.move_frame = 0  # 마린의 걸어다니는 애니메이션을 위한 프레임
         self.idle_frame = 0  # 아무것도 안한 시간만큼의 프레임
         self.shoot_idle_frame = 0  # 총을 안쏜 시간만큼의 프레임
-        self.bullet_speed = 30  # 탄속
+        self.bullet_speed = 20  # 탄속
         self.moving_attack = False  # 1이면 움직이면서 공격 가능 g키
         self.nfs = 12  # 몇프레임당 공격이 나갈건지
         self.n_shot = 1  # 산탄량
@@ -866,6 +866,7 @@ def get_rad(x1, y1, x2, y2):
 
 
 def handle_events():
+    global zm
     for event in get_events():
         if event.type == SDL_QUIT:
             game_framework.quit()
@@ -884,14 +885,18 @@ def handle_events():
             if event.key == SDLK_MINUS:
                 if len(Marine.list) > 1:
                     del Marine.list[len(Marine.list)-1]
+            if event.key == SDLK_o:
+                zm = 0.97
+            if event.key == SDLK_p:
+                zm = 0.7
         for marine in Marine.list:
             marine.handle_events(event)
     for marine in Marine.list:
         marine.check_magazine()
 
-
+zm = None
 def make_zergling():
-    if random.random() > 0.97:
+    if random.random() > zm:
         Zergling.sum += 1
         zergling = Zergling(random.randrange(round(Zergling.sx / 2), window_size[0] - round(Zergling.sx / 2)),
                             window_size[1] + Zergling.sy)
@@ -1090,8 +1095,8 @@ every_3frame = None
 
 
 def enter():
-    global FPS, frame, sound,cursor, every_6frame, every_3frame
-
+    global FPS, frame, sound,cursor, every_6frame, every_3frame, zm
+    zm = 0.97
     load_resource()
     hide_cursor()
     cursor = Cursor()
