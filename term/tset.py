@@ -1,24 +1,25 @@
-from pico2d import *
-import math
-open_canvas()
-head = load_image('head.png')
-leg = load_image('leg.png')
 
-x = 400
-y = 300
+class obj1:
+    def __init__(self):
+        self.x = 1
+        self.y = 1
 
-#76 76
-while True:
-    for f in range(0,10):
-        clear_canvas()
-        #leg.clip_draw(76 * 8, 760 - 76 - 76 * f, 76, 76, x, y)
-        #head.clip_draw(76 * 8, 760 - 76 - 76 * f, 76, 76, x, y)
-        head.clip_draw(76 * 0, 760 - 76 - 76 * 7, 76, 76, x, y)
-        update_canvas()
-        delay(0.05)
-        head.clip_draw(76 * 0, 760 - 76 - 76 * 9, 76, 76, x, y)
-        update_canvas()
-        delay(0.05)
-        print(f)
+class obj2:
+    def __init__(self):
+        self.x = 2
+        self.y = 2
 
-close_canvas()
+a_list = []
+
+b_list = []
+def append_list():
+    ob1 = obj1()
+    a_list.append(ob1)
+    b_list.append(ob1)
+
+append_list()
+print(a_list[0].x)
+print(b_list[0].x)
+del b_list[0]
+print(a_list[0].x)
+#print(b_list[0].x)
