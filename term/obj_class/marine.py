@@ -1,5 +1,4 @@
-from obj_class.bullet import *
-import play_state
+from obj_class.obj import *
 
 
 class Marine(RealObj):
@@ -306,7 +305,10 @@ class Marine(RealObj):
                     self.look_now = self.get_look_now(a)  # 각도를 가지고 마린이 바라볼 방향 정함.
                     x2, y2 = play_state.cursor.x + random.randint(-self.accuracy, self.accuracy), play_state.cursor.y + random.randint(
                         -self.accuracy, self.accuracy)
-                    bullet = Bullet_32(self, x2, y2)
+                    bullet = Bullet_32(self, x2, y2) # x1==x2 and y1==y2 일 때 False 반환
+                    if bullet == False:
+                        print('disable')
+                        return
                     # if bullet.r == 0:
                     #     print(bullet.x1, bullet.x2)
                     #     del bullet

@@ -1,9 +1,8 @@
-from obj_class.obj import*
+from pico2d import*
 from func import*
 import play_state
 import random
 import math
-
 class Bullet_anim:
     def __init__(self):
         self.frame = random.randint(0, 4)
@@ -34,17 +33,17 @@ class Bullet_anim:
         self.img_now[0] = self.frame * self.sx
         self.frame = (self.frame + 1) % 5
 
-
 class Bullet_32:
     img = []
-    def __init__(self, marine, x2, y2):
-        self.x1, self.y1 = self.get_bullet_start(marine)  # x1, y1  # 시작 좌표
+    def __init__(self, player, x2, y2):
+        self.x1, self.y1 = self.get_bullet_start(player)  # x1, y1  # 시작 좌표
         self.x2, self.y2 = x2, y2  # 가야할 좌표, 지나치고 계속 가도 됨.
         self.x, self.y = self.x1, self.x2  # 현재 좌표
-        self.speed = marine.bullet_speed  # 생성되는 곳에서 마린의 탄속으로 초기화해주고 있음.
+        self.speed = player.bullet_speed  # 생성되는 곳에서 마린의 탄속으로 초기화해주고 있음.
         self.t = 0  # 브리즌헴 직선 변수
         self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
-
+        if self.r == 0:
+            return False#조준한 위치가 출발점과 같을 때 이동불가
         self.num = self.get_bullet_num(get_rad(self.x1, self.y1, self.x2, self.y2))
         self.img = Bullet_32.img[self.num]
         #self.sx, self.sy = self.get_bullet_size(self.num)
@@ -74,12 +73,12 @@ class Bullet_32:
     def show(self):
         self.img.draw(self.x, self.y)
 
-    def get_bullet_start(self, marine):
-        x, y = marine.stand_x, marine.stand_y + 14
-        if marine.look_now < 10:
+    def get_bullet_start(self, player):
+        x, y = player.stand_x, player.stand_y + 14
+        if player.look_now < 10:
             x += 8
             y += 4
-        elif marine.look_now > 26:
+        elif player.look_now > 26:
             x -= 6
             y += 4
 
@@ -164,11 +163,11 @@ class Bullet_32:
 
     @staticmethod
     def move_crash_chack():
-        for marine in play_state.Marine.list:
+        for player in play_state.Marine.list:
             db_list = []
             dz_list = []
-            for i in range(len(marine.bullet_list)):  # 불릿을 이동 시킨 후 범위탈출 및 충돌 체크
-                blt = marine.bullet_list[i]
+            for i in range(len(player.bullet_list)):  # 불릿을 이동 시킨 후 범위탈출 및 충돌 체크
+                blt = player.bullet_list[i]
                 blt.move()
                 if blt.y > play_state.window_size[1] + 60 or blt.y < - 60 or blt.x > play_state.window_size[
                     0] + 60 or blt.x < - 60:  # 지금은 화면 밖인데 나중에 벽으로 바꿀 예정, 화면 밖 멀리에 벽을 둘 예정, 또 벽에 충돌하면 먼지 이펙트같은것도 추가 예정
@@ -178,12 +177,12 @@ class Bullet_32:
                         zgl = play_state.Zergling.list[j]
                         if bullet_crash(blt, zgl) == True:
                             attack_effect = Effect(blt.x, blt.y)
-                            marine.effect_list.append(attack_effect)
-                            # marine.play_hit_sound()
+                            player.effect_list.append(attack_effect)
+                            # player.play_hit_sound()
                             play_state.sound.Marine_hit = True
                             db_list.append(i)
                             blt.exist = False  # 아직 삭제 시킬 수 없으므로 존재변수를 0으로 함, 겹쳐있는 저글링 동시에 패는걸 막기 위해,
-                            zgl.hp -= marine.AD
+                            zgl.hp -= player.AD
                             if zgl.hp <= 0:
                                 play_state.Zergling.sum -= 1
                                 dz_list.append(j)
@@ -199,9 +198,9 @@ class Bullet_32:
                 del play_state.Zergling.list[dz]  # 실제 저글링은 삭제
             db_list.sort(reverse=True)
             for db in db_list:
-                del marine.bullet_list[db]  # 충돌하거나 나갔던 불릿들 삭제
+                del player.bullet_list[db]  # 충돌하거나 나갔던 불릿들 삭제
 
-class Effect(Obj):
+class Effect():
     crash_img = None
     def __init__(self, x, y):
         self.x = x

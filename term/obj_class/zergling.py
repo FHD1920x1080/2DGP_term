@@ -1,5 +1,4 @@
-from obj_class.bullet import *
-import play_state
+from obj_class.obj import *
 
 class Zergling(RealObj):
     sum = 0

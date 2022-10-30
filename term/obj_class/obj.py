@@ -1,9 +1,12 @@
-from pico2d import *
+from obj_class.bullet import *
+
+
 class Obj:
     def __init__(self):
         self.x, self.y = 0, 0  # 좌표
         self.sx, self.sy = 0, 0  # 한칸 씩 자른 이미지 사이즈
         self.img = None
+
     def put_img(self, file):
         self.img = load_image(file)
 
@@ -15,6 +18,7 @@ class Obj:
 
     def show(self):
         self.img.clip_draw(self.img_now[0], self.img_now[1], self.sx, self.sy, self.x, self.y)
+
 
 class RealObj(Obj):
     def __init__(self):
@@ -47,6 +51,7 @@ class RealObj(Obj):
         self.stand_y = y
         self.y = y - c
         self.hit_y = y - d
+
     def get_left(self):
         return self.stand_x - self.stand_sx // 2
 

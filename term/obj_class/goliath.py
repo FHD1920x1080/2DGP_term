@@ -1,5 +1,4 @@
-from obj_class.bullet import *
-import play_state
+from obj_class.obj import *
 
 RD, LD, RU, LU = range(4)
 key_event_table = {
@@ -77,7 +76,7 @@ class Goliath(RealObj):
         self.speed = 3  # 이동속도
 
 
-        self.LD = False  # 왼쪽으로 가는키가 눌렸는지
+        self.left_move = False  # 왼쪽으로 가는키가 눌렸는지
         self.right_move = False
         self.up_move = False
         self.down_move = False

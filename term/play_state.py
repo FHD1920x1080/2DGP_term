@@ -1,9 +1,6 @@
 from obj_class.marine import *
 from obj_class.zergling import *
-from obj_class.bullet import *
-from obj_class.obj import *
 from obj_class.cursor import *
-
 import game_framework
 import camera
 
@@ -48,8 +45,6 @@ def handle_events():
                 Zergling.zm = 0.3
         for marine in Marine.list:
             marine.handle_events(event)
-    for marine in Marine.list:
-        marine.check_magazine()
 
 def animation(frame):
     if frame % 4 == 0:
@@ -155,6 +150,7 @@ def exit():
 def update():
     SDL_Delay(6)
     for marine in Marine.list:
+        marine.check_magazine()
         marine.state_update()
     # 확률에 따른 적 생성 및 이동
 
