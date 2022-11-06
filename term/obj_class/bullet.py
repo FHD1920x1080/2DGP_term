@@ -1,5 +1,6 @@
 from pico2d import*
 from func import*
+import game_world
 import play_state
 import random
 import math
@@ -49,11 +50,6 @@ class Bullet_32:
         #self.sx, self.sy = self.get_bullet_size(self.num)
         self.exist = True #충돌 수 False로 바꿔줄 변수
 
-    def put_img(self, file):
-        self.img = load_image(file)  # 지금은 총알 하나씩 읽어들이고 있어서 크게 나쁘지 않은데, 전체 스프라이트 하나 읽고 좌표값만 바꾸는게 나은지 아직 모름.
-        self.sx, self.sy = 0, 0  # 한칸 씩 자른 이미지 사이즈
-
-
     def x_move(self, x):
         self.x += x
         self.x1 += x
@@ -74,15 +70,16 @@ class Bullet_32:
         self.img.draw(self.x, self.y)
 
     def get_bullet_start(self, player):
-        x, y = player.stand_x, player.stand_y + 14
-        if player.look_now < 10:
-            x += 8
-            y += 4
-        elif player.look_now > 26:
-            x -= 6
-            y += 4
+        if player.unit_type == 0:# 마린일 때 1 은 골리앗
+            x, y = player.stand_x, player.stand_y + 14
+            if player.look_now < 10:
+                x += 8
+                y += 4
+            elif player.look_now > 26:
+                x -= 8
+                y += 4
 
-        return x, y
+            return x, y
 
     def get_bullet_num(self, rad):
         # a5625 = 0.09817477
@@ -184,21 +181,22 @@ class Bullet_32:
                             blt.exist = False  # 아직 삭제 시킬 수 없으므로 존재변수를 0으로 함, 겹쳐있는 저글링 동시에 패는걸 막기 위해,
                             zgl.hp -= player.AD
                             if zgl.hp <= 0:
-                                play_state.Zergling.sum -= 1
                                 dz_list.append(j)
                                 # zgl.hit_sx = 0  # 저글링의 크기도 0으로 만듦, 동시에 여러발 흡수하느걸 막기 위해, 충돌체크 조건문에서 걸러짐 # hp 검사로 조건 바꿈
                             break  # 이제 사라진 불릿이기 때문에 다른 저글링이랑 체크 할 필요 없음
                         # elif 다른 유닛 충돌 체크 할 구문
             dz_list.sort(reverse=True)
             for dz in dz_list:
-                die_zergling = play_state.Die_Zergling(play_state.Zergling.list[dz].stand_x, play_state.Zergling.list[dz].stand_y - 5)
-                # die_zergling.play_sound()
-                play_state.sound.Zergling_die = True
-                play_state.Die_Zergling.list.append(die_zergling)  # 죽은 저글링 리스트에 추가함
-                del play_state.Zergling.list[dz]  # 실제 저글링은 삭제
+                play_state.Zergling.list[dz].die()
             db_list.sort(reverse=True)
             for db in db_list:
                 del player.bullet_list[db]  # 충돌하거나 나갔던 불릿들 삭제
+
+    @staticmethod
+    def load_resource():
+        for i in range(0, 32):
+            Bullet_32.img.append(load_image("resource\\bullet\\" + str(i) + ".png"))
+        Effect.load_resource()
 
 class Effect():
     crash_img = None
@@ -215,3 +213,7 @@ class Effect():
 
     def show(self):
         Effect.crash_img.clip_draw(0, self.img_now_y, 80, 80, self.x, self.y)
+
+    @staticmethod
+    def load_resource():
+        Effect.crash_img = load_image('resource\\marine\\attack_effect_blue.png')

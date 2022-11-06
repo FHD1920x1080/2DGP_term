@@ -21,6 +21,10 @@ class Obj:
 
 
 class RealObj(Obj):
+    x_gap = None
+    hit_x_gap = None
+    y_gap = None
+    hit_y_gap = None
     def __init__(self):
         super().__init__()
         self.hit_y = None
@@ -28,6 +32,14 @@ class RealObj(Obj):
         self.stand_x, self.stand_y = 0, 0  # 서있는 좌표의 중앙 그리는건 중앙점과 서있는점의 차이를 더해줌.
         self.stand_sx, self.stand_sy = 0, 0  # 유닛이 지나갈 수 있는 발판 크기
         self.look_now = 0  # 바라보고 있는방향 0 이 북쪽 0~15 16가지
+
+    def x_update(self):
+        self.x = self.stand_x + self.x_gap
+        self.hit_x = self.stand_x + self.hit_x_gap
+
+    def y_update(self):
+        self.y = self.stand_y + self.y_gap
+        self.hit_y = self.stand_y + self.hit_y_gap
 
     def x_move(self, x):
         self.x += x
@@ -38,6 +50,14 @@ class RealObj(Obj):
         self.y += y
         self.stand_y += y
         self.hit_y += y
+
+    def x_move_point(self, x):
+        self.stand_x = x
+        self.x_update()
+
+    def y_move_point(self, y):
+        self.stand_y = y
+        self.y_update()
 
     def move_point(self, x, y):
         a = self.stand_x - self.x

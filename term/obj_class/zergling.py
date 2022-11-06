@@ -96,6 +96,58 @@ class Zergling(RealObj):
             self.x_move(play_state.window_size[0] - (self.stand_x + round(self.stand_sx / 2)))
             self.direction = random.randrange(1, 3)
 
+    def move(self):
+        self.time += 1
+        if (self.direction == 0):
+            self.stop()
+        elif (self.direction == 1):
+            if self.move_down() == 1:
+                Zergling.sum -= 1
+                return 1
+        if (self.direction == 2):
+            if self.move_left_down() == 1:
+                Zergling.sum -= 1
+                return 1
+        elif (self.direction == 3):
+            if self.move_right_down() == 1:
+                Zergling.sum -= 1
+                return 1
+        for zz in Zergling.list:
+            cheak_collision(self, zz)
+        for mm in play_state.Marine.list:
+            cheak_collision(self, mm)
+
+        if self.time % self.direction_rand_time == 0:
+            j = self.direction
+            self.direction = random.randrange(0, 4)
+            if j == 0 and self.direction != 0:  # 멈춰있었다가 움직이면 무브프레임 초기화
+                self.move_frame = 0
+            if self.direction == 0:
+                self.direction_rand_time = self.time + random.randrange(10, 30)
+            else:
+                self.direction_rand_time = self.time + random.randrange(50, 200)
+
+    def die(self):
+        die_zergling = Die_Zergling(self.stand_x, self.stand_y - 5)
+        play_state.sound.Zergling_die = True
+        Die_Zergling.list.append(die_zergling)  # 죽은 저글링 리스트에 추가함
+        Zergling.list.remove(self)
+        del self  # 실제 저글링은 삭제
+        print(len(Zergling.list))
+        pass
+    @staticmethod
+    def list_move():
+        zd_list = []
+        for i in range(len(Zergling.list)):  # 저글링 다운
+            zgl = Zergling.list[i]
+            if zgl.move() == 1:
+                zd_list.append(i)
+
+        zd_list.sort(reverse=True)
+        for d in zd_list:
+            #Zergling.list[d].die()
+            del Zergling.list[d]
+
     @staticmethod
     def make_zergling():
         if random.random() <= Zergling.zm:
@@ -103,49 +155,10 @@ class Zergling(RealObj):
             zergling = Zergling(random.randrange(round(Zergling.sx / 2), play_state.window_size[0] - round(Zergling.sx / 2)),
                                 play_state.window_size[1] + Zergling.sy)
             Zergling.list.append(zergling)
-
     @staticmethod
-    def list_move():
-        zd_list = []
-        for i in range(len(Zergling.list)):  # 저글링 다운
-            zgl = Zergling.list[i]
-            zgl.time += 1
-            if (zgl.direction == 0):
-                zgl.stop()
-            elif (zgl.direction == 1):
-                if zgl.move_down() == 1:
-                    zd_list.append(i)
-                    Zergling.sum -= 1
-                for zz in Zergling.list:
-                    cheak_collision(zgl, zz)
-            if (zgl.direction == 2):
-                if zgl.move_left_down() == 1:
-                    zd_list.append(i)
-                    Zergling.sum -= 1
-                for zz in Zergling.list:
-                    cheak_collision(zgl, zz)
-            elif (zgl.direction == 3):
-                if zgl.move_right_down() == 1:
-                    zd_list.append(i)
-                    Zergling.sum -= 1
-                for zz in Zergling.list:
-                    cheak_collision(zgl, zz)
-            for mm in play_state.Marine.list:
-                cheak_collision(zgl, mm)
-            if zgl.time % zgl.direction_rand_time == 0:
-                j = zgl.direction
-                zgl.direction = random.randrange(0, 4)
-                if j == 0 and zgl.direction != 0:  # 멈춰있었다가 움직이면 무브프레임 초기화
-                    zgl.move_frame = 0
-                if zgl.direction == 0:
-                    zgl.direction_rand_time = zgl.time + random.randrange(10, 30)
-                else:
-                    zgl.direction_rand_time = zgl.time + random.randrange(50, 200)
-        # if len(zd_list) > 1:
-        #     print(len(zd_list))
-        zd_list.sort(reverse=True)
-        for d in zd_list:
-            del Zergling.list[d]
+    def load_resource():
+        Zergling.img = load_image("resource\\zergling\\zerglingx200x2.png")
+        Die_Zergling.load_resource()
 
 
 class Die_Zergling(Obj):
@@ -170,3 +183,20 @@ class Die_Zergling(Obj):
 
     def play_sound(self):
         Die_Zergling.sound.play()
+
+    @staticmethod
+    def anim():
+        dz2_list = []
+        for i in range(len(Die_Zergling.list)):
+            Die_Zergling.list[i].die_anim()
+            if Die_Zergling.list[i].die_frame > play_state.FPS:  # 일정 시간이 지난 시체 3초
+                dz2_list.append(i)
+        dz2_list.sort(reverse=True)
+        for dz2 in dz2_list:
+            del Die_Zergling.list[dz2]
+
+    @staticmethod
+    def load_resource():
+        Die_Zergling.img = load_image("resource\\zergling\\die_zergling.png")
+        Die_Zergling.sound = load_wav('resource\\zergling\\zzedth01.wav')
+        Die_Zergling.sound.set_volume(8)

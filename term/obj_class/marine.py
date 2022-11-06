@@ -10,6 +10,7 @@ class Marine(RealObj):
     shoot_sound01 = None
     shoot_sound02 = None
     shoot_sound03 = None
+    unit_type = 0 # 총알에서 마린인걸 인식하는데 씀, 골리앗은 1
     def __init__(self):
         super().__init__()
         self.bullet_list = []  # 발사된 총알 리스트
@@ -50,9 +51,14 @@ class Marine(RealObj):
         self.accuracy = 10  # 총의 정확도, 정확이는 오차율 0이 가장 높은 스텟
         self.interrupted_fire = 5  # 몇점사, 쏘는 시간만큼 쉼
         self.magazine_gun = True  # 연사모드
-        self.LEFT_DOWN = False  # 마우스 왼쪽버튼이 눌렸었는지 선입력 체크하기위한 변수
-        self.LEFT_UP = True  # 마우스버튼이 눌렸다가 때졌는지 선입력 체크하기위한 변수 # 스무스한 점사 무빙을 위해 필요함
+        self.LEFT_DOWN = False  # 마우스 왼쪽버튼이 눌렸었는지 선입력 체크하기위한 변수 # 자연스러운 점사 무빙을 위해 필요함 # shoot_able이랑 별개임
 
+    def show(self):
+        self.img.clip_draw(self.img_now[0], self.img_now[1], self.sx, self.sy, self.x, self.y)
+        for blt in self.bullet_list: # 나쁘진 않은 방법인데 마린이 죽으면 발사된 총알이랑 이펙트가 같이 사라짐 ㅋㅋ 상관없나 ㅋㅋ
+            blt.show()
+        for eft in self.effect_list:
+            eft.show()
     def play_shoot_sound(self):
         i = random.randint(0, 3)
         if i == 0:
@@ -77,7 +83,6 @@ class Marine(RealObj):
                         self.move_able = False
                 else:
                     self.LEFT_DOWN = True
-                    self.LEFT_UP = False
         elif event.type == SDL_MOUSEBUTTONUP:
             if event.button == SDL_BUTTON_LEFT:
                 if self.magazine_gun == True:
@@ -87,7 +92,6 @@ class Marine(RealObj):
                     self.move_able = True
                     self.img_now = 30 + 160 * self.look_now, 1780
                 else:
-                    self.LEFT_UP = True
                     self.LEFT_DOWN = False
 
         if event.type == SDL_KEYDOWN:
@@ -111,16 +115,15 @@ class Marine(RealObj):
             if event.key == SDLK_f:
                 self.nfs += 1
             if event.key == SDLK_g:
-                if self.moving_attack == False:
-                    self.moving_attack = True
-                elif self.moving_attack == True:
+                if self.moving_attack:
                     self.moving_attack = False
+                else:
+                    self.moving_attack = True
             if event.key == SDLK_1:
                 if self.magazine_gun == True:
                     self.magazine_gun = False
                     self.nfs //= 2
                     self.LEFT_DOWN = False
-                    self.LEFT_UP = False
                     self.shoot_idle = True
                     self.shoot_idle_frame = 0
                     if self.nfs <= 0:
@@ -137,24 +140,15 @@ class Marine(RealObj):
                         self.move_able = False
                 else:
                     self.LEFT_DOWN = True
-                    self.LEFT_UP = False
         elif event.type == SDL_KEYUP:
             if event.key == SDLK_a:
                 self.left_move = False
-                self.idle = True
-                self.img_now = self.img_now[0], 2100
             elif event.key == SDLK_d:
                 self.right_move = False
-                self.idle = True
-                self.img_now = self.img_now[0], 2100
             if event.key == SDLK_w:
                 self.up_move = False
-                self.idle = True
-                self.img_now = self.img_now[0], 2100
             elif event.key == SDLK_s:
                 self.down_move = False
-                self.idle = True
-                self.img_now = self.img_now[0], 2100
             if event.key == SDLK_SPACE:
                 if self.magazine_gun == True:
                     self.shoot_frame = 0
@@ -163,22 +157,100 @@ class Marine(RealObj):
                     self.move_able = True
                     self.img_now = 30 + 160 * self.look_now, 1780
                 else:
-                    self.LEFT_UP = True
                     self.LEFT_DOWN = False
+
+    def move(self):
+        if self.move_able == True: # 움직이는 상태 말고, 움직여도 되는 상태인지(총쏘고있으면 해당 안됨.)
+            if (self.left_move == True and self.right_move == False) or (
+                    self.left_move == False and self.right_move == True):
+                self.Wmove_able = True
+            else:
+                self.Wmove_able = False
+            if (self.up_move == True and self.down_move == False) or (
+                    self.up_move == False and self.down_move == True):
+                self.Hmove_able = True
+            else:
+                self.Hmove_able = False
+            if self.Wmove_able == False and self.Hmove_able == False:
+                self.idle = True
+                self.img_now = self.img_now[0], 2100
+                return
+            if self.Wmove_able == True and self.Hmove_able == True:
+                speed = 0.707
+            else:
+                speed = 1
+
+            RIGHT, LEFT, UP, DOWN = False, False, False, False#실제 움직일 수 있는지를 담는 변수
+            #이 밑에선 실제로 움직일 수 있느지 검사
+            if self.Wmove_able == True:
+                if self.right_move == True:
+                    if self.stand_x + self.speed * speed >= play_state.window_size[0] - round(self.stand_sx / 2):
+                        self.x_move(play_state.window_size[0] - (self.stand_x + round(self.stand_sx / 2)))
+                    else:
+                        RIGHT = True
+                        self.x_move(self.speed * speed)
+                else:
+                    if self.stand_x - self.speed * speed <= round(self.stand_sx / 2):
+                        self.x_move(round(self.stand_sx / 2) - self.stand_x)
+                    else:
+                        LEFT = True
+                        self.x_move(- self.speed * speed)
+            if self.Hmove_able == True:
+                if self.up_move == True:
+                    if self.stand_y >= play_state.window_size[1] - round(self.stand_sy / 2):
+                        self.y_move(play_state.window_size[1] - (self.stand_y + round(self.stand_sy / 2)))
+                    else:
+                        UP = True
+                        self.y_move(self.speed * speed)
+                else:
+                    if self.stand_y <= round(self.stand_sy / 2):
+                        self.y_move(round(self.stand_sy / 2) - self.stand_y)
+                    else:
+                        DOWN = True
+                        self.y_move(- self.speed * speed)
+
+            if RIGHT:
+                if UP:  # 오른쪽 위 대각선
+                    self.img_now = 30 + 320 * 2, 1460 - (160 * self.move_frame)
+                elif DOWN: # 오른쪽 아래 대각선
+                    self.img_now = 30 + 320 * 6, 1460 - (160 * self.move_frame)
+                else: # 그냥 오른쪽
+                    self.img_now = 30 + 320 * 4, 1460 - (160 * self.move_frame)
+                self.idle = False
+                return
+            if LEFT:
+                if UP:  # 왼쪽 위 대각선
+                    self.img_now = 30 + 320 * 14, 1460 - (160 * self.move_frame)
+                elif DOWN: # 왼쪽 아래 대각선
+                    self.img_now = 30 + 320 * 10, 1460 - (160 * self.move_frame)
+                else: # 그냥 왼쪽
+                    self.img_now = 30 + 320 * 12, 1460 - (160 * self.move_frame)
+                self.idle = False
+                return
+            if UP: # 그냥 위
+                self.img_now = 30, 1460 - (160 * self.move_frame)
+                self.idle = False
+                return
+            if DOWN: # 그냥 아래
+                self.img_now = 30 + 320 * 8, 1460 - (160 * self.move_frame)
+                self.idle = False
+                return
+            print('d')
+            self.move_frame = 0
 
     def check_magazine(self):
         if self.magazine_gun == False:  # 점사모드일때
-            if self.LEFT_UP == True:
-                if self.shoot_frame // (self.nfs * self.interrupted_fire) % 2 != 0:
-                    self.shoot_able = False
-                    self.idle = True
-                    self.move_able = True
-                    self.img_now = 30 + 160 * self.look_now, 1780
             if self.LEFT_DOWN == True:
                 if self.shoot_frame == 0:
                     self.shoot_able = True
                     if self.moving_attack == False:
                         self.move_able = False
+            else:
+                if self.shoot_frame // (self.nfs * self.interrupted_fire) % 2 != 0:
+                    self.shoot_able = False
+                    self.idle = True
+                    self.move_able = True
+                    self.img_now = 30 + 160 * self.look_now, 1780
 
     def get_look_now(self, rad):
         if rad >= 0:  # 1, 2 사분면
@@ -224,73 +296,6 @@ class Marine(RealObj):
             else:  # rad >= -3.1415:
                 return 24
 
-    def move(self):
-        if self.move_able == True:
-            if (self.left_move == True and self.right_move == False) or (
-                    self.left_move == False and self.right_move == True):
-                self.Wmove_able = True
-            else:
-                self.Wmove_able = False
-            if (self.up_move == True and self.down_move == False) or (
-                    self.up_move == False and self.down_move == True):
-                self.Hmove_able = True
-            else:
-                self.Hmove_able = False
-            if self.Wmove_able == True and self.Hmove_able == True:
-                speed = 0.707
-            else:
-                speed = 1
-            if self.Wmove_able == True:
-                if self.left_move == True:
-                    if self.stand_x - self.speed * speed <= round(self.stand_sx / 2):
-                        self.x_move(round(self.stand_sx / 2) - self.stand_x)
-                    else:
-                        self.x_move(- self.speed * speed)
-                        if not self.shoot_able:
-                            self.img_now = 30 + 320 * 12, 1460 - (160 * self.move_frame)
-                            self.idle = False
-                else:  # self.right_move == True:
-                    if self.stand_x + self.speed * speed >= play_state.window_size[0] - round(self.stand_sx / 2):
-                        self.x_move(play_state.window_size[0] - (self.stand_x + round(self.stand_sx / 2)))
-                    else:
-                        self.x_move(self.speed * speed)
-                        if not self.shoot_able:
-                            self.img_now = 30 + 320 * 4, 1460 - (160 * self.move_frame)
-                            self.idle = False
-            if self.Hmove_able == True:
-                if self.up_move == True:
-                    if self.stand_y >= play_state.window_size[1] - round(self.stand_sy / 2):
-                        self.y_move(play_state.window_size[1] - (self.stand_y + round(self.stand_sy / 2)))
-                    else:
-                        self.y_move(self.speed * speed)
-                        if not self.shoot_able:
-                            if self.Wmove_able == True:
-                                if self.left_move == True:
-                                    self.img_now = 30 + 320 * 14, 1460 - (160 * self.move_frame)
-                                    self.idle = False
-                                elif self.right_move == True:
-                                    self.img_now = 30 + 320 * 2, 1460 - (160 * self.move_frame)
-                                    self.idle = False
-                            else:
-                                self.img_now = 30, 1460 - (160 * self.move_frame)
-                                self.idle = False
-                else:
-                    if self.stand_y <= round(self.stand_sy / 2):
-                        self.y_move(round(self.stand_sy / 2) - self.stand_y)
-                    else:
-                        self.y_move(- self.speed * speed)
-                        if not self.shoot_able:
-                            if self.Wmove_able == True:
-                                if self.left_move == True:
-                                    self.img_now = 30 + 320 * 10, 1460 - (160 * self.move_frame)
-                                    self.idle = False
-                                elif self.right_move == True:
-                                    self.img_now = 30 + 320 * 6, 1460 - (160 * self.move_frame)
-                                    self.idle = False
-                            else:
-                                self.img_now = 30 + 320 * 8, 1460 - (160 * self.move_frame)
-                                self.idle = False
-
     def shoot(self):
         if self.shoot_able == True:
             if self.magazine_gun == False:
@@ -303,9 +308,10 @@ class Marine(RealObj):
                 for i in range(self.n_shot):
                     a = get_rad(self.stand_x, self.stand_y, play_state.cursor.x, play_state.cursor.y)
                     self.look_now = self.get_look_now(a)  # 각도를 가지고 마린이 바라볼 방향 정함.
-                    x2, y2 = play_state.cursor.x + random.randint(-self.accuracy, self.accuracy), play_state.cursor.y + random.randint(
+                    x2, y2 = play_state.cursor.x + random.randint(-self.accuracy,
+                                                                  self.accuracy), play_state.cursor.y + random.randint(
                         -self.accuracy, self.accuracy)
-                    bullet = Bullet_32(self, x2, y2) # x1==x2 and y1==y2 일 때 False 반환
+                    bullet = Bullet_32(self, x2, y2)  # x1==x2 and y1==y2 일 때 False 반환
                     if bullet == False:
                         print('disable')
                         return
@@ -323,6 +329,7 @@ class Marine(RealObj):
             self.shoot_idle = True
 
     def state_update(self):
+        self.check_magazine()
         self.move()
         for mm in Marine.list:
             cheak_collision(self, mm)
@@ -340,3 +347,29 @@ class Marine(RealObj):
             self.idle_frame += 1
         else:
             self.idle_frame = 0
+
+    @staticmethod
+    def effect_anim():
+        for marine in Marine.list:
+            de_list = []
+            for i in range(len(marine.effect_list)):
+                marine.effect_list[i].anim()
+                if marine.effect_list[i].frame > 4:  # 마린 공격 이펙트 프레임
+                    de_list.append(i)
+            de_list.sort(reverse=True)
+            for de in de_list:
+                del marine.effect_list[de]
+
+    @staticmethod
+    def load_resource():
+        Marine.img = load_image('resource\\marine\\marine250x2.png')
+        Marine.hit_sound = load_wav('resource\\bullet\\hit_sound\\06.wav')
+        Marine.hit_sound.set_volume(6)
+        Marine.shoot_sound00 = load_wav('resource\\marine\\shoot_sound\\00.wav')
+        Marine.shoot_sound00.set_volume(16)
+        Marine.shoot_sound01 = load_wav('resource\\marine\\shoot_sound\\01.wav')
+        Marine.shoot_sound01.set_volume(16)
+        Marine.shoot_sound02 = load_wav('resource\\marine\\shoot_sound\\02.wav')
+        Marine.shoot_sound02.set_volume(16)
+        Marine.shoot_sound03 = load_wav('resource\\marine\\shoot_sound\\03.wav')
+        Marine.shoot_sound03.set_volume(16)

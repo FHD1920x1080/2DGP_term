@@ -26,8 +26,6 @@ def handle_events():
             game_framework.quit()
         if event.type == SDL_MOUSEMOTION:
             cursor.x, cursor.y = event.x, window_size[1] - 1 - event.y
-            cursor.draw_x = cursor.x + 20
-            cursor.draw_y = cursor.y - 21
         if event.type == SDL_KEYDOWN:
             if event.key == SDLK_ESCAPE:
                 game_framework.quit()
@@ -51,28 +49,14 @@ def animation(frame):
         for marine in Marine.list:
             marine.move_frame = (marine.move_frame + 1) % 8
 
-    if (frame + every_3frame) % 4 == 0:  # 3프레임마다 저글링 사망 애니메이션 프레임 증가하는 구간
-        dz2_list = []
-        for i in range(len(Die_Zergling.list)):
-            Die_Zergling.list[i].die_anim()
-            if Die_Zergling.list[i].die_frame > FPS:  # 일정 시간이 지난 시체 3초
-                dz2_list.append(i)
-        dz2_list.sort(reverse=True)
-        for dz2 in dz2_list:
-            del Die_Zergling.list[dz2]
+    if (frame + every_3frame) % 4 == 0:
+        Die_Zergling.anim()
 
     if (frame + every_6frame) % 6 == 0:
         for zgl in Zergling.list:
             zgl.move_frame = (zgl.move_frame + 1) % 7  # 저글링 무브 프레임
-        for marine in Marine.list:
-            de_list = []
-            for i in range(len(marine.effect_list)):
-                marine.effect_list[i].anim()
-                if marine.effect_list[i].frame > 4:  # 마린 공격 이펙트 프레임
-                    de_list.append(i)
-            de_list.sort(reverse=True)
-            for de in de_list:
-                del marine.effect_list[de]
+
+        Marine.effect_anim()
 
     if frame % 10 == 0:
         cursor.frame = (cursor.frame + 1) % 5  # 커서 프레임
@@ -94,30 +78,10 @@ def play_sound(frame):
 def load_resource():
     global background_img
     background_img = load_image('resource\\image\\tile.png')
-    Cursor.arrow_img = load_image('resource\\image\\arrowx200.png')
 
-    Marine.img = load_image('resource\\marine\\marine250x2.png')
-    Effect.crash_img = load_image('resource\\marine\\attack_effect_blue.png')
-    Marine.hit_sound = load_wav('resource\\bullet\\hit_sound\\06.wav')
-    Marine.hit_sound.set_volume(6)
-    Marine.shoot_sound00 = load_wav('resource\\marine\\shoot_sound\\00.wav')
-    Marine.shoot_sound00.set_volume(16)
-    Marine.shoot_sound01 = load_wav('resource\\marine\\shoot_sound\\01.wav')
-    Marine.shoot_sound01.set_volume(16)
-    Marine.shoot_sound02 = load_wav('resource\\marine\\shoot_sound\\02.wav')
-    Marine.shoot_sound02.set_volume(16)
-    Marine.shoot_sound03 = load_wav('resource\\marine\\shoot_sound\\03.wav')
-    Marine.shoot_sound03.set_volume(16)
-
-    for i in range(0, 32):
-        Bullet_32.img.append(load_image("resource\\bullet\\" + str(i) + ".png"))
-        # Bullet_32.img[i] = load_image("resource\\bullet\\" + str(i) + ".png")
-
-    Zergling.img = load_image("resource\\zergling\\zerglingx200x2.png")
-    Die_Zergling.img = load_image("resource\\zergling\\die_zergling.png")
-    Die_Zergling.sound = load_wav('resource\\zergling\\zzedth01.wav')
-    Die_Zergling.sound.set_volume(8)
-
+    Marine.load_resource()
+    Bullet_32.load_resource()
+    Zergling.load_resource()
 
 
 def enter():
@@ -148,9 +112,8 @@ def exit():
 
 
 def update():
-    SDL_Delay(6)
+    #SDL_Delay(6)
     for marine in Marine.list:
-        marine.check_magazine()
         marine.state_update()
     # 확률에 따른 적 생성 및 이동
 
@@ -162,22 +125,15 @@ def update():
 
 
 def show_All():
-    Zergling.show_All()
-    for marine in Marine.list:
-        for blt in marine.bullet_list:
-            blt.show()
-
-    for marine in Marine.list:
-        marine.show()
-    for marine in Marine.list:
-        for eft in marine.effect_list:
-            eft.show()
-    cursor.show()
+    pass
 
 
 def draw_woral():
     background_img.draw(window_size[0] // 2, window_size[1] // 2)
-    show_All()
+    Zergling.show_All()
+    for marine in Marine.list:
+        marine.show()
+    cursor.show()
 
 
 def draw():
