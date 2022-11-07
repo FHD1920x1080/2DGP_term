@@ -1,5 +1,6 @@
 import math
 import game_world
+import play_state
 
 def crash(a, b):
     if a.hit_sx <= 0 or b.hit_sx <= 0:
@@ -50,6 +51,10 @@ def move_enemy_list():
     for em in game_world.enemy_list():  # 적들
         if em.move() == 1:
             game_world.remove_enemy(em)
+        for other in game_world.enemy_list():
+            cheak_collision(em, other)
+        for mm in play_state.Marine.list:
+            cheak_collision(em, mm)
 def show_enemy_list():
     for de in game_world.die_list:
         de.show()

@@ -93,10 +93,6 @@ class Zealot(RealObj):
         elif self.direction == 3:
             if self.move_right_down() == 1:
                 return 1
-        for zz in Zealot.list:
-            cheak_collision(self, zz)
-        for mm in play_state.Marine.list:
-            cheak_collision(self, mm)
 
         if self.time % self.direction_rand_time == 0:
             j = self.direction

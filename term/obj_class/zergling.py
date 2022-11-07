@@ -112,10 +112,6 @@ class Zergling(RealObj):
             if self.move_right_down() == 1:
                 Zergling.sum -= 1
                 return 1
-        for zz in Zergling.list:
-            cheak_collision(self, zz)
-        for mm in play_state.Marine.list:
-            cheak_collision(self, mm)
 
         if self.time % self.direction_rand_time == 0:
             j = self.direction
