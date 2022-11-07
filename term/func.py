@@ -1,4 +1,5 @@
 import math
+import game_world
 
 def crash(a, b):
     if a.hit_sx <= 0 or b.hit_sx <= 0:
@@ -44,6 +45,16 @@ def cheak_collision(unit1, unit2):
         return True
     return False
 
+
+def move_enemy_list():
+    for em in game_world.enemy_list():  # 적들
+        if em.move() == 1:
+            game_world.remove_enemy(em)
+def show_enemy_list():
+    for de in game_world.die_list:
+        de.show()
+    for em in game_world.enemy_list():
+        em.show()
 
 def get_rad(x1, y1, x2, y2):
     return math.atan2(y2 - y1, x2 - x1)

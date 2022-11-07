@@ -180,58 +180,66 @@ class Marine(RealObj):
             else:
                 speed = 1
 
-            RIGHT, LEFT, UP, DOWN = False, False, False, False#실제 움직일 수 있는지를 담는 변수
+            right, left, up, down = False, False, False, False#실제 움직일 수 있는지를 담는 변수
             #이 밑에선 실제로 움직일 수 있느지 검사
             if self.Wmove_able == True:
                 if self.right_move == True:
                     if self.stand_x + self.speed * speed >= play_state.window_size[0] - round(self.stand_sx / 2):
                         self.x_move(play_state.window_size[0] - (self.stand_x + round(self.stand_sx / 2)))
                     else:
-                        RIGHT = True
-                        self.x_move(self.speed * speed)
+                        right = True
                 else:
                     if self.stand_x - self.speed * speed <= round(self.stand_sx / 2):
                         self.x_move(round(self.stand_sx / 2) - self.stand_x)
                     else:
-                        LEFT = True
-                        self.x_move(- self.speed * speed)
+                        left = True
             if self.Hmove_able == True:
                 if self.up_move == True:
                     if self.stand_y >= play_state.window_size[1] - round(self.stand_sy / 2):
                         self.y_move(play_state.window_size[1] - (self.stand_y + round(self.stand_sy / 2)))
                     else:
-                        UP = True
-                        self.y_move(self.speed * speed)
+                        up = True
                 else:
                     if self.stand_y <= round(self.stand_sy / 2):
                         self.y_move(round(self.stand_sy / 2) - self.stand_y)
                     else:
-                        DOWN = True
-                        self.y_move(- self.speed * speed)
+                        down = True
 
-            if RIGHT:
-                if UP:  # 오른쪽 위 대각선
+            if right:
+                if up:  # 오른쪽 위 대각선
+                    self.x_move(self.speed * speed)
+                    self.y_move(self.speed * speed)
                     self.img_now = 30 + 320 * 2, 1460 - (160 * self.move_frame)
-                elif DOWN: # 오른쪽 아래 대각선
+                elif down: # 오른쪽 아래 대각선
+                    self.x_move(self.speed * speed)
+                    self.y_move(- self.speed * speed)
                     self.img_now = 30 + 320 * 6, 1460 - (160 * self.move_frame)
                 else: # 그냥 오른쪽
+                    self.x_move(self.speed * speed)
                     self.img_now = 30 + 320 * 4, 1460 - (160 * self.move_frame)
                 self.idle = False
                 return
-            if LEFT:
-                if UP:  # 왼쪽 위 대각선
+            if left:
+                if up:  # 왼쪽 위 대각선
+                    self.x_move(- self.speed * speed)
+                    self.y_move(self.speed * speed)
                     self.img_now = 30 + 320 * 14, 1460 - (160 * self.move_frame)
-                elif DOWN: # 왼쪽 아래 대각선
+                elif down: # 왼쪽 아래 대각선
+                    self.x_move(- self.speed * speed)
+                    self.y_move(- self.speed * speed)
                     self.img_now = 30 + 320 * 10, 1460 - (160 * self.move_frame)
                 else: # 그냥 왼쪽
+                    self.x_move(- self.speed * speed)
                     self.img_now = 30 + 320 * 12, 1460 - (160 * self.move_frame)
                 self.idle = False
                 return
-            if UP: # 그냥 위
+            if up: # 그냥 위
+                self.y_move(self.speed * speed)
                 self.img_now = 30, 1460 - (160 * self.move_frame)
                 self.idle = False
                 return
-            if DOWN: # 그냥 아래
+            if down: # 그냥 아래
+                self.y_move(- self.speed * speed)
                 self.img_now = 30 + 320 * 8, 1460 - (160 * self.move_frame)
                 self.idle = False
                 return
@@ -347,7 +355,37 @@ class Marine(RealObj):
             self.idle_frame += 1
         else:
             self.idle_frame = 0
+        self.bullet_move_crash_chack()
 
+
+    def bullet_move_crash_chack(self):
+        db_list = []
+        dz_list = []
+        dzz_list = []
+        de_list = []
+        for i in range(len(self.bullet_list)):  # 불릿을 이동 시킨 후 범위탈출 및 충돌 체크
+            blt = self.bullet_list[i]
+            blt.move()
+            if blt.y > play_state.window_size[1] + 60 or blt.y < - 60 or blt.x > play_state.window_size[
+                0] + 60 or blt.x < - 60:  # 지금은 화면 밖인데 나중에 벽으로 바꿀 예정, 화면 밖 멀리에 벽을 둘 예정, 또 벽에 충돌하면 먼지 이펙트같은것도 추가 예정
+                db_list.append(i)  # 총알이 범위 밖으로 나갔으니 삭제 리스트에 추가
+            else:  # 나간 총알이랑은 충돌 체크 할 필요 없으니 안나간 것만 충돌체크
+                for em in game_world.enemy_list():
+                    if bullet_crash(blt, em) == True:
+                        attack_effect = Effect(blt.x, blt.y)
+                        self.effect_list.append(attack_effect)
+                        # player.play_hit_sound()
+                        play_state.sound.Marine_hit = True
+                        db_list.append(i)
+                        blt.exist = False  # 아직 삭제 시킬 수 없으므로 존재변수를 0으로 함, 겹쳐있는 저글링 동시에 패는걸 막기 위해,
+                        em.hp -= self.AD
+                        if em.hp <= 0:
+                            em.die()
+                            # zgl.hit_sx = 0  # 저글링의 크기도 0으로 만듦, 동시에 여러발 흡수하느걸 막기 위해, 충돌체크 조건문에서 걸러짐 # hp 검사로 조건 바꿈
+                        break  # 이제 사라진 불릿이기 때문에 다른 저글링이랑 체크 할 필요 없음
+        db_list.sort(reverse=True)
+        for db in db_list:
+            del self.bullet_list[db]  # 충돌하거나 나갔던 불릿들 삭제
     @staticmethod
     def effect_anim():
         for marine in Marine.list:

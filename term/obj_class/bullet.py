@@ -158,39 +158,6 @@ class Bullet_32:
                 else:  # 왼쪽
                     return 24
 
-    @staticmethod
-    def move_crash_chack():
-        for player in play_state.Marine.list:
-            db_list = []
-            dz_list = []
-            for i in range(len(player.bullet_list)):  # 불릿을 이동 시킨 후 범위탈출 및 충돌 체크
-                blt = player.bullet_list[i]
-                blt.move()
-                if blt.y > play_state.window_size[1] + 60 or blt.y < - 60 or blt.x > play_state.window_size[
-                    0] + 60 or blt.x < - 60:  # 지금은 화면 밖인데 나중에 벽으로 바꿀 예정, 화면 밖 멀리에 벽을 둘 예정, 또 벽에 충돌하면 먼지 이펙트같은것도 추가 예정
-                    db_list.append(i)  # 총알이 범위 밖으로 나갔으니 삭제 리스트에 추가
-                else:  # 나간 총알이랑은 충돌 체크 할 필요 없으니 안나간 것만 충돌체크
-                    for j in range(len(play_state.Zergling.list)):
-                        zgl = play_state.Zergling.list[j]
-                        if bullet_crash(blt, zgl) == True:
-                            attack_effect = Effect(blt.x, blt.y)
-                            player.effect_list.append(attack_effect)
-                            # player.play_hit_sound()
-                            play_state.sound.Marine_hit = True
-                            db_list.append(i)
-                            blt.exist = False  # 아직 삭제 시킬 수 없으므로 존재변수를 0으로 함, 겹쳐있는 저글링 동시에 패는걸 막기 위해,
-                            zgl.hp -= player.AD
-                            if zgl.hp <= 0:
-                                dz_list.append(j)
-                                # zgl.hit_sx = 0  # 저글링의 크기도 0으로 만듦, 동시에 여러발 흡수하느걸 막기 위해, 충돌체크 조건문에서 걸러짐 # hp 검사로 조건 바꿈
-                            break  # 이제 사라진 불릿이기 때문에 다른 저글링이랑 체크 할 필요 없음
-                        # elif 다른 유닛 충돌 체크 할 구문
-            dz_list.sort(reverse=True)
-            for dz in dz_list:
-                play_state.Zergling.list[dz].die()
-            db_list.sort(reverse=True)
-            for db in db_list:
-                del player.bullet_list[db]  # 충돌하거나 나갔던 불릿들 삭제
 
     @staticmethod
     def load_resource():

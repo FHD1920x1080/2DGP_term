@@ -1,10 +1,13 @@
+Zergling_list =[]
+Zealot_list = []
+enemies = [Zergling_list, Zealot_list]
+die_list = []
+objects = [[], [], []]
 
-Zergling_list = []
-Zilot_list = []
-Dron_list = []
-enermy_list = [Zergling_list, Zilot_list, Dron_list]
-map_obj_list = []
-objects = [map_obj_list, [], []]
+def enemy_list():
+    for layer in enemies:
+        for o in layer:
+            yield o
 
 def all_objects():
     for layer in objects:
@@ -21,8 +24,8 @@ def add_object(o, depth = 0):
 def add_objects(ol, depth = 0):# 객체 여러개(리스트인채로) 추가
     objects[depth] += ol
 
-def remove_object(o):
-    for layer in objects:
+def remove_enemy(o):
+    for layer in enemies:
         if o in layer:
             layer.remove(o)
             del o
