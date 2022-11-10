@@ -5,35 +5,36 @@ class Marine(RealObj):
     list = []
     img = None
     hit_sound = None
-
     shoot_sound00 = None
     shoot_sound01 = None
     shoot_sound02 = None
     shoot_sound03 = None
     unit_type = 0 # 총알에서 마린인걸 인식하는데 씀, 골리앗은 1
+
+
+
+    x_gap = 0
+    hit_x_gap = 0
+    y_gap = 20
+    hit_y_gap = 20
     def __init__(self):
         super().__init__()
-        self.bullet_list = []  # 발사된 총알 리스트
-        self.effect_list = []  # 총알과 오브젝트의 충돌 시 생성된 이펙트 리스트
         self.hp = 100  # 체력
-        self.AD = 1  # 공격력
+        self.AD = 100  # 공격력
         self.img = Marine.img
         self.sx, self.sy = 110, 85  # 그려줄 스프라이트 크기
         self.img_now = [30 + (2 * 160 * 0), 2180 - 80 - (1 * 160 * 2)]  # 스프라이트 좌표
-        self.hit_sx, self.hit_sy = 48, 72  # 마린의 히트박스 크기
         self.stand_x = play_state.window_size[0] / 2  # 마린이 서있는 좌표
         self.stand_y = play_state.window_size[1] / 2
         self.x = self.stand_x  # 마린을 그려줄 좌표
         self.y = self.stand_y + 20
-        self.stand_sx = 36  # 마린이 밟을 수 있는 땅의 넓이
-        self.stand_sy = 36
+        self.stand_sx = 18  # 마린이 밟을 수 있는 땅의 넓이
+        self.stand_sy = 18
+        self.hit_sx = 24 # 마린의 히트박스 크기
+        self.hit_sy = 36
         self.hit_x = self.x  # 마린의 히트박스 중앙 좌표
         self.hit_y = self.y
         self.speed = 3  # 이동속도
-        self.left_move = False  # 왼쪽으로 가는키가 눌렸는지
-        self.right_move = False
-        self.up_move = False
-        self.down_move = False
         self.shoot_able = False  # 마우스 좌클릭이 눌렸는지
         self.move_able = True  # 움직일 수 있는 상태인지
         self.Wmove_able = True  # 움직일 수 있다면 가로로 움직이는지
@@ -46,19 +47,13 @@ class Marine(RealObj):
         self.shoot_idle_frame = 0  # 총을 안쏜 시간만큼의 프레임
         self.bullet_speed = 20  # 탄속
         self.moving_attack = False  # 1이면 움직이면서 공격 가능 g키
-        self.nfs = 12  # 몇프레임당 공격이 나갈건지
+        self.nfs = 15  # 몇프레임당 공격이 나갈건지
         self.n_shot = 1  # 산탄량
         self.accuracy = 10  # 총의 정확도, 정확이는 오차율 0이 가장 높은 스텟
         self.interrupted_fire = 5  # 몇점사, 쏘는 시간만큼 쉼
         self.magazine_gun = True  # 연사모드
-        self.LEFT_DOWN = False  # 마우스 왼쪽버튼이 눌렸었는지 선입력 체크하기위한 변수 # 자연스러운 점사 무빙을 위해 필요함 # shoot_able이랑 별개임
-
     def show(self):
         self.img.clip_draw(self.img_now[0], self.img_now[1], self.sx, self.sy, self.x, self.y)
-        for blt in self.bullet_list: # 나쁘진 않은 방법인데 마린이 죽으면 발사된 총알이랑 이펙트가 같이 사라짐 ㅋㅋ 상관없나 ㅋㅋ
-            blt.show()
-        for eft in self.effect_list:
-            eft.show()
     def play_shoot_sound(self):
         i = random.randint(0, 3)
         if i == 0:
@@ -82,7 +77,7 @@ class Marine(RealObj):
                     if self.moving_attack == False:
                         self.move_able = False
                 else:
-                    self.LEFT_DOWN = True
+                    User_input.left_button = True
         elif event.type == SDL_MOUSEBUTTONUP:
             if event.button == SDL_BUTTON_LEFT:
                 if self.magazine_gun == True:
@@ -92,18 +87,18 @@ class Marine(RealObj):
                     self.move_able = True
                     self.img_now = 30 + 160 * self.look_now, 1780
                 else:
-                    self.LEFT_DOWN = False
+                    User_input.left_button = False
 
         if event.type == SDL_KEYDOWN:
 
             if event.key == SDLK_a:
-                self.left_move = True
+                User_input.left_key = True
             elif event.key == SDLK_d:
-                self.right_move = True
+                User_input.right_key = True
             if event.key == SDLK_w:
-                self.up_move = True
+                User_input.up_key = True
             elif event.key == SDLK_s:
-                self.down_move = True
+                User_input.down_key = True
             if event.key == SDLK_e:
                 self.bullet_speed += 1
             if event.key == SDLK_q:
@@ -119,17 +114,16 @@ class Marine(RealObj):
                     self.moving_attack = False
                 else:
                     self.moving_attack = True
-            if event.key == SDLK_1:
+            if event.key == SDLK_t:
                 if self.magazine_gun == True:
                     self.magazine_gun = False
                     self.nfs //= 2
-                    self.LEFT_DOWN = False
+                    User_input.left_button = False
                     self.shoot_idle = True
                     self.shoot_idle_frame = 0
                     if self.nfs <= 0:
                         self.nfs = 1
-            if event.key == SDLK_2:
-                if self.magazine_gun == False:
+                else:
                     self.magazine_gun = True
                     self.nfs *= 2
             if event.key == SDLK_SPACE:
@@ -139,16 +133,16 @@ class Marine(RealObj):
                     if self.moving_attack == False:
                         self.move_able = False
                 else:
-                    self.LEFT_DOWN = True
+                    User_input.left_button = True
         elif event.type == SDL_KEYUP:
             if event.key == SDLK_a:
-                self.left_move = False
+                User_input.left_key = False
             elif event.key == SDLK_d:
-                self.right_move = False
+                User_input.right_key = False
             if event.key == SDLK_w:
-                self.up_move = False
+                User_input.up_key = False
             elif event.key == SDLK_s:
-                self.down_move = False
+                User_input.down_key = False
             if event.key == SDLK_SPACE:
                 if self.magazine_gun == True:
                     self.shoot_frame = 0
@@ -157,17 +151,17 @@ class Marine(RealObj):
                     self.move_able = True
                     self.img_now = 30 + 160 * self.look_now, 1780
                 else:
-                    self.LEFT_DOWN = False
+                    User_input.left_button = False
 
     def move(self):
         if self.move_able == True: # 움직이는 상태 말고, 움직여도 되는 상태인지(총쏘고있으면 해당 안됨.)
-            if (self.left_move == True and self.right_move == False) or (
-                    self.left_move == False and self.right_move == True):
+            if (User_input.left_key == True and User_input.right_key == False) or (
+                    User_input.left_key == False and User_input.right_key == True):
                 self.Wmove_able = True
             else:
                 self.Wmove_able = False
-            if (self.up_move == True and self.down_move == False) or (
-                    self.up_move == False and self.down_move == True):
+            if (User_input.up_key == True and User_input.down_key == False) or (
+                    User_input.up_key == False and User_input.down_key == True):
                 self.Hmove_able = True
             else:
                 self.Hmove_able = False
@@ -176,79 +170,79 @@ class Marine(RealObj):
                 self.img_now = self.img_now[0], 2100
                 return
             if self.Wmove_able == True and self.Hmove_able == True:
-                speed = 0.707
+                speed = self.speed * 0.707
             else:
-                speed = 1
+                speed = self.speed * 1
 
-            right, left, up, down = False, False, False, False#실제 움직일 수 있는지를 담는 변수
-            #이 밑에선 실제로 움직일 수 있느지 검사
+            right, left, up, down = False, False, False, False  # 실제 움직일 수 있는지를 담는 변수
+            # 이 밑에선 실제로 움직일 수 있는지 검사
             if self.Wmove_able == True:
-                if self.right_move == True:
-                    if self.stand_x + self.speed * speed >= play_state.window_size[0] - round(self.stand_sx / 2):
-                        self.x_move(play_state.window_size[0] - (self.stand_x + round(self.stand_sx / 2)))
+                if User_input.right_key == True:
+                    if self.get_right() + speed > play_state.window_size[0]:
+                        self.x_move(play_state.window_size[0] - self.get_right())
                     else:
                         right = True
                 else:
-                    if self.stand_x - self.speed * speed <= round(self.stand_sx / 2):
-                        self.x_move(round(self.stand_sx / 2) - self.stand_x)
+                    if self.get_left() - speed < 0:
+                        self.x_move(-self.get_left())
                     else:
                         left = True
             if self.Hmove_able == True:
-                if self.up_move == True:
-                    if self.stand_y >= play_state.window_size[1] - round(self.stand_sy / 2):
-                        self.y_move(play_state.window_size[1] - (self.stand_y + round(self.stand_sy / 2)))
+                if User_input.up_key == True:
+                    if self.get_top() + speed > play_state.window_size[1]:
+                        self.y_move(play_state.window_size[1] - self.get_top())
                     else:
                         up = True
                 else:
-                    if self.stand_y <= round(self.stand_sy / 2):
-                        self.y_move(round(self.stand_sy / 2) - self.stand_y)
+                    if self.get_bottom() - speed < 0:
+                        self.y_move(-self.get_bottom())
                     else:
                         down = True
 
             if right:
                 if up:  # 오른쪽 위 대각선
-                    self.x_move(self.speed * speed)
-                    self.y_move(self.speed * speed)
+                    self.x_move(speed)
+                    self.y_move(speed)
                     self.img_now = 30 + 320 * 2, 1460 - (160 * self.move_frame)
                 elif down: # 오른쪽 아래 대각선
-                    self.x_move(self.speed * speed)
-                    self.y_move(- self.speed * speed)
+                    self.x_move(speed)
+                    self.y_move(-speed)
                     self.img_now = 30 + 320 * 6, 1460 - (160 * self.move_frame)
                 else: # 그냥 오른쪽
-                    self.x_move(self.speed * speed)
+                    self.x_move(speed)
                     self.img_now = 30 + 320 * 4, 1460 - (160 * self.move_frame)
                 self.idle = False
                 return
             if left:
                 if up:  # 왼쪽 위 대각선
-                    self.x_move(- self.speed * speed)
-                    self.y_move(self.speed * speed)
+                    self.x_move(-speed)
+                    self.y_move(speed)
                     self.img_now = 30 + 320 * 14, 1460 - (160 * self.move_frame)
                 elif down: # 왼쪽 아래 대각선
-                    self.x_move(- self.speed * speed)
-                    self.y_move(- self.speed * speed)
+                    self.x_move(-speed)
+                    self.y_move(-speed)
                     self.img_now = 30 + 320 * 10, 1460 - (160 * self.move_frame)
                 else: # 그냥 왼쪽
-                    self.x_move(- self.speed * speed)
+                    self.x_move(-speed)
                     self.img_now = 30 + 320 * 12, 1460 - (160 * self.move_frame)
                 self.idle = False
                 return
             if up: # 그냥 위
-                self.y_move(self.speed * speed)
+                self.y_move(speed)
                 self.img_now = 30, 1460 - (160 * self.move_frame)
                 self.idle = False
                 return
             if down: # 그냥 아래
-                self.y_move(- self.speed * speed)
+                self.y_move(-speed)
                 self.img_now = 30 + 320 * 8, 1460 - (160 * self.move_frame)
                 self.idle = False
                 return
-            print('d')
-            self.move_frame = 0
+            print('can not move')
+            self.img_now = self.img_now[0], 1460
 
     def check_magazine(self):
         if self.magazine_gun == False:  # 점사모드일때
-            if self.LEFT_DOWN == True:
+            if User_input.left_button == True:
                 if self.shoot_frame == 0:
                     self.shoot_able = True
                     if self.moving_attack == False:
@@ -319,15 +313,15 @@ class Marine(RealObj):
                     x2, y2 = play_state.cursor.x + random.randint(-self.accuracy,
                                                                   self.accuracy), play_state.cursor.y + random.randint(
                         -self.accuracy, self.accuracy)
-                    bullet = Bullet_32(self, x2, y2)  # x1==x2 and y1==y2 일 때 False 반환
+                    bullet = Bullet32(self, x2, y2)  # x1==x2 and y1==y2 일 때 False 반환
                     if bullet == False:
-                        print('disable')
+                        print('총알 발사 안됨')
                         return
                     # if bullet.r == 0:
                     #     print(bullet.x1, bullet.x2)
                     #     del bullet
                     #     return
-                    self.bullet_list.append(bullet)
+                    game_world.bullet_list.append(bullet)
                     self.shoot_idle = False
                     self.idle = False
                     self.img_now = 30 + (160 * self.look_now), 1620  # 격발 이미지
@@ -336,13 +330,13 @@ class Marine(RealObj):
         else:
             self.shoot_idle = True
 
-    def state_update(self):
+    def update(self):
         self.check_magazine()
         self.move()
-        for mm in Marine.list:
-            cheak_collision(self, mm)
+        # for mm in game_world.Marine:
+        #     cheak_collision(self, mm)
         self.shoot()
-        self.shoot_frame += 1  # 0~59
+        self.shoot_frame += 1
         if self.magazine_gun == False:
             if self.shoot_idle == True:
                 self.shoot_idle_frame += 1
@@ -355,48 +349,6 @@ class Marine(RealObj):
             self.idle_frame += 1
         else:
             self.idle_frame = 0
-        self.bullet_move_crash_chack()
-
-
-    def bullet_move_crash_chack(self):
-        db_list = []
-        dz_list = []
-        dzz_list = []
-        de_list = []
-        for i in range(len(self.bullet_list)):  # 불릿을 이동 시킨 후 범위탈출 및 충돌 체크
-            blt = self.bullet_list[i]
-            blt.move()
-            if blt.y > play_state.window_size[1] + 60 or blt.y < - 60 or blt.x > play_state.window_size[
-                0] + 60 or blt.x < - 60:  # 지금은 화면 밖인데 나중에 벽으로 바꿀 예정, 화면 밖 멀리에 벽을 둘 예정, 또 벽에 충돌하면 먼지 이펙트같은것도 추가 예정
-                db_list.append(i)  # 총알이 범위 밖으로 나갔으니 삭제 리스트에 추가
-            else:  # 나간 총알이랑은 충돌 체크 할 필요 없으니 안나간 것만 충돌체크
-                for em in game_world.enemy_list():
-                    if bullet_crash(blt, em) == True:
-                        attack_effect = Effect(blt.x, blt.y)
-                        self.effect_list.append(attack_effect)
-                        # player.play_hit_sound()
-                        play_state.sound.Marine_hit = True
-                        db_list.append(i)
-                        blt.exist = False  # 아직 삭제 시킬 수 없으므로 존재변수를 0으로 함, 겹쳐있는 저글링 동시에 패는걸 막기 위해,
-                        em.hp -= self.AD
-                        if em.hp <= 0:
-                            em.die()
-                            # zgl.hit_sx = 0  # 저글링의 크기도 0으로 만듦, 동시에 여러발 흡수하느걸 막기 위해, 충돌체크 조건문에서 걸러짐 # hp 검사로 조건 바꿈
-                        break  # 이제 사라진 불릿이기 때문에 다른 저글링이랑 체크 할 필요 없음
-        db_list.sort(reverse=True)
-        for db in db_list:
-            del self.bullet_list[db]  # 충돌하거나 나갔던 불릿들 삭제
-    @staticmethod
-    def effect_anim():
-        for marine in Marine.list:
-            de_list = []
-            for i in range(len(marine.effect_list)):
-                marine.effect_list[i].anim()
-                if marine.effect_list[i].frame > 4:  # 마린 공격 이펙트 프레임
-                    de_list.append(i)
-            de_list.sort(reverse=True)
-            for de in de_list:
-                del marine.effect_list[de]
 
     @staticmethod
     def load_resource():

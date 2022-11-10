@@ -5,10 +5,10 @@ class Zergling(RealObj):
     list = []
     sx = 80
     sy = 78
-    stand_sx = 36
-    stand_sy = 32
-    hit_sx = 44
-    hit_sy = 40
+    stand_sx = 18
+    stand_sy = 16
+    hit_sx = 22
+    hit_sy = 20
     hp = 3
     speed = 3
     img = None

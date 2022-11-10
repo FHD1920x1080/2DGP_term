@@ -10,8 +10,9 @@ y = h // 2
 
 
 class Dragoon:
+    img = None
     def __init__(self):
-        self.img = load_image('resource\\dragoon\\dragoon200.png')
+        self.img = Dragoon.img
         self.state = "IDLE"
         self.attack_ready_framet_frame = None
         self.x = w // 2
@@ -74,6 +75,9 @@ class Dragoon:
 
     def show(self):
         self.img.clip_draw(self.img_now[0], self.img_now[1], self.sx, self.sy, self.x, self.y)
+    @staticmethod
+    def load_resource():
+        Dragoon.img = load_image('resource\\dragoon\\dragoon200.png')
 
 
 def handle_events():
@@ -123,7 +127,7 @@ def handle_events():
 frame = 0
 
 FPS = 100
-
+Dragoon.load_resource()
 dragoon = Dragoon()
 
 while running:

@@ -4,49 +4,89 @@ import game_world
 import play_state
 import random
 import math
-class Bullet_anim:
-    def __init__(self):
-        self.frame = random.randint(0, 4)
-        self.x, self.y = 0, 0  # 좌표
-        self.x1, self.y1 = 0, 0  # 좌표
-        self.x2, self.y2 = 0, 0  # 가야할 좌표, 지나치고 계속 가도 됨.
-        self.speed = 5
+class Drag_Bull:
+    img = None
+    sx = 0
+    sy = 0
+    def __init__(self, player):
+        self.x1, self.y1 = player.x, player.y+5  # x1, y1  # 시작 좌표
+        self.x2, self.y2 = None, None  # 가야할 좌표, 지나치고 계속 가도 됨.
+        self.x, self.y = self.x1, self.y1  # 현재 좌표
+        self.max_speed = player.bullet_speed
+        self.speed = 0
+        self.AD = player.AD
         self.t = 0
+        self.r = None
+        self.img_now = 0
+        self.frame = 0
 
-    def put_img(self, file):
-        self.img = load_image(file)
-        self.img_now = [0, 0]  # 스프라이트 좌표
-        self.sx, self.sy = 0, 0  # 한칸 씩 자른 이미지 사이즈
+    def get_r(self):
+        self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
+        if self.r == 0:
+            game_world.explosive_bullet_list.remove(self)
+            del self
+    def show(self):
+        Drag_Bull.img.clip_composite_draw(self.img_now, 0, 20, 18, 0, '', self.x, self.y, 40, 40)
+    def x_move(self, x):
+        self.x += x
+        self.x1 += x
+        self.x2 += x
+
+    def y_move(self, y):
+        self.y += y
+        self.y1 += y
+        self.y2 += y
 
     def move(self):
-        i = ((self.x2 - self.x1) ** 2 + (self.y2 - self.y1) ** 2) ** (1 / 2)
-        self.t += 1 * (self.speed / i)
-        self.x = (1 - self.t) * self.x1 + self.t * self.x2
-        self.y = (1 - self.t) * self.y1 + self.t * self.y2
+        if self.x2 != None:
+            self.t += 1 * (self.speed / self.r)
+            self.x = (1 - self.t) * self.x1 + self.t * self.x2
+            self.y = (1 - self.t) * self.y1 + self.t * self.y2
+            if self.speed < self.max_speed:
+                self.speed += 0.5
+            else:
+                self.speed = self.max_speed
 
-    def show(self):
-        self.img.clip_draw(self.img_now[0], self.img_now[1], self.sx, self.sy, self.x, self.y)
-
-    def add_hit_size(self, x, y):
-        self.hit_sx, self.hit_sy = x, y
+    @staticmethod
+    def list_move():
+        db_list = []
+        for i in range(len(game_world.explosive_bullet_list)):  # 불릿을 이동 시킨 후 범위탈출 및 충돌 체크
+            blt = game_world.explosive_bullet_list[i]
+            blt.move()
+            blt.anim()
+            if blt.y > play_state.window_size[1] + 60 or blt.y < - 60 or blt.x > play_state.window_size[
+                0] + 60 or blt.x < - 60:  # 지금은 화면 밖인데 나중에 벽으로 바꿀 예정, 화면 밖 멀리에 벽을 둘 예정, 또 벽에 충돌하면 먼지 이펙트같은것도 추가 예정
+                db_list.append(i)  # 총알이 범위 밖으로 나갔으니 삭제 리스트에 추가
+            elif blt.t >= 1.0:#여기서 폭발
+                db_list.append(i)
+        db_list.sort(reverse=True)
+        for db in db_list:
+            del game_world.explosive_bullet_list[db]  # 충돌하거나 나갔던 불릿들 삭제
 
     def anim(self):
-        self.img_now[0] = self.frame * self.sx
-        self.frame = (self.frame + 1) % 5
+        if play_state.frame % 10 == 0:
+            self.img_now = self.frame * 20
+            self.frame = (self.frame + 1) % 5
 
-class Bullet_32:
+    @staticmethod
+    def load_resource():
+        Drag_Bull.img = load_image('resource\\bullet\\dragbull.png')
+
+
+class Bullet32:
     img = []
     def __init__(self, player, x2, y2):
         self.x1, self.y1 = self.get_bullet_start(player)  # x1, y1  # 시작 좌표
         self.x2, self.y2 = x2, y2  # 가야할 좌표, 지나치고 계속 가도 됨.
-        self.x, self.y = self.x1, self.x2  # 현재 좌표
-        self.speed = player.bullet_speed  # 생성되는 곳에서 마린의 탄속으로 초기화해주고 있음.
-        self.t = 0  # 브리즌헴 직선 변수
+        self.x, self.y = self.x1, self.y1  # 현재 좌표
+        self.speed = player.bullet_speed
+        self.AD = player.AD
+        self.t = 0
         self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
         if self.r == 0:
             return False#조준한 위치가 출발점과 같을 때 이동불가
         self.num = self.get_bullet_num(get_rad(self.x1, self.y1, self.x2, self.y2))
-        self.img = Bullet_32.img[self.num]
+        self.img = Bullet32.img[self.num]
         #self.sx, self.sy = self.get_bullet_size(self.num)
         self.exist = True #충돌 수 False로 바꿔줄 변수
 
@@ -158,14 +198,44 @@ class Bullet_32:
                 else:  # 왼쪽
                     return 24
 
+    @staticmethod
+    def list_move_crash_chack():
+        db_list = []
+        # dz_list = []
+        # dzz_list = []
+        # de_list = []
+        for i in range(len(game_world.bullet_list)):  # 불릿을 이동 시킨 후 범위탈출 및 충돌 체크
+            blt = game_world.bullet_list[i]
+            blt.move()
+            if blt.y > play_state.window_size[1] + 60 or blt.y < - 60 or blt.x > play_state.window_size[
+                0] + 60 or blt.x < - 60:  # 지금은 화면 밖인데 나중에 벽으로 바꿀 예정, 화면 밖 멀리에 벽을 둘 예정, 또 벽에 충돌하면 먼지 이펙트같은것도 추가 예정
+                db_list.append(i)  # 총알이 범위 밖으로 나갔으니 삭제 리스트에 추가
+            else:  # 나간 총알이랑은 충돌 체크 할 필요 없으니 안나간 것만 충돌체크
+                for em in game_world.enemy_list():
+                    if bullet_crash(blt, em) == True:
+                        attack_effect = Bullet32_Effect(blt.x, blt.y)
+                        game_world.effect_list.append(attack_effect)
+                        # player.play_hit_sound()
+                        play_state.sound.Marine_hit = True
+                        db_list.append(i)
+                        blt.exist = False  # 아직 삭제 시킬 수 없으므로 존재변수를 0으로 함, 겹쳐있는 저글링 동시에 패는걸 막기 위해,
+                        em.hp -= blt.AD
+                        if em.hp <= 0:
+                            em.die()
+                            # zgl.hit_sx = 0  # 저글링의 크기도 0으로 만듦, 동시에 여러발 흡수하느걸 막기 위해, 충돌체크 조건문에서 걸러짐 # hp 검사로 조건 바꿈
+                        break  # 이제 사라진 불릿이기 때문에 다른 저글링이랑 체크 할 필요 없음
+        db_list.sort(reverse=True)
+        for db in db_list:
+            del game_world.bullet_list[db]  # 충돌하거나 나갔던 불릿들 삭제
 
     @staticmethod
     def load_resource():
         for i in range(0, 32):
-            Bullet_32.img.append(load_image("resource\\bullet\\" + str(i) + ".png"))
-        Effect.load_resource()
+            Bullet32.img.append(load_image("resource\\bullet\\" + str(i) + ".png"))
+        Bullet32_Effect.load_resource()
+        Drag_Bull.load_resource()
 
-class Effect():
+class Bullet32_Effect():
     crash_img = None
     def __init__(self, x, y):
         self.x = x
@@ -174,13 +244,15 @@ class Effect():
         self.frame = 0  # 100이 되면 저글링 시체 사라짐
 
     def anim(self):
-        if self.frame < 4:
-            self.img_now_y -= 80
+        self.img_now_y -= 80
         self.frame += 1
+        if self.frame > 4:  # 마린 공격 이펙트 프레임
+            game_world.effect_list.remove(self)
+            del self
 
     def show(self):
-        Effect.crash_img.clip_draw(0, self.img_now_y, 80, 80, self.x, self.y)
+        Bullet32_Effect.crash_img.clip_draw(0, self.img_now_y, 80, 80, self.x, self.y)
 
     @staticmethod
     def load_resource():
-        Effect.crash_img = load_image('resource\\marine\\attack_effect_blue.png')
+        Bullet32_Effect.crash_img = load_image('resource\\bullet\\attack_effect_red.png')

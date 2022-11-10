@@ -1,7 +1,13 @@
+Marine = []
+Dragoon = []
+Player = [Marine, Dragoon]
 Zergling_list =[]
 Zealot_list = []
 enemies = [Zergling_list, Zealot_list]
+bullet_list = []
+explosive_bullet_list = []
 die_list = []
+effect_list = []
 objects = [[], [], []]
 
 def enemy_list():

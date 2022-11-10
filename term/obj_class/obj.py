@@ -21,10 +21,10 @@ class Obj:
 
 
 class RealObj(Obj):
-    x_gap = None
-    hit_x_gap = None
-    y_gap = None
-    hit_y_gap = None
+    x_gap = None #x - stand_x
+    hit_x_gap = None #hit_x - stand_x
+    y_gap = None #y - stand_y
+    hit_y_gap = None #hit_y - stand_y
     def __init__(self):
         super().__init__()
         self.hit_y = None
@@ -73,13 +73,13 @@ class RealObj(Obj):
         self.hit_y = y - d
 
     def get_left(self):
-        return self.stand_x - self.stand_sx // 2
+        return self.stand_x - self.stand_sx
 
     def get_right(self):
-        return self.stand_x + self.stand_sx // 2
+        return self.stand_x + self.stand_sx
 
     def get_top(self):
-        return self.stand_y + self.stand_sy // 2
+        return self.stand_y + self.stand_sy
 
     def get_bottom(self):
-        return self.stand_y - self.stand_sy // 2
+        return self.stand_y - self.stand_sy

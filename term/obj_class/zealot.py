@@ -6,10 +6,10 @@ class Zealot(RealObj):
     list = []
     sx = 110
     sy = 78
-    stand_sx = 40
-    stand_sy = 40
-    hit_sx = 40
-    hit_sy = 62
+    stand_sx = 20
+    stand_sy = 20
+    hit_sx = 20
+    hit_sy = 31
     hp = 7
     speed = 2.5
     img = None
