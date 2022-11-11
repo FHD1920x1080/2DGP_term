@@ -3,7 +3,6 @@ from obj_class.obj import *
 
 class Zealot(RealObj):
     sum = 0
-    list = []
     sx = 110
     sy = 78
     stand_sx = 20
@@ -36,13 +35,6 @@ class Zealot(RealObj):
 
     def show(self):
         Zealot.img.clip_draw(self.img_now[0], self.img_now[1], Zealot.sx, Zealot.sy, self.x, self.y)
-
-    @staticmethod
-    def show_All():
-        for zl in Zealot.list:
-            zl.show()
-        for zl in Die_Zealot.list:
-            zl.show()
 
     def stop(self):
         self.img_now = self.img_now[0], 1881
@@ -79,6 +71,9 @@ class Zealot(RealObj):
         if self.stand_x + self.speed * 0.707 >= play_state.window_size[0] - round(self.stand_sx / 2):
             self.x_move(play_state.window_size[0] - (self.stand_x + round(self.stand_sx / 2)))
             self.direction = random.randrange(1, 3)
+    def anim(self):
+        if (play_state.frame + play_state.every_6frame) % 4 == 0:
+            self.move_frame = (self.move_frame + 1) % 8
 
     def move(self):
         self.time += 1
@@ -108,28 +103,16 @@ class Zealot(RealObj):
         die_zealot = Die_Zealot(self.stand_x, self.stand_y + 46)
         play_state.sound.Zealot_die = True
         game_world.die_list.append(die_zealot)  # 죽은 리스트에 추가함
-        game_world.Zealot_list.remove(self)
+        game_world.ground_enemy.remove(self)
         del self  # 실제 저글링은 삭제
         #print(len(Zealot.list))
         pass
-    @staticmethod
-    def list_move():
-        zd_list = []
-        for i in range(len(Zealot.list)):  # 저글링 다운
-            zgl = Zealot.list[i]
-            if zgl.move() == 1:
-                zd_list.append(i)
-
-        zd_list.sort(reverse=True)
-        for d in zd_list:
-            #Zealot.list[d].die()
-            del Zealot.list[d]
     @staticmethod
     def make_zealot():
         if random.random() <= Zealot.zm:
             zealot = Zealot(random.randrange(round(Zealot.sx / 2), play_state.window_size[0] - round(Zealot.sx / 2)),
                                 play_state.window_size[1] + Zealot.sy)
-            game_world.Zealot_list.append(zealot)
+            game_world.ground_enemy.append(zealot)
     @staticmethod
     def load_resource():
         Zealot.img = load_image("resource\\zealot\\zealot200x2.png")
@@ -172,4 +155,5 @@ class Die_Zealot(Obj):
     def load_resource():
         Die_Zealot.img = load_image("resource\\zealot\\die_zealot200.png")
         Die_Zealot.sound = load_wav('resource\\zealot\\pzedth00.wav')
-        Die_Zealot.sound.set_volume(8)
+        Sound.list.append(Die_Zealot.sound)
+        Sound.volume_list.append(8)

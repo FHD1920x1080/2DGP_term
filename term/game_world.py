@@ -1,9 +1,12 @@
 Marine = []
 Dragoon = []
 Player = [Marine, Dragoon]
+
 Zergling_list =[]
 Zealot_list = []
-enemies = [Zergling_list, Zealot_list]
+ground_enemy = []
+sky_enemy = []
+enemies = [ground_enemy, Zealot_list, sky_enemy]
 bullet_list = []
 explosive_bullet_list = []
 die_list = []

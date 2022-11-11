@@ -2,7 +2,6 @@ from obj_class.obj import *
 
 class Zergling(RealObj):
     sum = 0
-    list = []
     sx = 80
     sy = 78
     stand_sx = 18
@@ -36,14 +35,6 @@ class Zergling(RealObj):
 
     def show(self):
         Zergling.img.clip_draw(self.img_now[0], self.img_now[1], Zergling.sx, Zergling.sy, self.x, self.y)
-
-    @staticmethod
-    def show_All():
-        for zg in Die_Zergling.list:
-            zg.show()
-
-        for zg in Zergling.list:
-            zg.show()
 
     def stop(self):
         self.img_now = self.img_now[0], 1138
@@ -96,6 +87,9 @@ class Zergling(RealObj):
             self.x_move(play_state.window_size[0] - (self.stand_x + round(self.stand_sx / 2)))
             self.direction = random.randrange(1, 3)
 
+    def anim(self):
+        if (play_state.frame + play_state.every_6frame) % 6 == 0:
+            self.move_frame = (self.move_frame + 1) % 7
     def move(self):
         self.time += 1
         if (self.direction == 0):
@@ -127,22 +121,10 @@ class Zergling(RealObj):
         die_zergling = Die_Zergling(self.stand_x, self.stand_y - 5)
         play_state.sound.Zergling_die = True
         game_world.die_list.append(die_zergling)  # 죽은 저글링 리스트에 추가함
-        game_world.Zergling_list.remove(self)
+        game_world.ground_enemy.remove(self)
         del self  # 실제 저글링은 삭제
         #print(len(Zergling.list))
         pass
-    @staticmethod
-    def list_move():
-        zd_list = []
-        for i in range(len(Zergling.list)):  # 저글링 다운
-            zgl = Zergling.list[i]
-            if zgl.move() == 1:
-                zd_list.append(i)
-
-        zd_list.sort(reverse=True)
-        for d in zd_list:
-            #Zergling.list[d].die()
-            del Zergling.list[d]
 
     @staticmethod
     def make_zergling():
@@ -150,7 +132,7 @@ class Zergling(RealObj):
             Zergling.sum += 1
             zergling = Zergling(random.randrange(round(Zergling.sx / 2), play_state.window_size[0] - round(Zergling.sx / 2)),
                                 play_state.window_size[1] + Zergling.sy)
-            game_world.Zergling_list.append(zergling)
+            game_world.ground_enemy.append(zergling)
     @staticmethod
     def load_resource():
         Zergling.img = load_image("resource\\zergling\\zerglingx200x2.png")
@@ -192,4 +174,5 @@ class Die_Zergling(Obj):
     def load_resource():
         Die_Zergling.img = load_image("resource\\zergling\\die_zergling.png")
         Die_Zergling.sound = load_wav('resource\\zergling\\zzedth01.wav')
-        Die_Zergling.sound.set_volume(8)
+        Sound.list.append(Die_Zergling.sound)
+        Sound.volume_list.append(8)

@@ -20,7 +20,7 @@ cursor = None
 player = None
 every_6frame = 0 # 6프레임마다 해줄 일들 FPS로 나누어 떨어지는 애들은 필요 없음
 every_3frame = 0 # 3프레임마다 해줄 일들
-
+die_ground_list = []
 
 def handle_events():
     global player
@@ -41,25 +41,17 @@ def handle_events():
             if event.key == SDLK_o:
                 Zergling.zm = 0.03
             if event.key == SDLK_p:
-                Zergling.zm = 0.3
+                Zergling.zm = 0.15
         player.handle_events(event)
 
 def animation(frame):
     if frame % 4 == 0:
-        if player.unit_type == 0:
-            player.move_frame = (player.move_frame + 1) % 8
         for de in game_world.die_list:
             de.anim()
-        for zl in game_world.Zealot_list:
-            zl.move_frame = (zl.move_frame + 1) % 8  # 질럿 무브 프레임
-    # if (frame + every_3frame) % 3 == 0:
-    #     for zl in Zealot.list:
-    #         zl.move_frame = (zl.move_frame + 1) % 8  # 질럿 무브 프레임
+    for em in game_world.enemy_list():
+        em.anim()
 
     if (frame + every_6frame) % 6 == 0:
-        for zgl in game_world.Zergling_list:
-            zgl.move_frame = (zgl.move_frame + 1) % 7  # 저글링 무브 프레임
-
         effect_anim()
 
     if frame % 10 == 0:
@@ -84,7 +76,7 @@ def play_sound(frame):
 
 def load_resource():
     global background_img
-    background_img = load_image('resource\\image\\tile.png')
+    background_img = load_image('resource\\image\\map.png')
 
     Marine.load_resource()
     Dragoon.load_resource()
@@ -99,6 +91,7 @@ def enter():
     hide_cursor()
     cursor = Cursor()
     sound = Sound()
+    Sound.volume_set_up()
     FPS = 100
     frame = 0
     for asdasd in range(1):
@@ -120,8 +113,6 @@ def exit():
     del game_world.Player
     del game_world.enemy_list
     del game_world.die_list
-    del Zealot.list
-    del Die_Zealot.list
     del cursor
     del sound
 
@@ -132,8 +123,14 @@ def update():
     # for marine in Marine.list:
     #     marine.update()
     player.update()
+    global die_ground_list
+    die_ground_list = []
     Bullet32.list_move_crash_chack()
     Drag_Bull.list_move()
+    die_ground_list.sort(reverse=True)
+    for de in die_ground_list:
+        game_world.ground_enemy[de].die()
+    #em.die()
     # 확률에 따른 적 생성 및 이동
 
     Zergling.make_zergling()
@@ -155,11 +152,11 @@ def draw_world():
     show_enemy_list()
     for blt in game_world.bullet_list:
         blt.show()
+    for eft in game_world.effect_list:
+        eft.show()
     player.show()
     for blt in game_world.explosive_bullet_list:
         blt.show()
-    for eft in game_world.effect_list:
-        eft.show()
     cursor.show()
 
 

@@ -12,11 +12,34 @@ class User_input:
 
 
 class Sound:
+    list = []
+    volume_list = []
+
+    current_volume = 50
     def __init__(self):
         self.Marine_shoot = False
         self.Bullet32_hit = False
         self.Zergling_die = False
         self.Zealot_die = False
+
+    @staticmethod
+    def volume_set_up():
+        for i in range(len(Sound.list)):
+            Sound.list[i].set_volume(int(Sound.volume_list[i] * (Sound.current_volume / 100)))
+
+    @staticmethod
+    def volume_up():
+        Sound.current_volume += 1
+        if Sound.current_volume > 100:
+            Sound.current_volume = 100
+        Sound.volume_set_up()
+
+    @staticmethod
+    def volume_down():
+        Sound.current_volume -= 1
+        if Sound.current_volume < 0:
+            Sound.current_volume = 0
+        Sound.volume_set_up()
 
 
 def crash(a, b):

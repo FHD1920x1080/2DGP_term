@@ -95,7 +95,7 @@ def run(start_state):
         stack[-1].handle_events()
         stack[-1].update()
         stack[-1].draw()
-        delay = 11 - (SDL_GetTicks() - startTick)# 10넣으면 100프레임, 11 넣으면 90
+        delay = 10 - (SDL_GetTicks() - startTick)# 10넣으면 100프레임, 11 넣으면 90
         if delay > 0:
             SDL_Delay(delay)
         else:

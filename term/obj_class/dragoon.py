@@ -18,7 +18,7 @@ class Dragoon(RealObj):
 
     def __init__(self):
         self.hp = 100  # 체력
-        self.AD = 8
+        self.AD = 10
         self.img = Dragoon.img
         self.state = IDLE
         self.attack_ready_framet_frame = None
@@ -99,6 +99,12 @@ class Dragoon(RealObj):
             elif event.key == SDLK_s:
                 User_input.down_key = True
                 self.state = MOVE
+            elif event.key == SDLK_r:
+                self.bull_size += 0.1
+            elif event.key == SDLK_f:
+                self.bull_size -= 0.1
+                if self.bull_size < 0.1:
+                    self.bull_size = 0.1
         elif event.type == SDL_KEYUP:
             if event.key == SDLK_a:
                 User_input.left_key = False
@@ -231,6 +237,9 @@ class Dragoon(RealObj):
         self.shoot_frame += 1
         if self.shoot_frame > 17:
             bull = Drag_Bull(self)
+            if bull == False:
+                print('발사 실패')
+                return
             game_world.explosive_bullet_list.append(bull)
             self.play_shoot_sound()
             self.wait_frame = 0
@@ -242,8 +251,10 @@ class Dragoon(RealObj):
 
     @staticmethod
     def load_resource():
-        Dragoon.img = load_image('resource\\dragoon\\dragoon200.png')
+        Dragoon.img = load_image('resource\\dragoon\\dragoon200_em.png')
         Dragoon.shoot_sound1 = load_wav('resource\\dragoon\\sound\\dragbull.wav')
         Dragoon.shoot_sound2 = load_wav('resource\\dragoon\\sound\\tphfi201.wav')
-        Dragoon.shoot_sound1.set_volume(10)
-        Dragoon.shoot_sound2.set_volume(10)
+        Sound.list.append(Dragoon.shoot_sound1)
+        Sound.volume_list.append(10)
+        Sound.list.append(Dragoon.shoot_sound2)
+        Sound.volume_list.append(10)
