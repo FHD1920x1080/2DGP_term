@@ -10,22 +10,22 @@ class Zealot(RealObj):
     stand_sy = 20
     hit_sx = 20
     hit_sy = 31
-    hp = 7
+    hp = 10
     speed = 2.5
     img = None
     zm = 0.01
     def __init__(self, x, y):
         super().__init__()
-        self.hp = Zealot.hp
         self.img_now = [4169, 1881]  ##256, 256 씩 옮겨야 함 73,3328-167 맨위에 첫 이미지
         self.stand_x = x
         self.stand_y = y
-        self.stand_sx = Zealot.stand_sx
-        self.stand_sy = Zealot.stand_sy
         self.x = self.stand_x
         self.y = self.stand_y + 21
         self.hit_x = self.x
         self.hit_y = self.y
+        self.hp = Zealot.hp
+        self.stand_sx = Zealot.stand_sx
+        self.stand_sy = Zealot.stand_sy
         self.hit_sx = Zealot.hit_sx
         self.hit_sy = Zealot.hit_sy
         self.speed = Zealot.speed
@@ -157,7 +157,9 @@ class Die_Zealot(Obj):
         Die_Zealot.img.clip_draw(self.img_now_x, 80, 110, 142, self.x, self.y)
         pass
 
-    def play_sound(self):
+
+    @staticmethod
+    def play_sound():
         Die_Zealot.sound.play()
 
     def anim(self):

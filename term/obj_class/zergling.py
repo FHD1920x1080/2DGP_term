@@ -9,23 +9,23 @@ class Zergling(RealObj):
     stand_sy = 16
     hit_sx = 22
     hit_sy = 20
-    hp = 3
+    hp = 6
     speed = 3
     img = None
     zm = 0.01
     def __init__(self, x, y):
         super().__init__()
-        self.hp = Zergling.hp
         # self.put_img("zerglingx200x2.png")
         self.img_now = [692, 1138]  ##86, 84 씩 옮겨야 함
         self.stand_x = x
         self.stand_y = y
-        self.stand_sx = Zergling.stand_sx
-        self.stand_sy = Zergling.stand_sy
         self.x = self.stand_x
         self.y = self.stand_y + 5
         self.hit_x = self.x
         self.hit_y = self.y
+        self.hp = Zergling.hp
+        self.stand_sx = Zergling.stand_sx
+        self.stand_sy = Zergling.stand_sy
         self.hit_sx = Zergling.hit_sx
         self.hit_sy = Zergling.hit_sy
         self.speed = Zergling.speed
@@ -177,7 +177,9 @@ class Die_Zergling(Obj):
     def show(self):
         Die_Zergling.img.clip_draw(self.img_now_x, 0, 130, 106, self.x, self.y)
 
-    def play_sound(self):
+
+    @staticmethod
+    def play_sound():
         Die_Zergling.sound.play()
 
     def anim(self):

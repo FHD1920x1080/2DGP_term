@@ -1,32 +1,37 @@
-from pico2d import*
-from func import*
+from pico2d import *
+from func import *
 import game_world
 import play_state
 import random
 import math
+
+
 class Drag_Bull:
     img = None
     sx = 0
     sy = 0
+
     def __init__(self, player):
-        self.x1, self.y1 = player.x, player.y+5  # x1, y1  # 시작 좌표
-        self.x2, self.y2 = None, None  # 가야할 좌표, 지나치고 계속 가도 됨.
+        self.x1, self.y1 = player.x, player.y + 5  # x1, y1  # 시작 좌표
+        self.x2, self.y2 = player.bull_x2, player.bull_y2  # 가야할 좌표, 지나치고 계속 가도 됨.
         self.x, self.y = self.x1, self.y1  # 현재 좌표
         self.max_speed = player.bullet_speed
-        self.speed = 0
+        self.speed = self.max_speed - 20
         self.AD = player.AD
         self.t = 0
-        self.r = None
-        self.img_now_x = 0
-        self.frame = 0
-
-    def get_r(self):
         self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
         if self.r == 0:
             game_world.explosive_bullet_list.remove(self)
             del self
+            return
+        self.img_now_x = 0
+        self.frame = 0
+        self.current_size = player.bull_size  # 100% 기준
+
+
     def show(self):
-        Drag_Bull.img.clip_composite_draw(self.img_now_x, 0, 20, 18, 0, '', self.x, self.y, 40, 40)
+        Drag_Bull.img.clip_composite_draw(self.img_now_x, 0, 20, 18, 0, '', self.x, self.y, 20 * self.current_size, 20 * self.current_size)
+
     def x_move(self, x):
         self.x += x
         self.x1 += x
@@ -57,10 +62,16 @@ class Drag_Bull:
             if blt.y > play_state.window_size[1] + 60 or blt.y < - 60 or blt.x > play_state.window_size[
                 0] + 60 or blt.x < - 60:  # 지금은 화면 밖인데 나중에 벽으로 바꿀 예정, 화면 밖 멀리에 벽을 둘 예정, 또 벽에 충돌하면 먼지 이펙트같은것도 추가 예정
                 db_list.append(i)  # 총알이 범위 밖으로 나갔으니 삭제 리스트에 추가
-            elif blt.t >= 1.0:#여기서 폭발
-                attack_effect = Drag_Bull_Effect(blt.x, blt.y)
+            elif blt.t >= 1.0:  # 여기서 폭발
+                attack_effect = Drag_Bull_Effect(blt.x, blt.y, blt.current_size)
                 game_world.effect_list.append(attack_effect)
+                Drag_Bull_Effect.play_bomb_sound()
                 db_list.append(i)
+                for em in game_world.enemy_list():
+                    if tir_rect_crash(attack_effect, em):
+                        em.hp -= blt.AD
+                        if em.hp <= 0:
+                            em.die()
         db_list.sort(reverse=True)
         for db in db_list:
             del game_world.explosive_bullet_list[db]  # 충돌하거나 나갔던 불릿들 삭제
@@ -75,15 +86,35 @@ class Drag_Bull:
         Drag_Bull.img = load_image('resource\\bullet\\dragbull.png')
         Drag_Bull_Effect.load_resource()
 
+
 class Drag_Bull_Effect:
     img = None
-
-    def __init__(self, x, y):
+    bomb_sound = None
+    rect_sx = [0, 0, 0]
+    rect_sy = [0, 0, 0]
+    rect_sx[0] = 33
+    rect_sy[0] = 51
+    rect_sx[1] = 75
+    rect_sy[1] = 24
+    rect_sx[2] = (rect_sx[0] + rect_sx[1]) // 2
+    rect_sy[2] = (rect_sy[1] + rect_sy[1]) // 2
+    def __init__(self, x, y, size):
         self.x = x
         self.y = y
         self.img_now_x = 0
         self.frame = 0
+        self.current_size = size
+    def get_left(self, i):
+        return self.x - Drag_Bull_Effect.rect_sx[i] * self.current_size
 
+    def get_right(self, i):
+        return self.x + Drag_Bull_Effect.rect_sx[i] * self.current_size
+
+    def get_bottom(self, i):
+        return self.y - Drag_Bull_Effect.rect_sy[i] * self.current_size
+
+    def get_top(self, i):
+        return self.y + Drag_Bull_Effect.rect_sy[i] * self.current_size
     def anim(self):
         self.img_now_x += 191
         self.frame += 1
@@ -92,11 +123,18 @@ class Drag_Bull_Effect:
             del self
 
     def show(self):
-        Drag_Bull_Effect.img.clip_composite_draw(self.img_now_x, 0, 188, 150,0,'', self.x, self.y, 188, 150)
+        Drag_Bull_Effect.img.clip_composite_draw(self.img_now_x, 0, 188, 150, 0, '', self.x, self.y, 188 * self.current_size, 150 * self.current_size)
+
+    @staticmethod
+    def play_bomb_sound():
+        Drag_Bull_Effect.bomb_sound.play()
 
     @staticmethod
     def load_resource():
-        Drag_Bull_Effect.img = load_image('resource\\bullet\\protoss_bomb.png')
+        Drag_Bull_Effect.img = load_image('resource\\bullet\\protoss_bomb7.png')
+        Drag_Bull_Effect.bomb_sound = load_wav('resource\\bullet\\hit_sound\\tbadth1.wav')
+        Drag_Bull_Effect.bomb_sound.set_volume(26)
+
 
 class Bullet32:
     img = []
@@ -109,11 +147,11 @@ class Bullet32:
         self.t = 0
         self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
         if self.r == 0:
-            return False#조준한 위치가 출발점과 같을 때 이동불가
+            return False  # 조준한 위치가 출발점과 같을 때 이동불가
         self.num = self.get_bullet_num(get_rad(self.x1, self.y1, self.x2, self.y2))
         self.img = Bullet32.img[self.num]
-        #self.sx, self.sy = self.get_bullet_size(self.num)
-        self.exist = True #충돌 수 False로 바꿔줄 변수
+        # self.sx, self.sy = self.get_bullet_size(self.num)
+        self.exist = True  # 충돌 수 False로 바꿔줄 변수
 
     def x_move(self, x):
         self.x += x
@@ -135,7 +173,7 @@ class Bullet32:
         self.img.draw(self.x, self.y)
 
     def get_bullet_start(self, player):
-        if player.unit_type == 0:# 마린일 때 1 은 골리앗
+        if player.unit_type == 0:  # 마린일 때 1 은 골리앗
             x, y = player.stand_x, player.stand_y + 14
             if player.look_now < 10:
                 x += 8
@@ -241,7 +279,7 @@ class Bullet32:
                         attack_effect = Bullet32_Effect(blt.x, blt.y)
                         game_world.effect_list.append(attack_effect)
                         # player.play_hit_sound()
-                        play_state.sound.Marine_hit = True
+                        play_state.sound.Bullet32_hit = True
                         db_list.append(i)
                         blt.exist = False  # 아직 삭제 시킬 수 없으므로 존재변수를 0으로 함, 겹쳐있는 저글링 동시에 패는걸 막기 위해,
                         em.hp -= blt.AD
@@ -260,8 +298,11 @@ class Bullet32:
         Bullet32_Effect.load_resource()
         Drag_Bull.load_resource()
 
+
 class Bullet32_Effect():
     crash_img = None
+    hit_sound = None
+
     def __init__(self, x, y):
         self.x = x
         self.y = y
@@ -279,5 +320,11 @@ class Bullet32_Effect():
         Bullet32_Effect.crash_img.clip_draw(0, self.img_now_y, 80, 80, self.x, self.y)
 
     @staticmethod
+    def play_hit_sound():
+        Bullet32_Effect.hit_sound.play()
+
+    @staticmethod
     def load_resource():
         Bullet32_Effect.crash_img = load_image('resource\\bullet\\attack_effect_red.png')
+        Bullet32_Effect.hit_sound = load_wav('resource\\bullet\\hit_sound\\06.wav')
+        Bullet32_Effect.hit_sound.set_volume(6)

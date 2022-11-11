@@ -10,12 +10,14 @@ class User_input:
     down_key = False
     left_button = False
 
+
 class Sound:
     def __init__(self):
         self.Marine_shoot = False
-        self.Marine_hit = False
+        self.Bullet32_hit = False
         self.Zergling_die = False
         self.Zealot_die = False
+
 
 def crash(a, b):
     if a.hit_sx <= 0 or b.hit_sx <= 0:
@@ -44,6 +46,31 @@ def bullet_crash(a, b):
         return False
 
     return True
+
+
+def tir_rect_crash(bullet, unit):
+    if unit.hp <= 0:
+        return False
+
+    if unit.get_hit_bottom() > bullet.get_top(0):
+        return False
+    if unit.get_hit_top() < bullet.get_bottom(0):
+        return False
+    if unit.get_hit_left() > bullet.get_right(1):
+        return False
+    if unit.get_hit_right() < bullet.get_left(1):
+        return False
+
+    # 이제 이 안에선 충돌할 확률이 더 높음.
+    if unit.get_hit_right() >= bullet.get_left(0) and unit.get_hit_left() <= bullet.get_right(0):
+        return True
+    if unit.get_hit_top() >= bullet.get_bottom(1) and unit.get_hit_bottom() <= bullet.get_top(1):
+        return True
+    if unit.get_hit_right() >= bullet.get_left(2) and unit.get_hit_left() <= bullet.get_right(2):
+        if unit.get_hit_top() >= bullet.get_bottom(2) and unit.get_hit_bottom() <= bullet.get_top(2):
+            return True
+
+    return False
 
 
 def cheak_collision(unit1, unit2):

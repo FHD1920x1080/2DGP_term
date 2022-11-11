@@ -7,6 +7,8 @@ IDLE, MOVE, OPEN, READY, SHOOT, WAIT = range(6)
 
 class Dragoon(RealObj):
     img = None
+    shoot_sound1 = None
+    shoot_sound2 = None
     unit_type = 2
 
     x_gap = 0
@@ -15,6 +17,8 @@ class Dragoon(RealObj):
     hit_y_gap = 23
 
     def __init__(self):
+        self.hp = 100  # 체력
+        self.AD = 8
         self.img = Dragoon.img
         self.state = IDLE
         self.attack_ready_framet_frame = None
@@ -32,7 +36,6 @@ class Dragoon(RealObj):
         self.stand_sy = 34
         self.img_now = [0, 1344]
         self.bullet_speed = 25
-        self.AD = 10
         self.idle_frame = 0
         self.move_frame = 0
         self.open_frame = 0
@@ -43,11 +46,16 @@ class Dragoon(RealObj):
         self.state = IDLE
         self.Wmove_able = False
         self.Hmove_able = False
-        self.cur_bull = None
-        self.shoot_success = False
+        self.bull_x2, self.bull_y2 = None, None
+        self.bull_size = 2
     def show(self):
         self.img.clip_draw(self.img_now[0], self.img_now[1], self.sx, self.sy, self.x, self.y)
-
+    def play_shoot_sound(self):
+        i = random.randint(0, 1)
+        if i==0:
+            Dragoon.shoot_sound1.play()
+        else:
+            Dragoon.shoot_sound2.play()
     def update(self):
         if self.state == MOVE:
             self.move()
@@ -70,6 +78,7 @@ class Dragoon(RealObj):
         if event.type == SDL_MOUSEBUTTONDOWN:
             if event.button == SDL_BUTTON_LEFT:
                 if self.state == IDLE or self.state == MOVE:
+                    self.bull_x2, self.bull_y2 = play_state.cursor.x, play_state.cursor.y
                     self.open_frame = 0
                     self.state = OPEN
                 User_input.left_button = True
@@ -197,37 +206,33 @@ class Dragoon(RealObj):
 
     def open(self):
         self.img_now = [960, 1344 - (192 * self.open_frame)]
-        if play_state.frame % 5 == 0:
+        if play_state.frame % 3 == 0:
             self.open_frame += 1
             if self.open_frame > 5:
-                self.open_frame = 0
                 self.shoot_frame = 0
                 self.state = SHOOT
 
     def ready(self):
         self.img_now = [960, 384]
         if User_input.left_button:
+            self.bull_x2, self.bull_y2 = play_state.cursor.x, play_state.cursor.y
             self.shoot_frame = 0
             self.state = SHOOT
 
     def wait(self):
         self.img_now = [960, 384]
         self.wait_frame += 1
-        if self.wait_frame >= 65:
+        if self.wait_frame >= 55:
             self.state = READY
 
     def shoot(self):
-        #if self.shoot_frame == 0:
         if self.shoot_frame % 6 == 0:
             self.img_now = [960, 384 - (192 * (self.shoot_frame//6))]
         self.shoot_frame += 1
         if self.shoot_frame > 17:
-            self.cur_bull = Drag_Bull(self)
-            game_world.explosive_bullet_list.append(self.cur_bull)
-            x2, y2 = play_state.cursor.x, play_state.cursor.y
-            self.cur_bull.x2, self.cur_bull.y2 = x2, y2
-            self.cur_bull.get_r()
-            self.cur_bull.speed = self.cur_bull.max_speed - 20
+            bull = Drag_Bull(self)
+            game_world.explosive_bullet_list.append(bull)
+            self.play_shoot_sound()
             self.wait_frame = 0
             self.state = WAIT
 
@@ -238,3 +243,7 @@ class Dragoon(RealObj):
     @staticmethod
     def load_resource():
         Dragoon.img = load_image('resource\\dragoon\\dragoon200.png')
+        Dragoon.shoot_sound1 = load_wav('resource\\dragoon\\sound\\dragbull.wav')
+        Dragoon.shoot_sound2 = load_wav('resource\\dragoon\\sound\\tphfi201.wav')
+        Dragoon.shoot_sound1.set_volume(10)
+        Dragoon.shoot_sound2.set_volume(10)

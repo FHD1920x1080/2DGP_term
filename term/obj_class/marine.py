@@ -1,5 +1,6 @@
 from obj_class.obj import *
 
+IDLE, MOVE, DASH, SHOOT, WAIT = range(5)
 
 class Marine(RealObj):
     list = []
@@ -20,8 +21,9 @@ class Marine(RealObj):
     def __init__(self):
         super().__init__()
         self.hp = 100  # 체력
-        self.AD = 100  # 공격력
+        self.AD = 2  # 공격력
         self.img = Marine.img
+        self.dash_state = False
         self.sx, self.sy = 110, 85  # 그려줄 스프라이트 크기
         self.img_now = [30 + (2 * 160 * 0), 2180 - 80 - (1 * 160 * 2)]  # 스프라이트 좌표
         self.stand_x = play_state.window_size[0] / 2  # 마린이 서있는 좌표
@@ -54,7 +56,9 @@ class Marine(RealObj):
         self.magazine_gun = True  # 연사모드
     def show(self):
         self.img.clip_draw(self.img_now[0], self.img_now[1], self.sx, self.sy, self.x, self.y)
-    def play_shoot_sound(self):
+
+    @staticmethod
+    def play_shoot_sound():
         i = random.randint(0, 3)
         if i == 0:
             Marine.shoot_sound00.play()
@@ -65,8 +69,22 @@ class Marine(RealObj):
         elif i == 3:
             Marine.shoot_sound03.play()
 
-    def play_hit_sound(self):
-        Marine.hit_sound.play()
+    def update(self):
+        self.check_magazine()
+        self.move()
+        self.shoot()
+        self.shoot_frame += 1
+        if self.magazine_gun == False:
+            if self.shoot_idle == True:
+                self.shoot_idle_frame += 1
+                if self.shoot_idle_frame > self.nfs * self.interrupted_fire - 1:
+                    self.shoot_frame = 0
+            else:
+                self.shoot_idle_frame = 0
+        if self.idle:
+            self.idle_frame += 1
+        else:
+            self.idle_frame = 0
 
     def handle_events(self, event):
         if event.type == SDL_MOUSEBUTTONDOWN:
@@ -152,6 +170,15 @@ class Marine(RealObj):
                     self.img_now = 30 + 160 * self.look_now, 1780
                 else:
                     User_input.left_button = False
+
+    def dash(self):
+        #쿨타임이 안찼을 때:
+            #return
+        if User_input.up_key == False and User_input.down_key == False and User_input.right_key == False and User_input.left_key == False:
+            a = get_rad(self.stand_x, self.stand_y, play_state.cursor.x, play_state.cursor.y)
+            self.look_now = self.get_look_now(a)
+            self.img_now = 30 + 160 * self.look_now, 1780
+        pass
 
     def move(self):
         if self.move_able == True: # 움직이는 상태 말고, 움직여도 되는 상태인지(총쏘고있으면 해당 안됨.)
@@ -330,31 +357,9 @@ class Marine(RealObj):
         else:
             self.shoot_idle = True
 
-    def update(self):
-        self.check_magazine()
-        self.move()
-        # for mm in game_world.Marine:
-        #     cheak_collision(self, mm)
-        self.shoot()
-        self.shoot_frame += 1
-        if self.magazine_gun == False:
-            if self.shoot_idle == True:
-                self.shoot_idle_frame += 1
-                if self.shoot_idle_frame > self.nfs * self.interrupted_fire - 1:
-                    self.shoot_frame = 0
-            else:
-                self.shoot_idle_frame = 0
-
-        if self.idle:
-            self.idle_frame += 1
-        else:
-            self.idle_frame = 0
-
     @staticmethod
     def load_resource():
         Marine.img = load_image('resource\\marine\\marine250x2.png')
-        Marine.hit_sound = load_wav('resource\\bullet\\hit_sound\\06.wav')
-        Marine.hit_sound.set_volume(6)
         Marine.shoot_sound00 = load_wav('resource\\marine\\shoot_sound\\00.wav')
         Marine.shoot_sound00.set_volume(16)
         Marine.shoot_sound01 = load_wav('resource\\marine\\shoot_sound\\01.wav')

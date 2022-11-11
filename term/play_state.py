@@ -1,7 +1,7 @@
 from pico2d import *
 from func import *
 import game_world
-from obj_class.bullet import Bullet32, Drag_Bull
+from obj_class.bullet import Bullet32, Bullet32_Effect, Drag_Bull
 from obj_class.marine import Marine
 from obj_class.dragoon import Dragoon
 from obj_class.zergling import Zergling, Die_Zergling
@@ -67,18 +67,18 @@ def animation(frame):
 
 
 def play_sound(frame):
-    if (frame + every_3frame) % 6 == 0:
+    if (frame + every_6frame) % 6 == 0:
         if sound.Marine_shoot:
-            Marine.play_shoot_sound(Marine)
+            Marine.play_shoot_sound()
             sound.Marine_shoot = False
-        if sound.Marine_hit:
-            Marine.play_hit_sound(Marine)
-            sound.Marine_hit = False
+        if sound.Bullet32_hit:
+            Bullet32_Effect.play_hit_sound()
+            sound.Bullet32_hit = False
         if sound.Zergling_die:
-            Die_Zergling.play_sound(Die_Zergling)
+            Die_Zergling.play_sound()
             sound.Zergling_die = False
         if sound.Zealot_die:
-            Die_Zealot.play_sound(Die_Zealot)
+            Die_Zealot.play_sound()
             sound.Zealot_die = False
 
 
