@@ -1,3 +1,6 @@
+import time
+from pico2d import*
+import play_state
 class GameState:
     def __init__(self, state):
         self.enter = state.enter
@@ -88,9 +91,15 @@ def run(start_state):
     stack = [start_state]
     start_state.enter()
     while (running):
+        startTick = SDL_GetTicks();
         stack[-1].handle_events()
         stack[-1].update()
         stack[-1].draw()
+        delay = 11 - (SDL_GetTicks() - startTick)# 10넣으면 100프레임, 11 넣으면 90
+        if delay > 0:
+            SDL_Delay(delay)
+        else:
+            print(delay)
     # repeatedly delete the top of the stack
     while (len(stack) > 0):
         stack[-1].exit()

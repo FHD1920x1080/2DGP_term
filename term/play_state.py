@@ -21,12 +21,6 @@ player = None
 every_6frame = 0 # 6프레임마다 해줄 일들 FPS로 나누어 떨어지는 애들은 필요 없음
 every_3frame = 0 # 3프레임마다 해줄 일들
 
-class Sound:
-    def __init__(self):
-        self.Marine_shoot = False
-        self.Marine_hit = False
-        self.Zergling_die = False
-        self.Zealot_die = False
 
 def handle_events():
     global player

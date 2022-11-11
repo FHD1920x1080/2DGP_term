@@ -17,7 +17,7 @@ class Drag_Bull:
         self.AD = player.AD
         self.t = 0
         self.r = None
-        self.img_now = 0
+        self.img_now_x = 0
         self.frame = 0
 
     def get_r(self):
@@ -26,7 +26,7 @@ class Drag_Bull:
             game_world.explosive_bullet_list.remove(self)
             del self
     def show(self):
-        Drag_Bull.img.clip_composite_draw(self.img_now, 0, 20, 18, 0, '', self.x, self.y, 40, 40)
+        Drag_Bull.img.clip_composite_draw(self.img_now_x, 0, 20, 18, 0, '', self.x, self.y, 40, 40)
     def x_move(self, x):
         self.x += x
         self.x1 += x
@@ -58,6 +58,8 @@ class Drag_Bull:
                 0] + 60 or blt.x < - 60:  # 지금은 화면 밖인데 나중에 벽으로 바꿀 예정, 화면 밖 멀리에 벽을 둘 예정, 또 벽에 충돌하면 먼지 이펙트같은것도 추가 예정
                 db_list.append(i)  # 총알이 범위 밖으로 나갔으니 삭제 리스트에 추가
             elif blt.t >= 1.0:#여기서 폭발
+                attack_effect = Drag_Bull_Effect(blt.x, blt.y)
+                game_world.effect_list.append(attack_effect)
                 db_list.append(i)
         db_list.sort(reverse=True)
         for db in db_list:
@@ -65,13 +67,36 @@ class Drag_Bull:
 
     def anim(self):
         if play_state.frame % 10 == 0:
-            self.img_now = self.frame * 20
+            self.img_now_x = self.frame * 20
             self.frame = (self.frame + 1) % 5
 
     @staticmethod
     def load_resource():
         Drag_Bull.img = load_image('resource\\bullet\\dragbull.png')
+        Drag_Bull_Effect.load_resource()
 
+class Drag_Bull_Effect:
+    img = None
+
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.img_now_x = 0
+        self.frame = 0
+
+    def anim(self):
+        self.img_now_x += 191
+        self.frame += 1
+        if self.frame > 10:  # 마린 공격 이펙트 프레임
+            game_world.effect_list.remove(self)
+            del self
+
+    def show(self):
+        Drag_Bull_Effect.img.clip_composite_draw(self.img_now_x, 0, 188, 150,0,'', self.x, self.y, 188, 150)
+
+    @staticmethod
+    def load_resource():
+        Drag_Bull_Effect.img = load_image('resource\\bullet\\protoss_bomb.png')
 
 class Bullet32:
     img = []

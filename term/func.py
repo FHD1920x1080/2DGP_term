@@ -10,6 +10,12 @@ class User_input:
     down_key = False
     left_button = False
 
+class Sound:
+    def __init__(self):
+        self.Marine_shoot = False
+        self.Marine_hit = False
+        self.Zergling_die = False
+        self.Zealot_die = False
 
 def crash(a, b):
     if a.hit_sx <= 0 or b.hit_sx <= 0:
