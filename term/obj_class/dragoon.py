@@ -107,6 +107,9 @@ class Dragoon(RealObj):
                 self.bull_size -= 0.1
                 if self.bull_size < 0.1:
                     self.bull_size = 0.1
+            elif event.key == SDLK_t:
+                self.bull_size = 12
+                self.AD = 20
         elif event.type == SDL_KEYUP:
             if event.key == SDLK_a:
                 User_input.left_key = False

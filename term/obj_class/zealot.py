@@ -16,7 +16,7 @@ class Zealot(RealObj):
     speed = 2.5
     img = None
     attack_sound = None
-    zm = 0.02
+    zm = 0.05
 
 
     x_gap = 0
