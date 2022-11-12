@@ -20,6 +20,7 @@ class Marine(RealObj):
 
     def __init__(self):
         super().__init__()
+        self.face_dir = 0 #얼굴 방향
         self.hp = 100  # 체력
         self.AD = 2  # 공격력
         self.img = Marine.img
@@ -67,6 +68,7 @@ class Marine(RealObj):
 
     def show(self):
         self.img.clip_draw(self.img_now[0], self.img_now[1], self.sx, self.sy, self.x, self.y)
+        #draw_rectangle(*self.get_stand_box())
 
     @staticmethod
     def play_shoot_sound():
@@ -86,10 +88,9 @@ class Marine(RealObj):
             self.dash()
         else:
             self.move()
+            for em in game_world.ground_enemy:
+                cheak_collision_min_move(self, em)
             self.shoot()
-            self.cur_dash_cool_time -= 1
-            if self.cur_dash_cool_time < 0:
-                self.cur_dash_cool_time = 0
         self.shoot_frame += 1
         if self.magazine_gun == False:
             if self.shoot_idle == True:
@@ -108,6 +109,9 @@ class Marine(RealObj):
         else:
             if play_state.frame % 4 == 0:
                 self.move_frame = (self.move_frame + 1) % 8
+        self.cur_dash_cool_time -= 1
+        if self.cur_dash_cool_time < 0:
+            self.cur_dash_cool_time = 0
 
     def handle_events(self, event):
         if event.type == SDL_MOUSEBUTTONDOWN:
@@ -126,7 +130,7 @@ class Marine(RealObj):
                     self.shoot_able = False
                     self.idle = True
                     self.move_able = True
-                    self.img_now = 30 + 160 * self.look_now, 1780
+                    self.img_now = 30 + 160 * self.face_dir, 1780
                 else:
                     User_input.left_button = False
 
@@ -179,7 +183,7 @@ class Marine(RealObj):
                 User_input.down_key = False
 
     def dash_move(self):
-        self.t += 1 * (self.cur_dash_speed / self.r)
+        self.t += (self.cur_dash_speed / self.r)
         x = (1 - self.t) * self.x1 + self.t * self.x2
         self.x_move_point(x)
         y = (1 - self.t) * self.y1 + self.t * self.y2
@@ -203,7 +207,6 @@ class Marine(RealObj):
             self.dash_state = False
             self.dash_frame = 0
             self.shoot_frame = 0
-            self.cur_dash_cool_time = self.dash_cool_time
         pass
 
     def try_dash(self):
@@ -213,7 +216,7 @@ class Marine(RealObj):
         self.cur_dash_cool_time = 1
         if self.idle:  # 가만히 있을 때 대쉬
             a = get_rad(self.stand_x, self.stand_y, play_state.cursor.x, play_state.cursor.y)
-            self.dash_dir = self.get_look_now(a)
+            self.dash_dir = self.get_face_dir(a)
             self.x1 = self.stand_x
             self.y1 = self.stand_y
             self.x2 = play_state.cursor.x
@@ -222,6 +225,7 @@ class Marine(RealObj):
             self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
             if self.r != 0:
                 self.dash_state = True
+                self.cur_dash_cool_time = self.dash_cool_time
                 self.cur_dash_speed = self.dash_speed
         else:  # 움직이는 중, 또는 총 쏘는중
             if (User_input.left_key == True and User_input.right_key == False) or (
@@ -239,7 +243,7 @@ class Marine(RealObj):
             self.y1 = self.stand_y
             self.t = 0
             if self.Wmove_able == False and self.Hmove_able == False: # 가만히서 총만 쏘고 있는 상황
-                self.dash_dir = self.look_now
+                self.dash_dir = self.face_dir
                 self.x2 = play_state.cursor.x
                 self.y2 = play_state.cursor.y
                 self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
@@ -248,6 +252,7 @@ class Marine(RealObj):
                     self.cur_dash_speed = self.dash_speed
                 return
             self.dash_state = True
+            self.cur_dash_cool_time = self.dash_cool_time
             self.cur_dash_speed = self.dash_speed
             right, left, up, down = False, False, False, False  # 실질적인 입력값
             if self.Wmove_able:
@@ -404,9 +409,9 @@ class Marine(RealObj):
                     self.shoot_able = False
                     self.idle = True
                     self.move_able = True
-                    self.img_now = 30 + 160 * self.look_now, 1780
+                    self.img_now = 30 + 160 * self.face_dir, 1780
 
-    def get_look_now(self, rad):
+    def get_face_dir(self, rad):
         if rad >= 0:  # 1, 2 사분면
             if rad < 0.1963:  # 우측
                 return 8
@@ -461,7 +466,7 @@ class Marine(RealObj):
                 play_state.sound.Marine_shoot = True
                 for i in range(self.n_shot):
                     a = get_rad(self.stand_x, self.stand_y, play_state.cursor.x, play_state.cursor.y)
-                    self.look_now = self.get_look_now(a)  # 각도를 가지고 마린이 바라볼 방향 정함.
+                    self.face_dir = self.get_face_dir(a)  # 각도를 가지고 마린이 바라볼 방향 정함.
                     x2, y2 = play_state.cursor.x + random.randint(-self.accuracy,
                                                                   self.accuracy), play_state.cursor.y + random.randint(
                         -self.accuracy, self.accuracy)
@@ -472,9 +477,9 @@ class Marine(RealObj):
                     game_world.bullet_list.append(bullet)
                     self.shoot_idle = False
                     self.idle = False
-                    self.img_now = 30 + (160 * self.look_now), 1620  # 격발 이미지
+                    self.img_now = 30 + (160 * self.face_dir), 1620  # 격발 이미지
             elif self.shoot_frame % self.nfs == self.nfs // 2:
-                self.img_now = 30 + (160 * self.look_now), 1780  # 견착 이미지
+                self.img_now = 30 + (160 * self.face_dir), 1780  # 견착 이미지
         else:
             self.shoot_idle = True
 

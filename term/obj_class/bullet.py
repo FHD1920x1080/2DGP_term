@@ -22,7 +22,9 @@ class Drag_Bull:
         self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
         if self.r == 0:
             del self
-            return False
+            return
+        self.cur_speed = self.speed / self.r
+        self.accel = 0.5 / self.r # t에 더하는 self.cur_speed 에 더할 속도
         self.img_now_x = 0
         self.frame = 0
         self.current_size = player.bull_size  # 100% 기준
@@ -42,13 +44,10 @@ class Drag_Bull:
         self.y2 += y
 
     def move(self):
-        self.t += 1 * (self.speed / self.r)
+        self.t += self.cur_speed
         self.x = (1 - self.t) * self.x1 + self.t * self.x2
         self.y = (1 - self.t) * self.y1 + self.t * self.y2
-        if self.speed < self.max_speed:
-            self.speed += 0.5
-        else:
-            self.speed = self.max_speed
+        self.cur_speed += self.accel
 
     @staticmethod
     def list_move():
@@ -61,16 +60,17 @@ class Drag_Bull:
                 0] + 60 or blt.x < - 60:  # 지금은 화면 밖인데 나중에 벽으로 바꿀 예정, 화면 밖 멀리에 벽을 둘 예정, 또 벽에 충돌하면 먼지 이펙트같은것도 추가 예정
                 db_list.append(i)  # 총알이 범위 밖으로 나갔으니 삭제 리스트에 추가
             elif blt.t > 0.99:  # 여기서 폭발
-                attack_effect = Drag_Bull_Effect(blt.x, blt.y, blt.current_size)
+                attack_effect = Drag_Bull_Effect(blt)
                 game_world.effect_list.append(attack_effect)
                 Drag_Bull_Effect.play_bomb_sound()
                 db_list.append(i)
-                for j in range(len(game_world.ground_enemy)):
-                    em = game_world.ground_enemy[j]
-                    if tir_rect_crash(attack_effect, em):
-                        em.hp -= blt.AD
-                        if em.hp <= 0:
-                            play_state.die_ground_list.append(j)
+                # for j in range(len(game_world.ground_enemy)):
+                #     print('여기')
+                #     em = game_world.ground_enemy[j]
+                #     if tir_rect_crash(attack_effect, em):
+                #         em.hp -= attack_effect.AD
+                #         if em.hp <= 0:
+                #             play_state.die_ground_list.append(j)
         db_list.sort(reverse=True)
         for db in db_list:
             del game_world.explosive_bullet_list[db]  # 충돌하거나 나갔던 불릿들 삭제
@@ -98,12 +98,13 @@ class Drag_Bull_Effect:
     rect_sx[2] = (rect_sx[0] + rect_sx[1]) // 2
     rect_sy[2] = (rect_sy[1] + rect_sy[1]) // 2
 
-    def __init__(self, x, y, size):
-        self.x = x
-        self.y = y
+    def __init__(self, bullet):
+        self.x = bullet.x
+        self.y = bullet.y
         self.img_now_x = 0
         self.frame = 0
-        self.current_size = size
+        self.current_size = bullet.current_size
+        self.AD = bullet.AD
 
     def get_left(self, i):
         return self.x - Drag_Bull_Effect.rect_sx[i] * self.current_size
@@ -120,7 +121,16 @@ class Drag_Bull_Effect:
     def anim(self):
         self.img_now_x += 191
         self.frame += 1
-        if self.frame > 10:  # 마린 공격 이펙트 프레임
+        if self.frame == 2:
+            for j in range(len(game_world.ground_enemy)):
+                em = game_world.ground_enemy[j]
+                if tir_rect_crash(self, em):
+                    em.hp -= self.AD
+                    attack_effect = Bullet32_Effect(em.x, em.y, 1)
+                    game_world.effect_list.append(attack_effect)
+                    if em.hp <= 0:
+                        play_state.die_ground_list.append(j)
+        elif self.frame > 10:  # 마린 공격 이펙트 프레임
             game_world.effect_list.remove(self)
             del self
 
@@ -151,12 +161,13 @@ class Bullet32:
         self.AD = player.AD
         self.t = 0
         self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
+        self.cur_speed = self.speed / self.r
         if self.r == 0:
             return False  # 조준한 위치가 출발점과 같을 때 이동불가
         self.num = self.get_bullet_num(get_rad(self.x1, self.y1, self.x2, self.y2))
         self.img = Bullet32.img[self.num]
         # self.sx, self.sy = self.get_bullet_size(self.num)
-        self.exist = True  # 충돌 수 False로 바꿔줄 변수
+        self.exist = True  # 충돌 gn False로 바꿔줄 존재 변수
 
     def x_move(self, x):
         self.x += x
@@ -169,7 +180,7 @@ class Bullet32:
         self.y2 += y
 
     def move(self):
-        self.t += 1 * (self.speed / self.r)
+        self.t += self.cur_speed
         self.x = (1 - self.t) * self.x1 + self.t * self.x2
         self.y = (1 - self.t) * self.y1 + self.t * self.y2
         pass
@@ -180,10 +191,10 @@ class Bullet32:
     def get_bullet_start(self, player):
         if player.unit_type == 0:  # 마린일 때 1 은 골리앗
             x, y = player.stand_x, player.stand_y + 14
-            if player.look_now < 10:
+            if player.face_dir < 10:
                 x += 8
                 y += 4
-            elif player.look_now > 26:
+            elif player.face_dir > 26:
                 x -= 8
                 y += 4
 
@@ -303,10 +314,15 @@ class Bullet32:
 
 
 class Bullet32_Effect():
-    crash_img = None
+    img_red = None
+    img_blue = None
     hit_sound = None
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, color = 0):
+        if color == 1:
+            self.img = Bullet32_Effect.img_blue
+        else:
+            self.img = Bullet32_Effect.img_red
         self.x = x
         self.y = y
         self.img_now_y = random.randint(3, 14) * 80  # 1120  # 스프라이트 좌표
@@ -320,7 +336,7 @@ class Bullet32_Effect():
             del self
 
     def show(self):
-        Bullet32_Effect.crash_img.clip_draw(0, self.img_now_y, 80, 80, self.x, self.y)
+        self.img.clip_draw(0, self.img_now_y, 80, 80, self.x, self.y)
 
     @staticmethod
     def play_hit_sound():
@@ -328,7 +344,8 @@ class Bullet32_Effect():
 
     @staticmethod
     def load_resource():
-        Bullet32_Effect.crash_img = load_image('resource\\bullet\\attack_effect_red.png')
+        Bullet32_Effect.img_red = load_image('resource\\bullet\\attack_effect_red.png')
+        Bullet32_Effect.img_blue = load_image('resource\\bullet\\attack_effect_blue.png')
         Bullet32_Effect.hit_sound = load_wav('resource\\bullet\\hit_sound\\06.wav')
         Sound.list.append(Bullet32_Effect.hit_sound)
         Sound.volume_list.append(6)

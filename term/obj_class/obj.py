@@ -34,7 +34,10 @@ class RealObj(Obj):
         self.hit_sx = None
         self.stand_x, self.stand_y = 0, 0  # 서있는 좌표의 중앙 그리는건 중앙점과 서있는점의 차이를 더해줌.
         self.stand_sx, self.stand_sy = 0, 0  # 유닛이 지나갈 수 있는 발판 크기
-        self.look_now = 0  # 바라보고 있는방향 0 이 북쪽 0~15 16가지
+        self.dir = 0  # 바라보고 있는방향 0 이 북쪽 0~15 16가지
+
+    def get_stand_box(self):
+        return self.stand_x - self.stand_sx, self.stand_y - self.stand_sy, self.stand_x + self.stand_sx, self.stand_y + self.stand_sy
 
     def x_update(self):
         self.x = self.stand_x + self.x_gap
@@ -45,13 +48,13 @@ class RealObj(Obj):
         self.hit_y = self.stand_y + self.hit_y_gap
 
     def x_move(self, x):
-        self.x += x
         self.stand_x += x
+        self.x += x
         self.hit_x += x
 
     def y_move(self, y):
-        self.y += y
         self.stand_y += y
+        self.y += y
         self.hit_y += y
 
     def x_move_point(self, x):
@@ -63,17 +66,10 @@ class RealObj(Obj):
         self.y_update()
 
     def move_point(self, x, y):
-        a = self.stand_x - self.x
-        b = self.stand_x - self.hit_x
         self.stand_x = x
-        self.x = x - a
-        self.hit_x = x - b
-
-        c = self.stand_y - self.y
-        d = self.stand_y - self.hit_y
+        self.x_update()
         self.stand_y = y
-        self.y = y - c
-        self.hit_y = y - d
+        self.y_update()
 
     def get_left(self):
         return self.stand_x - self.stand_sx

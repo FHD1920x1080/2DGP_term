@@ -16,6 +16,7 @@ class Sound:
     volume_list = []
 
     current_volume = 50
+
     def __init__(self):
         self.Marine_shoot = False
         self.Bullet32_hit = False
@@ -96,7 +97,7 @@ def tir_rect_crash(bullet, unit):
     return False
 
 
-def cheak_collision(unit1, unit2):
+def cheak_collision_min_move(unit1, unit2):  # unit1이 움직인놈
     if unit1 == unit2:  # 자기 자신인가
         return False
 
@@ -132,6 +133,22 @@ def cheak_collision(unit1, unit2):
     return True
 
 
+def cheak_collision(unit1, unit2):  # unit1이 움직인놈
+    if unit1 == unit2:  # 자기 자신인가
+        return False
+
+    if unit1.get_bottom() - unit2.get_top() > 0:
+        return False
+    if unit2.get_bottom() - unit1.get_top() > 0:
+        return False
+    if unit1.get_left() - unit2.get_right() > 0:
+        return False
+    if unit2.get_left() - unit1.get_right() > 0:
+        return False
+
+    return True
+
+
 def change_character(key):
     sx, sy = play_state.player.stand_x, play_state.player.stand_y
     if key == 1:
@@ -145,13 +162,17 @@ def change_character(key):
     play_state.player.y_move_point(sy)
 
 
-def move_enemy_list():
-    for em in game_world.enemy_list():  # 적들
-        if em.move() == 1:
+def update_enemy_list():
+    for em in game_world.ground_enemy:  # 적들
+        em.update()
+        if em.exist == False:  # 1이면 밑으로 이미 내려간거
             game_world.remove_enemy(em)
-        for other in game_world.enemy_list():
-            cheak_collision(em, other)
-        cheak_collision(em, play_state.player)
+        else:
+            # em.direction = 0
+            for other in game_world.ground_enemy:
+                if cheak_collision_min_move(em, other):
+                    pass
+    game_world.ground_enemy.sort(key=lambda x: x.stand_y,reverse=True)
 
 
 def show_enemy_list():
@@ -168,3 +189,46 @@ def effect_anim():
 
 def get_rad(x1, y1, x2, y2):
     return math.atan2(y2 - y1, x2 - x1)
+
+
+def get_dir(rad):
+    if rad >= 0:  # 1, 2 사분면
+        if rad < 0.1963:  # 우측
+            return 8
+        elif rad < 0.589:
+            return 6
+        elif rad < 1.0517:
+            return 4
+        elif rad < 1.3844:
+            return 2
+        elif rad < 1.8:
+            return 0
+        elif rad < 2.0898:
+            return 30
+        elif rad < 2.5525:
+            return 28
+        elif rad < 2.9452:
+            return 26
+        else:  # rad <= 3.1415:
+            return 24
+    else:  # 3,4분면
+        if rad > -0.0663:  # 우측
+            return 8
+        elif rad > -0.31:
+            return 10
+        elif rad > -0.7017:
+            return 12
+        elif rad > -1.2044:
+            return 14
+        elif rad > -1.5708:
+            return 16
+        elif rad > -1.9371:
+            return 17
+        elif rad > -2.4398:
+            return 18
+        elif rad > -2.8315:
+            return 20
+        elif rad > -3.0752:
+            return 22
+        else:  # rad >= -3.1415:
+            return 24

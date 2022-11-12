@@ -48,8 +48,6 @@ def animation(frame):
     if frame % 4 == 0:
         for de in game_world.die_list:
             de.anim()
-    for em in game_world.enemy_list():
-        em.anim()
 
     if (frame + every_6frame) % 6 == 0:
         effect_anim()
@@ -127,16 +125,13 @@ def update():
     die_ground_list = []
     Bullet32.list_move_crash_chack()
     Drag_Bull.list_move()
-    die_ground_list.sort(reverse=True)
-    for de in die_ground_list:
-        game_world.ground_enemy[de].die()
     #em.die()
     # 확률에 따른 적 생성 및 이동
 
     Zergling.make_zergling()
     Zealot.make_zealot()
 
-    move_enemy_list()
+    update_enemy_list()
     #Zergling.list_move()
     #Zealot.list_move()
 
@@ -174,6 +169,9 @@ def draw():
 
     animation(frame)  # 애니메이션 재생 출력은 아님 상태값만 변경
     play_sound(frame)
+    die_ground_list.sort(reverse=True)
+    for de in die_ground_list:
+        game_world.ground_enemy[de].die()
     frame += 1
     if frame == FPS:
         frame = 0

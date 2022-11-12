@@ -1,5 +1,7 @@
 from obj_class.obj import *
 
+AUTO, LOCK_ON, ATTACK = range(3)
+
 class Zergling(RealObj):
     sum = 0
     sx = 80
@@ -11,10 +13,13 @@ class Zergling(RealObj):
     hp = 6
     speed = 3
     img = None
-    zm = 0.01
+    zm = 0.02
+
+    x_gap = 0
+    hit_x_gap = 0
+    y_gap = 5
+    hit_y_gap = 5
     def __init__(self, x, y):
-        super().__init__()
-        # self.put_img("zerglingx200x2.png")
         self.img_now = [692, 1138]  ##86, 84 씩 옮겨야 함
         self.stand_x = x
         self.stand_y = y
@@ -28,84 +33,95 @@ class Zergling(RealObj):
         self.hit_sx = Zergling.hit_sx
         self.hit_sy = Zergling.hit_sy
         self.speed = Zergling.speed
+        self.speed_sup = self.speed / 3
         self.move_frame = 0
+        self.attack_frame = 0
         self.time = 0  # direction_rand_time
         self.direction = random.randrange(0, 4)  # 0==멈춤,1==아래,2==왼쪽 3==오른쪽
         self.direction_rand_time = random.randrange(50, 200)
+        self.exist = True  # 충돌 gn False로 바꿔줄 존재 변수
+        self.face_dir = 0
+        self.state = AUTO
+        self.x1 = None
+        self.y1 = None
+        self.x2 = None
+        self.Y2 = None
+        self.t = 0
+        self.r = None
 
     def show(self):
         Zergling.img.clip_draw(self.img_now[0], self.img_now[1], Zergling.sx, Zergling.sy, self.x, self.y)
+        #draw_rectangle(*self.get_stand_box())
 
     def stop(self):
         self.img_now = self.img_now[0], 1138
 
     def get_speed(self):
         if self.move_frame == 0:
-            return 1
+            return 1 * self.speed_sup
         elif self.move_frame == 1:
-            return 2
+            return 2 * self.speed_sup
         elif self.move_frame == 2:
-            return 5
+            return 5 * self.speed_sup
         elif self.move_frame == 3:
-            return 4
+            return 4 * self.speed_sup
         elif self.move_frame == 4:
-            return 4
+            return 4 * self.speed_sup
         elif self.move_frame == 5:
-            return 3
+            return 3 * self.speed_sup
         elif self.move_frame == 6:
-            return 2
+            return 2 * self.speed_sup
 
     def move_down(self):
-        if self.stand_y < -self.sy:  # 아래쪽 화면 범위 밖으로 나갔을때
-            return 1  # 저글링이 화면 밖으로 나갔으니 없애버려라
-        i = Zergling.get_speed(self) * self.speed / 3
-        self.y_move(- i)
+        if self.get_hit_top() < 0:
+            self.exist = False # 화면 밖으로 나갔으니 없애버려라
+            return False
+        cur_speed = Zergling.get_speed(self)
+        self.y_move(- cur_speed)
         self.img_now = 692, 1138 - 84 * self.move_frame
 
     def move_left_down(self):
-        if self.stand_y < -self.sy:  # 아래쪽 화면 범위 밖으로 나갔을때
-            return 1  # 저글링이 화면 밖으로 나갔으니 없애버려라
-        i = Zergling.get_speed(self) * self.speed / 3
-        self.y_move(- i * 0.707)
-        self.x_move(- i * 0.707)
+        if self.get_hit_top() < 0:
+            self.exist = False # 화면 밖으로 나갔으니 없애버려라
+            return False
+        cur_speed = Zergling.get_speed(self) * 0.707
+        self.y_move(-cur_speed)
+        self.x_move(-cur_speed)
         self.img_now = 692 + 86 * 2, 1138 - 84 * self.move_frame
-        if self.stand_x - self.speed * 0.707 <= round(self.stand_sx / 2):
+        if self.get_left() - cur_speed < 0:
             self.x_move(round(self.stand_sx / 2) - self.stand_x)
             self.direction = random.randrange(1, 3)
             if self.direction == 2:
                 self.direction = 3
 
     def move_right_down(self):
-        if self.stand_y < -self.sy:  # 아래쪽 화면 범위 밖으로 나갔을때
-            return 1  # 저글링이 화면 밖으로 나갔으니 없애버려라
-        i = Zergling.get_speed(self) * self.speed / 3
-        # i = zgl.move_frame - 6 #0 1 2 3 4 5 6 -3 -2 -1 0 1 2 3
-        self.y_move(- i * 0.707)
-        self.x_move(+ i * 0.707)
+        if self.get_hit_top() < 0:
+            self.exist = False # 화면 밖으로 나갔으니 없애버려라
+            return False
+        cur_speed = Zergling.get_speed(self) * 0.707
+        self.y_move(-cur_speed)
+        self.x_move(cur_speed)
         self.img_now = 520, 1138 - 84 * self.move_frame
-        if self.stand_x + self.speed * 0.707 >= play_state.window_size[0] - round(self.stand_sx / 2):
+        if self.get_right() + cur_speed > play_state.window_size[0]:
             self.x_move(play_state.window_size[0] - (self.stand_x + round(self.stand_sx / 2)))
             self.direction = random.randrange(1, 3)
 
     def anim(self):
-        if (play_state.frame + play_state.every_6frame) % 6 == 0:
+        if self.time % 6 == 0:
             self.move_frame = (self.move_frame + 1) % 7
-    def move(self):
-        self.time += 1
+
+    def auto_move(self):
         if (self.direction == 0):
             self.stop()
-        elif (self.direction == 1):
-            if self.move_down() == 1:
-                Zergling.sum -= 1
-                return 1
-        if (self.direction == 2):
-            if self.move_left_down() == 1:
-                Zergling.sum -= 1
-                return 1
-        elif (self.direction == 3):
-            if self.move_right_down() == 1:
-                Zergling.sum -= 1
-                return 1
+        elif self.direction == 1:
+            if self.move_down() == False:
+                return
+        if self.direction == 2:
+            if self.move_left_down() == False:
+                return
+        elif self.direction == 3:
+            if self.move_right_down() == False:
+                return
 
         if self.time % self.direction_rand_time == 0:
             j = self.direction
@@ -116,6 +132,12 @@ class Zergling(RealObj):
                 self.direction_rand_time = self.time + random.randrange(10, 30)
             else:
                 self.direction_rand_time = self.time + random.randrange(50, 200)
+    def update(self):
+        #if self.state == AUTO:
+        self.auto_move()
+        cheak_collision_min_move(self, play_state.player)
+        self.anim()
+        self.time += 1
 
     def die(self):
         die_zergling = Die_Zergling(self.stand_x, self.stand_y - 5)

@@ -18,7 +18,7 @@ class Dragoon(RealObj):
 
     def __init__(self):
         self.hp = 100  # 체력
-        self.AD = 10
+        self.AD = 6
         self.img = Dragoon.img
         self.state = IDLE
         self.attack_ready_framet_frame = None
@@ -50,6 +50,7 @@ class Dragoon(RealObj):
         self.bull_size = 2
     def show(self):
         self.img.clip_draw(self.img_now[0], self.img_now[1], self.sx, self.sy, self.x, self.y)
+        #draw_rectangle(*self.get_stand_box())
     def play_shoot_sound(self):
         i = random.randint(0, 1)
         if i==0:
@@ -59,6 +60,8 @@ class Dragoon(RealObj):
     def update(self):
         if self.state == MOVE:
             self.move()
+            for em in game_world.ground_enemy:
+                cheak_collision_min_move(self, em)
         elif self.state == IDLE:
             self.idle()
         elif self.state == OPEN:
@@ -67,7 +70,6 @@ class Dragoon(RealObj):
             self.ready()
         elif self.state == WAIT:
             self.wait()
-
         elif self.state == SHOOT:
             self.shoot()
         # else:
