@@ -16,12 +16,29 @@ class Sound:
     volume_list = []
 
     current_volume = 50
-
     def __init__(self):
         self.Marine_shoot = False
         self.Bullet32_hit = False
         self.Zergling_die = False
         self.Zealot_die = False
+        self.Zealot_attack = False
+
+    def play(self):
+        if self.Marine_shoot:
+            play_state.Marine.play_shoot_sound()
+            self.Marine_shoot = False
+        if self.Bullet32_hit:
+            play_state.Bullet32_Effect.play_hit_sound()
+            self.Bullet32_hit = False
+        if self.Zergling_die:
+            play_state.Die_Zergling.play_sound()
+            self.Zergling_die = False
+        if self.Zealot_die:
+            play_state.Die_Zealot.play_sound()
+            self.Zealot_die = False
+        if self.Zealot_attack:
+            play_state.Zealot.play_attack_sound()
+            self.Zealot_attack = False
 
     @staticmethod
     def volume_set_up():
@@ -172,7 +189,6 @@ def update_enemy_list():
             for other in game_world.ground_enemy:
                 if cheak_collision_min_move(em, other):
                     pass
-    game_world.ground_enemy.sort(key=lambda x: x.stand_y,reverse=True)
 
 
 def show_enemy_list():

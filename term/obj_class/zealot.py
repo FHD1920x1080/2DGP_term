@@ -1,3 +1,5 @@
+import play_state
+
 from obj_class.obj import *
 
 AUTO, LOCK_ON, ATTACK, WAIT = range(4)
@@ -13,6 +15,7 @@ class Zealot(RealObj):
     hp = 10
     speed = 2.5
     img = None
+    attack_sound = None
     zm = 0.02
 
 
@@ -47,6 +50,10 @@ class Zealot(RealObj):
     def show(self):
         Zealot.img.clip_draw(self.img_now[0], self.img_now[1], Zealot.sx, Zealot.sy, self.x, self.y)
         #draw_rectangle(*self.get_stand_box())
+
+    @staticmethod
+    def play_attack_sound():
+        Zealot.attack_sound.play()
 
     def stop(self):
         self.img_now = self.img_now[0], 1881
@@ -91,6 +98,7 @@ class Zealot(RealObj):
             if r < 200:
                 self.time = 0
                 self.state = LOCK_ON
+                self.dir_adjust()
                 return
         if self.direction == 0:
             self.stop()
@@ -124,7 +132,7 @@ class Zealot(RealObj):
     def update(self):
         if self.state == AUTO:
             self.auto_move()# atuo move에서 바로 LOCK_ON으로 갈 수 있음.
-        if self.state == LOCK_ON:  # player를 발견한 상태
+        elif self.state == LOCK_ON:  # player를 발견한 상태
             if self.time % 50 == 0: # 0.5초마다 방향 조정
                 self.dir_adjust()
             self.lock_on_move()
@@ -160,13 +168,17 @@ class Zealot(RealObj):
                     self.state = ATTACK
     def attack(self):
         self.img_now = 73 + 256 * self.face_dir, 3161 - 256 * self.attack_frame
-        if self.attack_frame > 4: # 여기서는 0, 1, 2, 3 ,4 동안 머물고 5가 되면 나감
+        if self.attack_frame == 1:
+            play_state.sound.Zealot_attack = True
+        elif self.attack_frame > 4: # 여기서는 0, 1, 2, 3 ,4 동안 머물고 5가 되면 나감
             self.state = WAIT
     def wait(self):
         self.img_now = 73 + 256 * self.face_dir, 3161
         if self.attack_frame > 15:
             self.state = LOCK_ON
             self.attack_frame = 0
+            self.time = 0
+            self.dir_adjust()
 
     def die(self):
         die_zealot = Die_Zealot(self.stand_x, self.stand_y + 46)
@@ -229,6 +241,10 @@ class Zealot(RealObj):
     @staticmethod
     def load_resource():
         Zealot.img = load_image("resource\\zealot\\zealot200x2.png")
+        Zealot.attack_sound = load_wav('resource\\zealot\\pzehit00.wav')
+        Sound.list.append(Zealot.attack_sound)
+        Sound.volume_list.append(6)
+
         Die_Zealot.load_resource()
 
 

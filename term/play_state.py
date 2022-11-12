@@ -58,18 +58,8 @@ def animation(frame):
 
 def play_sound(frame):
     if (frame + every_6frame) % 6 == 0:
-        if sound.Marine_shoot:
-            Marine.play_shoot_sound()
-            sound.Marine_shoot = False
-        if sound.Bullet32_hit:
-            Bullet32_Effect.play_hit_sound()
-            sound.Bullet32_hit = False
-        if sound.Zergling_die:
-            Die_Zergling.play_sound()
-            sound.Zergling_die = False
-        if sound.Zealot_die:
-            Die_Zealot.play_sound()
-            sound.Zealot_die = False
+        global sound
+        sound.play()
 
 
 def load_resource():
@@ -123,6 +113,7 @@ def update():
     player.update()
     global die_ground_list
     die_ground_list = []
+    game_world.ground_enemy.sort(key=lambda x: x.stand_y, reverse=True)
     Bullet32.list_move_crash_chack()
     Drag_Bull.list_move()
     #em.die()
