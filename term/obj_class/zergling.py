@@ -2,38 +2,32 @@ from obj_class.obj import *
 
 AUTO, LOCK_ON, ATTACK = range(3)
 
-class Zergling(RealObj):
-    sum = 0
-    sx = 80
-    sy = 78
+class Zergling(GroundObj):
+    img = None
+    print_sx = 80
+    print_sy = 78
     stand_sx = 18
     stand_sy = 16
     hit_sx = 22
     hit_sy = 20
+    print_x_gap = 0
+    hit_x_gap = 0
+    print_y_gap = 5
+    hit_y_gap = 5
+
     hp = 6
     speed = 3
-    img = None
+    speed_sup = speed / 3 # 저글링은 프레임마다 속도가 달라서 만들어준 변수 기본속도가 3이라고 가정하고 만듦
     zm = 0.02
 
-    x_gap = 0
-    hit_x_gap = 0
-    y_gap = 5
-    hit_y_gap = 5
     def __init__(self, x, y):
+        self.exist = True  # 존재 변수 삭제 할지 판정
+        self.collision = True  # 충돌체크 함.s
         self.img_now = [692, 1138]  ##86, 84 씩 옮겨야 함
         self.stand_x = x
         self.stand_y = y
-        self.x = self.stand_x
-        self.y = self.stand_y + 5
-        self.hit_x = self.x
-        self.hit_y = self.y
         self.hp = Zergling.hp
-        self.stand_sx = Zergling.stand_sx
-        self.stand_sy = Zergling.stand_sy
-        self.hit_sx = Zergling.hit_sx
-        self.hit_sy = Zergling.hit_sy
         self.speed = Zergling.speed
-        self.speed_sup = self.speed / 3
         self.move_frame = 0
         self.attack_frame = 0
         self.time = 0  # direction_rand_time
@@ -48,10 +42,6 @@ class Zergling(RealObj):
         self.Y2 = None
         self.t = 0
         self.r = None
-
-    def show(self):
-        Zergling.img.clip_draw(self.img_now[0], self.img_now[1], Zergling.sx, Zergling.sy, self.x, self.y)
-        #draw_rectangle(*self.get_stand_box())
 
     def stop(self):
         self.img_now = self.img_now[0], 1138
@@ -88,8 +78,8 @@ class Zergling(RealObj):
         self.y_move(-cur_speed)
         self.x_move(-cur_speed)
         self.img_now = 692 + 86 * 2, 1138 - 84 * self.move_frame
-        if self.get_left() - cur_speed < 0:
-            self.x_move(round(self.stand_sx / 2) - self.stand_x)
+        if self.get_stand_left() < 0:
+            self.x_move_point(self.stand_sx)
             self.direction = random.randrange(1, 3)
             if self.direction == 2:
                 self.direction = 3
@@ -102,8 +92,8 @@ class Zergling(RealObj):
         self.y_move(-cur_speed)
         self.x_move(cur_speed)
         self.img_now = 520, 1138 - 84 * self.move_frame
-        if self.get_right() + cur_speed > play_state.window_size[0]:
-            self.x_move(play_state.window_size[0] - (self.stand_x + round(self.stand_sx / 2)))
+        if self.get_stand_right() > play_state.window_size[0]:
+            self.x_move_point(play_state.window_size[0]-self.stand_sx)
             self.direction = random.randrange(1, 3)
 
     def anim(self):
@@ -140,57 +130,49 @@ class Zergling(RealObj):
         self.time += 1
 
     def die(self):
-        die_zergling = Die_Zergling(self.stand_x, self.stand_y - 5)
-        play_state.sound.Zergling_die = True
-        game_world.die_list.append(die_zergling)  # 죽은 저글링 리스트에 추가함
-        game_world.ground_enemy.remove(self)
-        del self  # 실제 저글링은 삭제
+        if self.hp <= 0:
+            Die_Zergling(self.stand_x, self.stand_y)
         #print(len(Zergling.list))
         pass
 
     @staticmethod
     def make_zergling():
         if random.random() <= Zergling.zm:
-            Zergling.sum += 1
-            zergling = Zergling(random.randrange(round(Zergling.sx / 2), play_state.window_size[0] - round(Zergling.sx / 2)),
-                                play_state.window_size[1] + Zergling.sy)
-            game_world.ground_enemy.append(zergling)
+            zergling = Zergling(random.randrange(Zergling.stand_sx , play_state.window_size[0] - Zergling.stand_sx), play_state.window_size[1] + Zergling.stand_sy)
+            game_world.ground_obj.append(zergling)
+
     @staticmethod
     def load_resource():
         Zergling.img = load_image("resource\\zergling\\zerglingx200x2.png")
         Die_Zergling.load_resource()
 
 
-class Die_Zergling(Obj):
+class Die_Zergling(Effect):
     img = None
     sound = None
-    list = []
+    print_sx = 130
+    print_sy = 106
+    print_x_gap = 0  # 그려줄 위치와 stand_x와의 차이
+    print_y_gap = -3  # stand_y와의 차이
+    anim_direction = 'w'  # 스프라이트 이미지 재생 방향
+    next_gap = 136
+    max_frame = 7  # 몇개의 이미지로 되어있는 이펙트인가
+    any_frame_rate = 6
 
     def __init__(self, x, y):
-        super().__init__()
-        self.x = x
-        self.y = y
-        self.img_now_x = 2  # 스프라이트 좌표
-        self.die_frame = 0  # 100이 되면 저글링 시체 사라짐
-
-    def die_anim(self):
-        if self.die_frame < 7:
-            self.img_now_x = 2 + self.die_frame * 136
-        self.die_frame += 1
-
-    def show(self):
-        Die_Zergling.img.clip_draw(self.img_now_x, 0, 130, 106, self.x, self.y)
-
+        self.exist = True # 존재함
+        self.stand_x = x
+        self.stand_y = y
+        self.print_x, self.print_y = self.stand_x + self.print_x_gap, self.stand_y + self.print_y_gap
+        self.img_now = [2, 0]  # 스프라이트 좌표
+        self.cur_frame = 0  # 100이 되면 저글링 시체 사라짐
+        game_world.ground_obj.append(self)
+        play_state.sound.Zergling_die = True
 
     @staticmethod
     def play_sound():
         Die_Zergling.sound.play()
 
-    def anim(self):
-        self.die_anim()
-        if self.die_frame > play_state.FPS:  # 일정 시간이 지난 시체 3초
-            game_world.die_list.remove(self)
-            del self
 
     @staticmethod
     def load_resource():

@@ -1,25 +1,36 @@
 from obj_class.obj import *
 
+from obj_class.bullet import Bullet32
+
 IDLE, MOVE, DASH, SHOOT, WAIT = range(5)
 
 
-class Marine(RealObj):
-    list = []
+class Marine(GroundObj):
+    unit_type = 0  # 마린인걸 인식하는데 씀, 골리앗은 1, 드라군은 2
+
     img = None
+    print_sx = 110
+    print_sy = 85
+    stand_sx = 18
+    stand_sy = 18
+    hit_sx = 24 # 히트박스 크기, 반쪽
+    hit_sy = 30
+    print_x_gap = 0
+    hit_x_gap = 0
+    print_y_gap = 20
+    hit_y_gap = 20
+
     hit_sound = None
     shoot_sound00 = None
     shoot_sound01 = None
     shoot_sound02 = None
     shoot_sound03 = None
-    unit_type = 0  # 총알에서 마린인걸 인식하는데 씀, 골리앗은 1
-
-    x_gap = 0
-    hit_x_gap = 0
-    y_gap = 20
-    hit_y_gap = 20
 
     def __init__(self):
-        super().__init__()
+        self.exist = True  # 존재 변수 삭제 할지 판정
+        self.collision = True  # 충돌체크 함.
+        self.stand_x = play_state.window_size[0] / 2  # 마린이 서있는 좌표
+        self.stand_y = play_state.window_size[1] / 2
         self.face_dir = 0 #얼굴 방향
         self.hp = 100  # 체력
         self.AD = 2  # 공격력
@@ -31,19 +42,8 @@ class Marine(RealObj):
         self.dash_dir = 0  # 16방향
         self.dash_speed = 20
         self.cur_dash_speed = 0
-        self.sx, self.sy = 110, 85  # 그려줄 스프라이트 크기
-        self.img_now = [30 + (2 * 160 * 0), 2180 - 80 - (1 * 160 * 2)]  # 스프라이트 좌표
-        self.stand_x = play_state.window_size[0] / 2  # 마린이 서있는 좌표
-        self.stand_y = play_state.window_size[1] / 2
-        self.x = self.stand_x  # 마린을 그려줄 좌표
-        self.y = self.stand_y + 20
-        self.stand_sx = 18  # 마린이 밟을 수 있는 땅의 넓이
-        self.stand_sy = 18
-        self.hit_sx = 24  # 마린의 히트박스 크기
-        self.hit_sy = 36
-        self.hit_x = self.x  # 마린의 히트박스 중앙 좌표
-        self.hit_y = self.y
-        self.speed = 3  # 이동속도
+        self.img_now = [30, 2180 - 80 - 320]  # 스프라이트 좌표
+        self.speed = 3  # 이동속도w
         self.shoot_able = False  # 마우스 좌클릭이 눌렸는지
         self.move_able = True  # 움직일 수 있는 상태인지
         self.Wmove_able = True  # 움직일 수 있다면 가로로 움직이는지
@@ -66,10 +66,6 @@ class Marine(RealObj):
         self.t = 0
         self.r = None
 
-    def show(self):
-        self.img.clip_draw(self.img_now[0], self.img_now[1], self.sx, self.sy, self.x, self.y)
-        #draw_rectangle(*self.get_stand_box())
-
     @staticmethod
     def play_shoot_sound():
         i = random.randint(0, 3)
@@ -88,7 +84,7 @@ class Marine(RealObj):
             self.dash()
         else:
             self.move()
-            for em in game_world.ground_enemy:
+            for em in game_world.ground_obj:
                 cheak_collision_min_move(self, em)
             self.shoot()
         self.shoot_frame += 1
@@ -192,14 +188,14 @@ class Marine(RealObj):
 
     def dash(self):
         self.dash_move()
-        if self.get_right() > play_state.window_size[0]:
-            self.x_move(play_state.window_size[0] - self.get_right())
-        if self.get_top() > play_state.window_size[1]:
-            self.y_move(play_state.window_size[1] - self.get_top())
-        if self.get_left() < 0:
-            self.x_move(-self.get_left())
-        if self.get_bottom() < 0:
-            self.y_move(-self.get_bottom())
+        if self.get_stand_right() > play_state.window_size[0]:
+            self.x_move(play_state.window_size[0] - self.get_stand_right())
+        if self.get_stand_top() > play_state.window_size[1]:
+            self.y_move(play_state.window_size[1] - self.get_stand_top())
+        if self.get_stand_left() < 0:
+            self.x_move(-self.get_stand_left())
+        if self.get_stand_bottom() < 0:
+            self.y_move(-self.get_stand_bottom())
         self.idle = False
         self.img_now = 30 + 160 * self.dash_dir, 1460 - (160 * self.move_frame)
         self.dash_frame += 1
@@ -334,24 +330,24 @@ class Marine(RealObj):
             # 이 밑에선 실제로 움직일 수 있는지 검사
             if self.Wmove_able == True:
                 if User_input.right_key == True:
-                    if self.get_right() + speed > play_state.window_size[0]:
-                        self.x_move(play_state.window_size[0] - self.get_right())
+                    if self.get_stand_right() + speed > play_state.window_size[0]:
+                        self.x_move(play_state.window_size[0] - self.get_stand_right())
                     else:
                         right = True
                 else:
-                    if self.get_left() - speed < 0:
-                        self.x_move(-self.get_left())
+                    if self.get_stand_left() - speed < 0:
+                        self.x_move(-self.get_stand_left())
                     else:
                         left = True
             if self.Hmove_able == True:
                 if User_input.up_key == True:
-                    if self.get_top() + speed > play_state.window_size[1]:
-                        self.y_move(play_state.window_size[1] - self.get_top())
+                    if self.get_stand_top() + speed > play_state.window_size[1]:
+                        self.y_move(play_state.window_size[1] - self.get_stand_top())
                     else:
                         up = True
                 else:
-                    if self.get_bottom() - speed < 0:
-                        self.y_move(-self.get_bottom())
+                    if self.get_stand_bottom() - speed < 0:
+                        self.y_move(-self.get_stand_bottom())
                     else:
                         down = True
 
@@ -471,17 +467,19 @@ class Marine(RealObj):
                                                                   self.accuracy), play_state.cursor.y + random.randint(
                         -self.accuracy, self.accuracy)
                     bullet = Bullet32(self, x2, y2)  # x1==x2 and y1==y2 일 때 False 반환
-                    if bullet == False:
-                        print('발사 실패')
+                    if bullet.r == 0:
+                        del bullet
                         return
-                    game_world.bullet_list.append(bullet)
-                    self.shoot_idle = False
-                    self.idle = False
-                    self.img_now = 30 + (160 * self.face_dir), 1620  # 격발 이미지
+                    else:
+                        game_world.ground_bullet.append(bullet)
+                        self.shoot_idle = False
+                        self.idle = False
+                        self.img_now = 30 + (160 * self.face_dir), 1620  # 격발 이미지
             elif self.shoot_frame % self.nfs == self.nfs // 2:
                 self.img_now = 30 + (160 * self.face_dir), 1780  # 견착 이미지
         else:
             self.shoot_idle = True
+
 
     @staticmethod
     def load_resource():

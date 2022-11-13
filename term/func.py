@@ -11,53 +11,9 @@ class User_input:
     left_button = False
 
 
-class Sound:
-    list = []
-    volume_list = []
+def dummy_func():
+    pass
 
-    current_volume = 50
-    def __init__(self):
-        self.Marine_shoot = False
-        self.Bullet32_hit = False
-        self.Zergling_die = False
-        self.Zealot_die = False
-        self.Zealot_attack = False
-
-    def play(self):
-        if self.Marine_shoot:
-            play_state.Marine.play_shoot_sound()
-            self.Marine_shoot = False
-        if self.Bullet32_hit:
-            play_state.Bullet32_Effect.play_hit_sound()
-            self.Bullet32_hit = False
-        if self.Zergling_die:
-            play_state.Die_Zergling.play_sound()
-            self.Zergling_die = False
-        if self.Zealot_die:
-            play_state.Die_Zealot.play_sound()
-            self.Zealot_die = False
-        if self.Zealot_attack:
-            play_state.Zealot.play_attack_sound()
-            self.Zealot_attack = False
-
-    @staticmethod
-    def volume_set_up():
-        for i in range(len(Sound.list)):
-            Sound.list[i].set_volume(int(Sound.volume_list[i] * (Sound.current_volume / 100)))
-
-    @staticmethod
-    def volume_up():
-        Sound.current_volume += 1
-        if Sound.current_volume > 100:
-            Sound.current_volume = 100
-        Sound.volume_set_up()
-
-    @staticmethod
-    def volume_down():
-        Sound.current_volume -= 1
-        if Sound.current_volume < 0:
-            Sound.current_volume = 0
-        Sound.volume_set_up()
 
 
 def crash(a, b):
@@ -71,26 +27,24 @@ def crash(a, b):
         return False
 
 
-def bullet_crash(a, b):
-    if a.exist == False:
-        return False
-    if b.hp <= 0:
+def bullet_crash(bullet, obj):
+    if bullet.exist == False or obj.collision == False:
         return False
 
-    if a.x < b.hit_x - b.hit_sx:
+    if bullet.x < obj.hit_x() - obj.hit_sx:
         return False
-    if a.x > b.hit_x + b.hit_sx:
+    if bullet.x > obj.hit_x() + obj.hit_sx:
         return False
-    if a.y < b.hit_y - b.hit_sy:
+    if bullet.y < obj.hit_y() - obj.hit_sy:
         return False
-    if a.y > b.hit_y + b.hit_sy:
+    if bullet.y > obj.hit_y() + obj.hit_sy:
         return False
 
     return True
 
 
 def tir_rect_crash(bullet, unit):
-    if unit.hp <= 0:
+    if unit.collision == False:
         return False
 
     if unit.get_hit_bottom() > bullet.get_top(0):
@@ -117,22 +71,24 @@ def tir_rect_crash(bullet, unit):
 def cheak_collision_min_move(unit1, unit2):  # unit1이 움직인놈
     if unit1 == unit2:  # 자기 자신인가
         return False
+    if unit1.collision == False or unit2.collision == False:
+        return False
 
-    bottom = unit1.get_bottom() - unit2.get_top()
+    bottom = unit1.get_stand_bottom() - unit2.get_stand_top()
     if bottom > 0:
         return False
     max = bottom
-    top = unit2.get_bottom() - unit1.get_top()
+    top = unit2.get_stand_bottom() - unit1.get_stand_top()
     if top > 0:
         return False
     if max < top:
         max = top
-    left = unit1.get_left() - unit2.get_right()
+    left = unit1.get_stand_left() - unit2.get_stand_right()
     if left > 0:
         return False
     if max < left:
         max = left
-    right = unit2.get_left() - unit1.get_right()
+    right = unit2.get_stand_left() - unit1.get_stand_right()
     if right > 0:
         return False
     if max < right:
@@ -141,12 +97,20 @@ def cheak_collision_min_move(unit1, unit2):  # unit1이 움직인놈
     # top,bottom,right,left가 모두 음수이며 최대값인 놈으로 밀어냄,(가장 조금만 밀어도 되는 쪽으로 밀기 위함)
     if max == right:
         unit1.x_move(right)
+        # unit1.x_move(right * 0.9)
+        # unit2.x_move(-right * 0.1)
     elif max == left:
         unit1.x_move(-left)
+        # unit1.x_move(-left * 0.9)
+        # unit2.x_move(left * 0.1)
     elif max == top:
         unit1.y_move(top)
+        # unit1.y_move(top * 0.9)
+        # unit2.y_move(-top * 0.1)
     else:
         unit1.y_move(-bottom)
+        # unit1.y_move(-bottom * 0.9)
+        # unit2.y_move(bottom * 0.1)
     return True
 
 
@@ -168,39 +132,17 @@ def cheak_collision(unit1, unit2):  # unit1이 움직인놈
 
 def change_character(key):
     sx, sy = play_state.player.stand_x, play_state.player.stand_y
+    game_world.ground_obj.remove(play_state.player)
     if key == 1:
-        play_state.player = game_world.Marine[0]
+        play_state.player = game_world.Marine
         play_state.player.shoot_able = False
         play_state.player.move_able = True
     elif key == 3:
-        play_state.player = game_world.Dragoon[0]
+        play_state.player = game_world.Dragoon
         play_state.player.state = 1
     play_state.player.x_move_point(sx)
     play_state.player.y_move_point(sy)
-
-
-def update_enemy_list():
-    for em in game_world.ground_enemy:  # 적들
-        em.update()
-        if em.exist == False:  # 1이면 밑으로 이미 내려간거
-            game_world.remove_enemy(em)
-        else:
-            # em.direction = 0
-            for other in game_world.ground_enemy:
-                if cheak_collision_min_move(em, other):
-                    pass
-
-
-def show_enemy_list():
-    for de in game_world.die_list:
-        de.show()
-    for em in game_world.enemy_list():
-        em.show()
-
-
-def effect_anim():
-    for ef in game_world.effect_list:
-        ef.anim()
+    game_world.ground_obj.append(play_state.player)
 
 
 def get_rad(x1, y1, x2, y2):

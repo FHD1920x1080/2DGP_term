@@ -1,39 +1,38 @@
-import game_world
 from obj_class.obj import *
-import random
+
+from obj_class.bullet import DragBull
+
 
 IDLE, MOVE, OPEN, READY, SHOOT, WAIT = range(6)
 
 
-class Dragoon(RealObj):
-    img = None
-    shoot_sound1 = None
-    shoot_sound2 = None
+class Dragoon(GroundObj):
     unit_type = 2
 
-    x_gap = 0
+    img = None
+    print_sx = 192
+    print_sy = 192
+    stand_sx = 34
+    stand_sy = 34
+    hit_sx = 31
+    hit_sy = 40
+    print_x_gap = 0
     hit_x_gap = 0
-    y_gap = 23
-    hit_y_gap = 23
+    print_y_gap = 23
+    hit_y_gap = 18
 
+    shoot_sound1 = None
+    shoot_sound2 = None
     def __init__(self):
+        self.exist = True  # 존재 변수 삭제 할지 판정
+        self.collision = True  # 충돌체크 함.
+        self.stand_x = play_state.window_size[0] / 2  # 마린이 서있는 좌표
+        self.stand_y = play_state.window_size[1] / 2
         self.hp = 100  # 체력
         self.AD = 6
         self.img = Dragoon.img
         self.state = IDLE
         self.attack_ready_framet_frame = None
-        self.stand_x = play_state.window_size[0] / 2  # 마린이 서있는 좌표
-        self.stand_y = play_state.window_size[1] / 2
-        self.x = self.stand_x
-        self.y = self.stand_y + 23
-        self.sx = 192
-        self.sy = 192
-        self.hit_x = self.x
-        self.hit_y = self.y
-        self.hit_sx = 31
-        self.hit_sy = 44
-        self.stand_sx = 34
-        self.stand_sy = 34
         self.img_now = [0, 1344]
         self.bullet_speed = 25
         self.idle_frame = 0
@@ -48,9 +47,7 @@ class Dragoon(RealObj):
         self.Hmove_able = False
         self.bull_x2, self.bull_y2 = None, None
         self.bull_size = 2
-    def show(self):
-        self.img.clip_draw(self.img_now[0], self.img_now[1], self.sx, self.sy, self.x, self.y)
-        #draw_rectangle(*self.get_stand_box())
+
     def play_shoot_sound(self):
         i = random.randint(0, 1)
         if i==0:
@@ -60,7 +57,7 @@ class Dragoon(RealObj):
     def update(self):
         if self.state == MOVE:
             self.move()
-            for em in game_world.ground_enemy:
+            for em in game_world.ground_obj:
                 cheak_collision_min_move(self, em)
         elif self.state == IDLE:
             self.idle()
@@ -156,24 +153,24 @@ class Dragoon(RealObj):
         # 이 밑에선 실제로 움직일 수 있는지 검사
         if self.Wmove_able == True:
             if User_input.right_key == True:
-                if self.get_right() + speed > play_state.window_size[0]:
-                    self.x_move(play_state.window_size[0] - self.get_right())
+                if self.get_stand_right() + speed > play_state.window_size[0]:
+                    self.x_move(play_state.window_size[0] - self.get_stand_right())
                 else:
                     right = True
             else:
-                if self.get_left() - speed < 0:
-                    self.x_move(-self.get_left())
+                if self.get_stand_left() - speed < 0:
+                    self.x_move(-self.get_stand_left())
                 else:
                     left = True
         if self.Hmove_able == True:
             if User_input.up_key == True:
-                if self.get_top() + speed > play_state.window_size[1]:
-                    self.y_move(play_state.window_size[1] - self.get_top())
+                if self.get_stand_top() + speed > play_state.window_size[1]:
+                    self.y_move(play_state.window_size[1] - self.get_stand_top())
                 else:
                     up = True
             else:
-                if self.get_bottom() - speed < 0:
-                    self.y_move(-self.get_bottom())
+                if self.get_stand_bottom() - speed < 0:
+                    self.y_move(-self.get_stand_bottom())
                 else:
                     down = True
 
@@ -241,11 +238,11 @@ class Dragoon(RealObj):
             self.img_now = [960, 384 - (192 * (self.shoot_frame//6))]
         self.shoot_frame += 1
         if self.shoot_frame > 17:
-            bull = Drag_Bull(self)
-            if bull == False:
-                print('발사 실패')
+            bull = DragBull(self)
+            if bull.r == 0:
+                del bull
                 return
-            game_world.explosive_bullet_list.append(bull)
+            game_world.air_bullet.append(bull)
             self.play_shoot_sound()
             self.wait_frame = 0
             self.state = WAIT
@@ -253,6 +250,7 @@ class Dragoon(RealObj):
     def die(self):
         self.img_now = [192 * 6, (1536 - 192) - (192 * self.die_frame)]
         self.die_frame = (self.die_frame + 1) % 7
+
 
     @staticmethod
     def load_resource():

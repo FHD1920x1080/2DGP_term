@@ -1,12 +1,12 @@
-from pico2d import *
-from func import *
-import game_world
-from obj_class.bullet import Bullet32, Bullet32_Effect, Drag_Bull
 from obj_class.marine import Marine
 from obj_class.dragoon import Dragoon
-from obj_class.zergling import Zergling, Die_Zergling
-from obj_class.zealot import Zealot, Die_Zealot
+from obj_class.bullet import *
+from obj_class.zergling import *
+from obj_class.zealot import *
 from obj_class.cursor import Cursor
+from sound import Sound
+
+import game_world
 import game_framework
 import camera
 
@@ -21,6 +21,23 @@ player = None
 every_6frame = 0 # 6프레임마다 해줄 일들 FPS로 나누어 떨어지는 애들은 필요 없음
 every_3frame = 0 # 3프레임마다 해줄 일들
 die_ground_list = []
+
+def enter():
+    global FPS, frame, sound, cursor, every_6frame, every_3frame, player
+    load_resource()
+    hide_cursor()
+    cursor = Cursor()
+    sound = Sound()
+    Sound.volume_set_up()
+    FPS = 100
+    frame = 0
+    game_world.Marine = Marine()
+    game_world.Dragoon = Dragoon()
+    player = game_world.Marine
+    game_world.ground_obj.append(player)
+    every_6frame = 0
+    every_3frame = 0
+    camera.enter()
 
 def handle_events():
     global player
@@ -44,14 +61,47 @@ def handle_events():
                 Zergling.zm = 0.15
         player.handle_events(event)
 
+def update():
+    game_world.set_clean_list()
+
+    game_world.update_game_world()
+
+    Zergling.make_zergling()
+    Zealot.make_zealot()
+
+
+def draw_world():
+    background_img.draw(window_size[0] // 2, window_size[1] // 2)
+
+    for obj in game_world.all_objects():
+        obj.show()
+
+    # for blt in game_world.bullet_list:
+    #     blt.show()
+    # for gef in game_world.ground_crash_effect:
+    #     gef.show()
+    # for go in game_world.ground_obj:
+    #     go.show()
+    # for blt in game_world.explosive_bullet_list:
+    #     blt.show()
+    cursor.show()
+
+def draw():
+    global frame
+    global every_6frame, every_3frame, player
+    clear_canvas()
+    draw_world()
+    update_canvas()
+
+    animation(frame)  # 애니메이션 재생 출력은 아님 상태값만 변경
+    play_sound(frame)
+    die_ground_list.sort(reverse=True)
+    game_world.clean_objects()
+    frame += 1
+    if frame == FPS:
+        frame = 0
+
 def animation(frame):
-    if frame % 4 == 0:
-        for de in game_world.die_list:
-            de.anim()
-
-    if (frame + every_6frame) % 6 == 0:
-        effect_anim()
-
     if frame % 10 == 0:
         cursor.frame = (cursor.frame + 1) % 5  # 커서 프레임
 
@@ -73,102 +123,13 @@ def load_resource():
     Zealot.load_resource()
 
 
-def enter():
-    global FPS, frame, sound, cursor, every_6frame, every_3frame, player
-    load_resource()
-    hide_cursor()
-    cursor = Cursor()
-    sound = Sound()
-    Sound.volume_set_up()
-    FPS = 100
-    frame = 0
-    for asdasd in range(1):
-        marine1 = Marine()
-        marine1.x_move(40 * asdasd)
-        #Marine.list.append(marine1)
-        game_world.Marine.append(marine1)
-    dragoon1 = Dragoon()
-    game_world.Dragoon.append(dragoon1)
-    player = game_world.Marine[0]
-    #player = game_world.Dragoon[0]
-    every_6frame = 0
-    every_3frame = 0
-    camera.enter()
-
-
 def exit():
     global cursor, sound
     del game_world.Player
-    del game_world.enemy_list
-    del game_world.die_list
+    del game_world.ground_obj
+    del game_world.ground_crash_effect
     del cursor
     del sound
-
-
-def update():
-    #SDL_Delay(25)
-    global player
-    # for marine in Marine.list:
-    #     marine.update()
-    player.update()
-    global die_ground_list
-    die_ground_list = []
-    game_world.ground_enemy.sort(key=lambda x: x.stand_y, reverse=True)
-    Bullet32.list_move_crash_chack()
-    Drag_Bull.list_move()
-    #em.die()
-    # 확률에 따른 적 생성 및 이동
-
-    Zergling.make_zergling()
-    Zealot.make_zealot()
-
-    update_enemy_list()
-    #Zergling.list_move()
-    #Zealot.list_move()
-
-    # 주인공의 공격과 적 충돌체크
-    #camera.camera()
-
-
-
-def draw_world():
-    background_img.draw(window_size[0] // 2, window_size[1] // 2)
-    # Zergling.show_All()
-    # Zealot.show_All()
-    show_enemy_list()
-    for blt in game_world.bullet_list:
-        blt.show()
-    for eft in game_world.effect_list:
-        eft.show()
-    player.show()
-    for blt in game_world.explosive_bullet_list:
-        blt.show()
-    cursor.show()
-
-
-def draw():
-    global frame
-    global every_6frame, every_3frame, player
-    # if player.unit_type == 2:
-    #     if player.shoot_frame//6 == 2:
-    #         print(player.shoot_frame)
-    # 게임 월드 렌더링
-    clear_canvas()
-    # print_fps()
-    draw_world()
-    update_canvas()
-
-    animation(frame)  # 애니메이션 재생 출력은 아님 상태값만 변경
-    play_sound(frame)
-    die_ground_list.sort(reverse=True)
-    for de in die_ground_list:
-        game_world.ground_enemy[de].die()
-    frame += 1
-    if frame == FPS:
-        frame = 0
-    #     every_6frame = (FPS + every_6frame) % 6
-    #     every_3frame = (FPS + every_3frame) % 3
-    # print(frame)
 
 
 def pause():

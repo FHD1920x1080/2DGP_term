@@ -1,6 +1,4 @@
-import time
 from pico2d import*
-import play_state
 class GameState:
     def __init__(self, state):
         self.enter = state.enter

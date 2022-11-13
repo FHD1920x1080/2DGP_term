@@ -1,41 +1,34 @@
-import play_state
-
 from obj_class.obj import *
 
 AUTO, LOCK_ON, ATTACK, WAIT = range(4)
 
-class Zealot(RealObj):
-    sum = 0
-    sx = 110
-    sy = 78
+
+class Zealot(GroundObj):
+    img = None
+
+    print_sx = 110
+    print_sy = 78
     stand_sx = 20
     stand_sy = 20
     hit_sx = 20
-    hit_sy = 31
+    hit_sy = 28
+    print_x_gap = 0
+    hit_x_gap = 0
+    print_y_gap = 21
+    hit_y_gap = 21
+
     hp = 10
     speed = 2.5
-    img = None
+    zm = 0.01
+
     attack_sound = None
-    zm = 0.05
-
-
-    x_gap = 0
-    hit_x_gap = 0
-    y_gap = 21
-    hit_y_gap = 21
     def __init__(self, x, y):
+        self.exist = True  # 존재 변수 삭제 할지 판정
+        self.collision = True  # 충돌체크 함.
         self.img_now = [4169, 1881]  ##256, 256 씩 옮겨야 함 73,3328-167 맨위에 첫 이미지
         self.stand_x = x
         self.stand_y = y
-        self.x = self.stand_x
-        self.y = self.stand_y + 21
-        self.hit_x = self.x
-        self.hit_y = self.y
         self.hp = Zealot.hp
-        self.stand_sx = Zealot.stand_sx
-        self.stand_sy = Zealot.stand_sy
-        self.hit_sx = Zealot.hit_sx
-        self.hit_sy = Zealot.hit_sy
         self.speed = Zealot.speed
         self.move_frame = 0
         self.attack_frame = 0
@@ -47,10 +40,6 @@ class Zealot(RealObj):
         self.state = AUTO
         self.rad = None
 
-    def show(self):
-        Zealot.img.clip_draw(self.img_now[0], self.img_now[1], Zealot.sx, Zealot.sy, self.x, self.y)
-        #draw_rectangle(*self.get_stand_box())
-
     @staticmethod
     def play_attack_sound():
         Zealot.attack_sound.play()
@@ -60,35 +49,35 @@ class Zealot(RealObj):
 
     def move_down(self):
         if self.get_hit_top() < 0:
-            self.exist = False # 화면 밖으로 나갔으니 없애버려라
+            self.exist = False  # 화면 밖으로 나갔으니 없애버려라
             return False
         self.y_move(- self.speed)
         self.img_now = 4169, 1881 - 256 * self.move_frame
 
     def move_left_down(self):
         if self.get_hit_top() < 0:
-            self.exist = False # 화면 밖으로 나갔으니 없애버려라
+            self.exist = False  # 화면 밖으로 나갔으니 없애버려라
             return False
         cur_speed = self.speed * 0.707
         self.y_move(-cur_speed)
         self.x_move(-cur_speed)
         self.img_now = 73 + 256 * 20, 1881 - 256 * self.move_frame
-        if self.get_left() - cur_speed < 0:
-            self.x_move(round(self.stand_sx / 2) - self.stand_x)
+        if self.get_stand_left() < 0:
+            self.x_move_point(self.stand_sx)
             self.direction = random.randrange(1, 3)
             if self.direction == 2:
                 self.direction = 3
 
     def move_right_down(self):
         if self.get_hit_top() < 0:
-            self.exist = False # 화면 밖으로 나갔으니 없애버려라
+            self.exist = False  # 화면 밖으로 나갔으니 없애버려라
             return False
         cur_speed = self.speed * 0.707
         self.y_move(-cur_speed)
         self.x_move(cur_speed)
         self.img_now = 73 + 256 * 12, 1881 - 256 * self.move_frame
-        if self.get_right() + cur_speed > play_state.window_size[0]:
-            self.x_move(play_state.window_size[0] - (self.stand_x + round(self.stand_sx / 2)))
+        if self.get_stand_right() > play_state.window_size[0]:
+            self.x_move_point(play_state.window_size[0] - self.stand_sx)
             self.direction = random.randrange(1, 3)
 
     def auto_move(self):
@@ -122,7 +111,7 @@ class Zealot(RealObj):
                 self.direction_rand_time = self.time + random.randrange(50, 200)
 
     def anim(self):
-        if self.state > LOCK_ON: # ATTACK, WAIT
+        if self.state > LOCK_ON:  # ATTACK, WAIT
             if self.time % 4 == 0:
                 self.attack_frame += 1
         else:
@@ -131,13 +120,11 @@ class Zealot(RealObj):
 
     def update(self):
         if self.state == AUTO:
-            self.auto_move()# atuo move에서 바로 LOCK_ON으로 갈 수 있음.
+            self.auto_move()  # atuo move에서 바로 LOCK_ON으로 갈 수 있음.
         elif self.state == LOCK_ON:  # player를 발견한 상태
-            if self.time % 50 == 0: # 0.5초마다 방향 조정
+            if self.time % 50 == 0:  # 0.5초마다 방향 조정
                 self.dir_adjust()
             self.lock_on_move()
-        # if cheak_collision_min_move(self, play_state.player):
-        #     self.state = ATTACK
         elif self.state == ATTACK:
             self.attack()
         elif self.state == WAIT:
@@ -150,7 +137,8 @@ class Zealot(RealObj):
     def dir_adjust(self):
         self.rad = get_rad(self.stand_x, self.stand_y, play_state.player.stand_x, play_state.player.stand_y)
         self.face_dir = self.get_face_dir(self.rad)
-        #여기서 사인 코사인 써서 이동하면 거리를 더 안재도 되겠네? 바보였잖아 나
+        # 여기서 사인 코사인 써서 이동하면 거리를 더 안재도 되겠네? 바보였잖아 나
+
     def lock_on_move(self):
         self.x_move(math.cos(self.rad) * self.speed)
         self.y_move(math.sin(self.rad) * self.speed)
@@ -166,12 +154,14 @@ class Zealot(RealObj):
                 if r < 80:
                     self.time = 0
                     self.state = ATTACK
+
     def attack(self):
         self.img_now = 73 + 256 * self.face_dir, 3161 - 256 * self.attack_frame
         if self.attack_frame == 1:
             play_state.sound.Zealot_attack = True
-        elif self.attack_frame > 4: # 여기서는 0, 1, 2, 3 ,4 동안 머물고 5가 되면 나감
+        elif self.attack_frame > 4:  # 여기서는 0, 1, 2, 3 ,4 동안 머물고 5가 되면 나감
             self.state = WAIT
+
     def wait(self):
         self.img_now = 73 + 256 * self.face_dir, 3161
         if self.attack_frame > 15:
@@ -181,13 +171,9 @@ class Zealot(RealObj):
             self.dir_adjust()
 
     def die(self):
-        die_zealot = Die_Zealot(self.stand_x, self.stand_y + 46)
-        play_state.sound.Zealot_die = True
-        game_world.die_list.append(die_zealot)  # 죽은 리스트에 추가함
-        game_world.ground_enemy.remove(self)
-        del self  # 실제 저글링은 삭제
-        # print(len(Zealot.list))
-        pass
+        if self.hp <= 0:
+            Die_Zealot(self.stand_x, self.stand_y)
+
     def get_face_dir(self, rad):
         if rad >= 0:  # 1, 2 사분면
             if rad < 0.1963:  # 우측
@@ -231,12 +217,13 @@ class Zealot(RealObj):
                 return 22
             else:  # rad >= -3.1415:
                 return 24
+
     @staticmethod
     def make_zealot():
         if random.random() <= Zealot.zm:
-            zealot = Zealot(random.randrange(round(Zealot.sx / 2), play_state.window_size[0] - round(Zealot.sx / 2)),
-                            play_state.window_size[1] + Zealot.sy)
-            game_world.ground_enemy.append(zealot)
+            zealot = Zealot(random.randrange(Zealot.stand_sx, play_state.window_size[0] - Zealot.stand_sx),
+                            play_state.window_size[1] + Zealot.stand_sy)
+            game_world.ground_obj.append(zealot)
 
     @staticmethod
     def load_resource():
@@ -248,25 +235,62 @@ class Zealot(RealObj):
         Die_Zealot.load_resource()
 
 
-class Die_Zealot(Obj):
+class Die_Zealot(Effect):
+    img = None
+    sound = None
+    print_sx = 100
+    print_sy = 142
+    print_x_gap = 0  # 그려줄 위치와 stand_x와의 차이
+    print_y_gap = 46  # stand_y와의 차이
+    anim_direction = 'w'  # 스프라이트 이미지 재생 방향
+    next_gap = 256
+    max_frame = 7  # 몇개의 이미지로 되어있는 이펙트인가
+    any_frame_rate = 6
+    def __init__(self, x, y): #질럿이 죽은 위치
+        self.exist = True # 존재함
+        self.stand_x = x
+        self.stand_y = y
+        self.print_x, self.print_y = self.stand_x + self.print_x_gap, self.stand_y + self.print_y_gap
+        self.img_now = [85, 80]  # 스프라이트 좌표
+        self.cur_frame = 0  # 100이 되면 저글링 시체 사라짐
+        game_world.ground_obj.append(self)
+        play_state.sound.Zealot_die = True
+
+    @staticmethod
+    def play_sound():
+        Die_Zealot.sound.play()
+
+    @staticmethod
+    def load_resource():
+        Die_Zealot.img = load_image("resource\\zealot\\die_zealot200.png")
+        Die_Zealot.sound = load_wav('resource\\zealot\\pzedth00.wav')
+        Sound.list.append(Die_Zealot.sound)
+        Sound.volume_list.append(8)
+
+
+class Die_Zealot_copy:
     img = None
     sound = None
     list = []
 
+    print_sx = 100
+    print_sy = 142
+
     def __init__(self, x, y):
         super().__init__()
-        self.x = x
-        self.y = y
-        self.img_now_x = 78  # 스프라이트 좌표
+        play_state.sound.Zealot_die = True
+        self.print_x = x
+        self.print_y = y
+        self.img_now = [78, 80]  # 스프라이트 좌표
         self.die_frame = 0  # 100이 되면 저글링 시체 사라짐
 
     def die_anim(self):
         if self.die_frame < 7:
-            self.img_now_x = 78 + self.die_frame * 256
+            self.img_now[0] = 78 + self.die_frame * 256
         self.die_frame += 1
 
     def show(self):
-        Die_Zealot.img.clip_draw(self.img_now_x, 80, 110, 142, self.x, self.y)
+        self.img.clip_draw(self.img_now[0], self.img_now[1], self.print_sx, self.print_sy, self.print_x, self.print_y)
         pass
 
     @staticmethod
