@@ -117,16 +117,15 @@ class DragBullEffect(Effect):
             self.img_now[0] += self.next_gap
             self.cur_frame += 1
             if self.cur_frame == 2:
-                for j in range(len(game_world.ground_obj)):
-                    em = game_world.ground_obj[j]
-                    if em != play_state.player:
-                        if tir_rect_crash(self, em):
-                            em.hp -= self.AD
-                            attack_effect = Bullet32_Effect(em.print_x(), em.print_y(), 1)
+                for obj in game_world.ground_obj:
+                    if obj != play_state.player:
+                        if tir_rect_crash(self, obj):
+                            obj.hp -= self.AD
+                            attack_effect = Bullet32_Effect(obj.print_x(), obj.print_y(), 1)
                             game_world.ground_crash_effect.append(attack_effect)
-                            if em.hp <= 0:
-                                em.exist = False
-                                em.collision = False
+                            if obj.hp <= 0:
+                                obj.exist = False
+                                obj.collision = False
         else:
             self.exist = False
     # def die(self):

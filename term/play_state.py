@@ -11,7 +11,7 @@ import game_framework
 import camera
 
 # 1. 게임 초기화
-window_size = [1200, 900]
+window_size = [1600, 1200]
 background_img = None
 FPS = None # 초당 프레임 90~100 생각 하고 있음.
 frame = None # 현재 프레임 0 ~ (FPS-1) 사이값
@@ -62,12 +62,12 @@ def handle_events():
         player.handle_events(event)
 
 def update():
-    game_world.set_clean_list()
-
-    game_world.update_game_world()
-
+    #print(len(game_world.ground_obj))
     Zergling.make_zergling()
     Zealot.make_zealot()
+    game_world.set_clean_list()
+    game_world.update_game_world()
+    game_world.clean_objects()
 
 
 def draw_world():
@@ -95,8 +95,6 @@ def draw():
 
     animation(frame)  # 애니메이션 재생 출력은 아님 상태값만 변경
     play_sound(frame)
-    die_ground_list.sort(reverse=True)
-    game_world.clean_objects()
     frame += 1
     if frame == FPS:
         frame = 0

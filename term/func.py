@@ -140,8 +140,8 @@ def change_character(key):
     elif key == 3:
         play_state.player = game_world.Dragoon
         play_state.player.state = 1
-    play_state.player.x_move_point(sx)
-    play_state.player.y_move_point(sy)
+    # play_state.player.x_move_point(sx)
+    # play_state.player.y_move_point(sy)
     game_world.ground_obj.append(play_state.player)
 
 

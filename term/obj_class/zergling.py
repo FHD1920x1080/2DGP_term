@@ -139,7 +139,8 @@ class Zergling(GroundObj):
     def make_zergling():
         if random.random() <= Zergling.zm:
             zergling = Zergling(random.randrange(Zergling.stand_sx , play_state.window_size[0] - Zergling.stand_sx), play_state.window_size[1] + Zergling.stand_sy)
-            game_world.ground_obj.append(zergling)
+            #game_world.ground_obj.append(zergling)
+            game_world.ground_obj.insert(0, zergling)
 
     @staticmethod
     def load_resource():

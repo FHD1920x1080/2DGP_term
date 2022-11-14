@@ -35,13 +35,6 @@ class Marine(GroundObj):
         self.hp = 100  # 체력
         self.AD = 2  # 공격력
         self.img = Marine.img
-        self.dash_state = False
-        self.dash_cool_time = 50  # 사용하면 200으로 됨
-        self.cur_dash_cool_time = 0
-        self.dash_frame = 0
-        self.dash_dir = 0  # 16방향
-        self.dash_speed = 20
-        self.cur_dash_speed = 0
         self.img_now = [30, 2180 - 80 - 320]  # 스프라이트 좌표
         self.speed = 3  # 이동속도w
         self.shoot_able = False  # 마우스 좌클릭이 눌렸는지
@@ -65,6 +58,14 @@ class Marine(GroundObj):
         self.x2, self.y2 = None, None
         self.t = 0
         self.r = None
+        self.dash_state = False
+        self.dash_cool_time = 50  #
+        self.cur_dash_cool_time = 0
+        self.dash_frame = 0
+        self.dash_dir = 0  # 16방향
+        self.dash_speed = 20
+        self.cur_dash_speed = 0 # self.dash_speed / self.r 대쉬 트라이에서 true 판정 나면 이렇게 초기화해줌
+        self.dash_accel = 0 # 같이 -0.9 / self.r로 초기화 해줌
 
     @staticmethod
     def play_shoot_sound():
@@ -179,12 +180,12 @@ class Marine(GroundObj):
                 User_input.down_key = False
 
     def dash_move(self):
-        self.t += (self.cur_dash_speed / self.r)
+        self.t += self.cur_dash_speed
         x = (1 - self.t) * self.x1 + self.t * self.x2
         self.x_move_point(x)
         y = (1 - self.t) * self.y1 + self.t * self.y2
         self.y_move_point(y)
-        self.cur_dash_speed -= 0.9
+        self.cur_dash_speed += self.dash_accel
 
     def dash(self):
         self.dash_move()
@@ -220,9 +221,7 @@ class Marine(GroundObj):
             self.t = 0
             self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
             if self.r != 0:
-                self.dash_state = True
-                self.cur_dash_cool_time = self.dash_cool_time
-                self.cur_dash_speed = self.dash_speed
+                self.dash_set()
         else:  # 움직이는 중, 또는 총 쏘는중
             if (User_input.left_key == True and User_input.right_key == False) or (
                     User_input.left_key == False and User_input.right_key == True):
@@ -244,12 +243,8 @@ class Marine(GroundObj):
                 self.y2 = play_state.cursor.y
                 self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
                 if self.r != 0:
-                    self.dash_state = True
-                    self.cur_dash_speed = self.dash_speed
+                    self.dash_set()
                 return
-            self.dash_state = True
-            self.cur_dash_cool_time = self.dash_cool_time
-            self.cur_dash_speed = self.dash_speed
             right, left, up, down = False, False, False, False  # 실질적인 입력값
             if self.Wmove_able:
                 if User_input.right_key:
@@ -276,6 +271,7 @@ class Marine(GroundObj):
                     self.x2 = self.stand_x + 100
                     self.y2 = self.stand_y
                 self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
+                self.dash_set()
                 return
             if left:
                 if up:  # 왼쪽 위 대각선
@@ -291,19 +287,28 @@ class Marine(GroundObj):
                     self.x2 = self.stand_x - 100
                     self.y2 = self.stand_y
                 self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
+                self.dash_set()
                 return
             if up:  # 그냥 위
                 self.dash_dir = 0
                 self.x2 = self.stand_x
                 self.y2 = self.stand_y + 100
                 self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
+                self.dash_set()
                 return
             if down:  # 그냥 아래
                 self.dash_dir = 16
                 self.x2 = self.stand_x
                 self.y2 = self.stand_y - 100
                 self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
+                self.dash_set()
                 return
+
+    def dash_set(self):
+        self.dash_state = True
+        self.cur_dash_cool_time = self.dash_cool_time
+        self.cur_dash_speed = self.dash_speed / self.r
+        self.dash_accel = -0.9 / self.r
 
     def move(self):
         if self.move_able == True:  # 움직이는 상태 말고, 움직여도 되는 상태인지(총쏘고있으면 해당 안됨.)

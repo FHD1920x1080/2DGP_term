@@ -44,48 +44,60 @@ def update_bullet():
         blt = ground_bullet[i]
         blt.update()
         if not blt.exist:
-            del_ground_bullet.append(i)
+            #del_ground_bullet.append(i)
+            del_ground_bullet.insert(0, i)
 
 def update_ground_obj():
-    ground_obj.sort(key=lambda x: x.stand_y, reverse=True)
-    for i in range(len(ground_obj)): # 주인공과 지상 적 유닛, 이펙트
-        em = ground_obj[i]
-        if not em.exist:  #
-            del_ground_obj.append(i)
+    ground_obj.sort(key=lambda o: o.stand_y, reverse=True)
+    length = len(ground_obj)
+    for i in range(length): # 주인공과 지상 적 유닛, 이펙트
+        obj = ground_obj[i]
+
+        if not obj.exist:  #
+            #del_ground_obj.append(i)
+            del_ground_obj.insert(0, i)
         else:
-            em.update() # 총알들이 먼저 업데이트 되므로 여기서 해도 됨
-            for other in ground_obj:
-                func.cheak_collision_min_move(em, other)
+            obj.update()  # 총알들이 먼저 업데이트 되므로 여기서 해도 됨
+            first = max(i - 20, 0)
+            last = min(i + 20, length)
+            print(first, i, last-1)
+            for j in range(first, last):
+                other = ground_obj[j]
+                func.cheak_collision_min_move(obj, other)
+            # for other in ground_obj:
+            #     func.cheak_collision_min_move(obj, other)
 
 def update_ground_crash_effect():
     for i in range(len(ground_crash_effect)):
         eft = ground_crash_effect[i]
         eft.update()
         if not eft.exist:  #
-            del_ground_crash_effect.append(i)
+            #del_ground_crash_effect.append(i)
+            del_ground_crash_effect.insert(0, i)
 
 def update_air_bullet():
     for i in range(len(air_bullet)):
         ablt = air_bullet[i]
         ablt.update()
         if not ablt.exist:  #
-            del_air_bullet.append(i)
+            #del_air_bullet.append(i)
+            del_air_bullet.insert(0, i)
 
 def clean_objects():
-    del_ground_bullet.sort(reverse=True)
+    #del_ground_bullet.sort(reverse=True)
     for i in del_ground_bullet:
         del ground_bullet[i]
 
-    del_air_bullet.sort(reverse=True)
+    #del_air_bullet.sort(reverse=True)
     for i in del_air_bullet:
         del air_bullet[i]
 
-    del_ground_obj.sort(reverse=True)
+    #del_ground_obj.sort(reverse=True)
     for i in del_ground_obj:
         ground_obj[i].die()
         del ground_obj[i]
 
-    del_ground_crash_effect.sort(reverse=True)
+    #del_ground_crash_effect.sort(reverse=True)
     for i in del_ground_crash_effect:
         del ground_crash_effect[i]
 

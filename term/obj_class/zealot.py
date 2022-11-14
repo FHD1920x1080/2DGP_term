@@ -19,7 +19,7 @@ class Zealot(GroundObj):
 
     hp = 10
     speed = 2.5
-    zm = 0.01
+    zm = 0.1
 
     attack_sound = None
     def __init__(self, x, y):
@@ -223,7 +223,8 @@ class Zealot(GroundObj):
         if random.random() <= Zealot.zm:
             zealot = Zealot(random.randrange(Zealot.stand_sx, play_state.window_size[0] - Zealot.stand_sx),
                             play_state.window_size[1] + Zealot.stand_sy)
-            game_world.ground_obj.append(zealot)
+            #game_world.ground_obj.append(zealot)
+            game_world.ground_obj.insert(0, zealot)
 
     @staticmethod
     def load_resource():
