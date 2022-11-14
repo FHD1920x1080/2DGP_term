@@ -11,15 +11,15 @@ import game_framework
 import camera
 
 # 1. 게임 초기화
-window_size = [1600, 1200]
+window_size = [1600, 900]
 background_img = None
 FPS = None # 초당 프레임 90~100 생각 하고 있음.
 frame = None # 현재 프레임 0 ~ (FPS-1) 사이값
 sound = None
 cursor = None
 player = None
-every_6frame = 0 # 6프레임마다 해줄 일들 FPS로 나누어 떨어지는 애들은 필요 없음
-every_3frame = 0 # 3프레임마다 해줄 일들
+any_6frame = 0 # 6프레임마다 해줄 일들 FPS로 나누어 떨어지는 애들은 필요 없음
+any_3frame = 0 # 3프레임마다 해줄 일들
 die_ground_list = []
 
 def enter():
@@ -88,26 +88,25 @@ def draw_world():
 
 def draw():
     global frame
-    global every_6frame, every_3frame, player
+    global any_6frame, any_3frame, sound, FPS
     clear_canvas()
     draw_world()
     update_canvas()
 
     animation(frame)  # 애니메이션 재생 출력은 아님 상태값만 변경
-    play_sound(frame)
+    sound.play()
     frame += 1
-    if frame == FPS:
+    if frame == 1000000:
         frame = 0
+        # any_6frame = (any_6frame + FPS) % 6
+        # any_3frame = (any_6frame + FPS) % 3
+
 
 def animation(frame):
     if frame % 10 == 0:
         cursor.frame = (cursor.frame + 1) % 5  # 커서 프레임
 
 
-def play_sound(frame):
-    if (frame + every_6frame) % 6 == 0:
-        global sound
-        sound.play()
 
 
 def load_resource():

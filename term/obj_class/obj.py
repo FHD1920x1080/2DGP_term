@@ -9,7 +9,7 @@ import play_state
 #회색인것들 다 상속받는 애들이 쓰니까 지우면 안됨.
 
 # 레이어
-MAP_FRONT, FLOOR_EFFECT, GROUND_BULLET, GROUND_OBJ, BOMB_EFFECT, GROUND_CRASH_EFFECT, GROUND_TO_AIR, FLY_OBJ, FLY_CRASH_EFFECT = range(
+MAP_FLOOR, FLOOR_EFFECT, GROUND_BULLET, GROUND_OBJ, BOMB_EFFECT, GROUND_CRASH_EFFECT, GROUND_TO_AIR, FLY_OBJ, FLY_CRASH_EFFECT = range(
     9)
 
 
@@ -62,8 +62,8 @@ class GroundObj:
     def show(self):
         self.img.clip_draw(self.img_now[0], self.img_now[1], self.print_sx, self.print_sy, self.print_x(),
                            self.print_y())
-        # draw_rectangle(*self.get_stand_box())
-        # draw_rectangle(*self.get_hit_box())
+        #draw_rectangle(*self.get_stand_box())
+        #draw_rectangle(*self.get_hit_box())
 
     def update(self):
         pass
@@ -152,23 +152,24 @@ class Effect:
         self.stand_x, self.stand_y = 0, 0  # 서있는 좌표의 중앙 그리는건 중앙점과 서있는점의 차이를 더해줌.
         self.print_x, self.print_y = self.stand_x + self.print_x_gap, self.stand_y + self.print_y_gap
         self.cur_frame = 0
+        self.start_frame = play_state.frame % self.any_frame_rate
         game_world.ground_obj.append(self)
 
     def show(self):
         self.img.clip_draw(self.img_now[0], self.img_now[1], self.print_sx, self.print_sy, self.print_x, self.print_y)
 
     def update(self):
-        if play_state.frame % self.any_frame_rate == 0:
+        if (play_state.frame - self.start_frame) % self.any_frame_rate == 0:
             self.anim()
 
 
     def anim(self):
-        if self.cur_frame < self.max_frame:
+        self.cur_frame += 1
+        if self.cur_frame < self.max_frame: #if max == 3 0드로우 애님 1드로우 애님 2 드로우 애님
             if self.anim_direction == 'w':
-                self.img_now[0] = self.img_now[0] + self.cur_frame * self.next_gap
+                self.img_now[0] += self.next_gap
             else:
-                self.img_now[1] = self.img_now[1] - self.cur_frame * self.next_gap
-            self.cur_frame += 1
+                self.img_now[1] -= self.next_gap
         else:  # 애니메이션이 끝
             self.exist = False
 

@@ -1,5 +1,6 @@
 import play_state
 
+
 class Sound:
     list = []
     volume_list = []
@@ -10,25 +11,35 @@ class Sound:
         self.Marine_shoot = False
         self.Bullet32_hit = False
         self.Zergling_die = False
+        self.Zergling_hit = False
         self.Zealot_die = False
-        self.Zealot_attack = False
+        self.Zealot_hit = False
+        self.Dragoon_bull_bomb = False
 
     def play(self):
-        if self.Marine_shoot:
-            play_state.Marine.play_shoot_sound()
-            self.Marine_shoot = False
-        if self.Bullet32_hit:
-            play_state.Bullet32_Effect.play_hit_sound()
-            self.Bullet32_hit = False
-        if self.Zergling_die:
-            play_state.Die_Zergling.play_sound()
-            self.Zergling_die = False
-        if self.Zealot_die:
-            play_state.Die_Zealot.play_sound()
-            self.Zealot_die = False
-        if self.Zealot_attack:
-            play_state.Zealot.play_attack_sound()
-            self.Zealot_attack = False
+        if play_state.frame % 6 == 0:
+            if self.Marine_shoot:
+                play_state.Marine.play_shoot_sound()
+                self.Marine_shoot = False
+            if self.Bullet32_hit:
+                play_state.Bullet32_Effect.play_hit_sound()
+                self.Bullet32_hit = False
+            if self.Dragoon_bull_bomb:
+                play_state.DragBullEffect.play_bomb_sound()
+                self.Dragoon_bull_bomb = False
+        elif (play_state.frame + 3) % 6 == 0:
+            if self.Zergling_die:
+                play_state.DieZergling.play_sound()
+                self.Zergling_die = False
+            if self.Zergling_hit:
+                play_state.Zergling.play_hit_sound()
+                self.Zergling_hit = False
+            if self.Zealot_die:
+                play_state.Die_Zealot.play_sound()
+                self.Zealot_die = False
+            if self.Zealot_hit:
+                play_state.Zealot.play_hit_sound()
+                self.Zealot_hit = False
 
     @staticmethod
     def volume_set_up():

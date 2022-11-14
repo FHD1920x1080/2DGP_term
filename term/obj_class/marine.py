@@ -33,7 +33,7 @@ class Marine(GroundObj):
         self.stand_y = play_state.window_size[1] / 2
         self.face_dir = 0 #얼굴 방향
         self.hp = 100  # 체력
-        self.AD = 2  # 공격력
+        self.AD = 3  # 공격력
         self.img = Marine.img
         self.img_now = [30, 2180 - 80 - 320]  # 스프라이트 좌표
         self.speed = 3  # 이동속도w

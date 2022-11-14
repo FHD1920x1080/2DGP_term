@@ -93,7 +93,8 @@ class DragBullEffect(Effect):
         self.cur_frame = 0
         self.cur_size = bullet.cur_size
         self.AD = bullet.AD
-        DragBullEffect.play_bomb_sound()
+        self.start_frame = play_state.frame % self.any_frame_rate
+        play_state.sound.Dragoon_bull_bomb = True
         game_world.ground_crash_effect.append(self)
 
     def show(self):
@@ -121,6 +122,7 @@ class DragBullEffect(Effect):
                     if obj != play_state.player:
                         if tir_rect_crash(self, obj):
                             obj.hp -= self.AD
+                            obj.state = 1
                             attack_effect = Bullet32_Effect(obj.print_x(), obj.print_y(), 1)
                             game_world.ground_crash_effect.append(attack_effect)
                             if obj.hp <= 0:
@@ -274,16 +276,17 @@ class Bullet32:
             0] + 60 or self.x < - 60:  # 지금은 화면 밖인데 나중에 벽으로 바꿀 예정, 화면 밖 멀리에 벽을 둘 예정, 또 벽에 충돌하면 먼지 이펙트같은것도 추가 예정
             self.exist = False
         else:
-            for em in game_world.ground_obj:
-                if em != play_state.player: #주인공은 지 몸땡이에 서 총알 쏴서 충돌체크 하면 안됨.
-                    if bullet_crash(self, em) == True:
+            for obj in game_world.ground_obj:
+                if obj != play_state.player: #주인공은 지 몸땡이에 서 총알 쏴서 충돌체크 하면 안됨.
+                    if bullet_crash(self, obj) == True:
                         self.exist = False
                         attack_effect = Bullet32_Effect(self.x, self.y)
+                        obj.state = 1
                         game_world.ground_crash_effect.append(attack_effect)
-                        em.hp -= self.AD
-                        if em.hp <= 0:
-                            em.exist = False  # 마지막에 한번에 삭제해줄 것이고 지금은 아님
-                            em.collision = False  # 충돌체크 안함
+                        obj.hp -= self.AD
+                        if obj.hp <= 0:
+                            obj.exist = False  # 마지막에 한번에 삭제해줄 것이고 지금은 아님
+                            obj.collision = False  # 충돌체크 안함
                         break # 이제 사라진 불릿이기 때문에 다른 저글링이랑 체크 할 필요 없음
 
 
@@ -317,6 +320,7 @@ class Bullet32_Effect(Effect):
         self.print_y = y
         self.img_now = [0, random.randint(3, 14) * 80]  # 1120  # 스프라이트 좌표
         self.cur_frame = 0
+        self.start_frame = play_state.frame % self.any_frame_rate
         self.exist = True
 
 

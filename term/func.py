@@ -137,11 +137,12 @@ def change_character(key):
         play_state.player = game_world.Marine
         play_state.player.shoot_able = False
         play_state.player.move_able = True
+        play_state.player.dash_state = False
     elif key == 3:
         play_state.player = game_world.Dragoon
         play_state.player.state = 1
-    # play_state.player.x_move_point(sx)
-    # play_state.player.y_move_point(sy)
+    play_state.player.x_move_point(sx)
+    play_state.player.y_move_point(sy)
     game_world.ground_obj.append(play_state.player)
 
 
