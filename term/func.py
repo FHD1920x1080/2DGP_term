@@ -69,8 +69,6 @@ def tir_rect_crash(bullet, unit):
 
 
 def cheak_collision_min_move(unit1, unit2):  # unit1이 움직인놈
-    if unit1 == unit2:  # 자기 자신인가
-        return False
     if unit1.collision == False or unit2.collision == False:
         return False
 
@@ -94,23 +92,18 @@ def cheak_collision_min_move(unit1, unit2):  # unit1이 움직인놈
     if max < right:
         max = right
 
+    if unit1 == unit2:
+        return False
+
     # top,bottom,right,left가 모두 음수이며 최대값인 놈으로 밀어냄,(가장 조금만 밀어도 되는 쪽으로 밀기 위함)
     if max == right:
         unit1.x_move(right)
-        # unit1.x_move(right * 0.9)
-        # unit2.x_move(-right * 0.1)
     elif max == left:
         unit1.x_move(-left)
-        # unit1.x_move(-left * 0.9)
-        # unit2.x_move(left * 0.1)
     elif max == top:
         unit1.y_move(top)
-        # unit1.y_move(top * 0.9)
-        # unit2.y_move(-top * 0.1)
     else:
         unit1.y_move(-bottom)
-        # unit1.y_move(-bottom * 0.9)
-        # unit2.y_move(bottom * 0.1)
     return True
 
 
@@ -134,11 +127,13 @@ def change_character(key):
     sx, sy = play_state.player.stand_x, play_state.player.stand_y
     game_world.ground_obj.remove(play_state.player)
     if key == 1:
+        play_state.sub_unit = game_world.Dragoon
         play_state.player = game_world.Marine
         play_state.player.shoot_able = False
         play_state.player.move_able = True
         play_state.player.dash_state = False
     elif key == 3:
+        play_state.sub_unit = game_world.Marine
         play_state.player = game_world.Dragoon
         play_state.player.state = 1
     play_state.player.x_move_point(sx)

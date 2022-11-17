@@ -10,11 +10,12 @@ class Sound:
     def __init__(self):
         self.Marine_shoot = False
         self.Bullet32_hit = False
+        self.Dragoon_shoot = False
+        self.Dragoon_bull_bomb = False
         self.Zergling_die = False
         self.Zergling_hit = False
         self.Zealot_die = False
         self.Zealot_hit = False
-        self.Dragoon_bull_bomb = False
 
     def play(self):
         if play_state.frame % 6 == 0:
@@ -22,8 +23,11 @@ class Sound:
                 play_state.Marine.play_shoot_sound()
                 self.Marine_shoot = False
             if self.Bullet32_hit:
-                play_state.Bullet32_Effect.play_hit_sound()
+                play_state.Bullet32.play_hit_sound()
                 self.Bullet32_hit = False
+            if self.Dragoon_shoot:
+                play_state.Dragoon.play_shoot_sound()
+                self.Dragoon_shoot = False
             if self.Dragoon_bull_bomb:
                 play_state.DragBullEffect.play_bomb_sound()
                 self.Dragoon_bull_bomb = False

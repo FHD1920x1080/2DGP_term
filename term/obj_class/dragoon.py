@@ -28,7 +28,8 @@ class Dragoon(GroundObj):
         self.collision = True  # 충돌체크 함.
         self.stand_x = play_state.window_size[0] / 2  # 마린이 서있는 좌표
         self.stand_y = play_state.window_size[1] / 2
-        self.hp = 100  # 체력
+        self.hp = 300  # 체력
+        self.max_hp = 300
         self.AD = 6
         self.img = Dragoon.img
         self.state = IDLE
@@ -48,9 +49,12 @@ class Dragoon(GroundObj):
         self.bull_x2, self.bull_y2 = None, None
         self.bull_size = 2
 
-    def play_shoot_sound(self):
+
+
+    @staticmethod
+    def play_shoot_sound():
         i = random.randint(0, 1)
-        if i==0:
+        if i == 0:
             Dragoon.shoot_sound1.play()
         else:
             Dragoon.shoot_sound2.play()
@@ -238,12 +242,7 @@ class Dragoon(GroundObj):
             self.img_now = [960, 384 - (192 * (self.shoot_frame//6))]
         self.shoot_frame += 1
         if self.shoot_frame > 17:
-            bull = DragBull(self)
-            if bull.r == 0:
-                del bull
-                return
-            game_world.air_bullet.append(bull)
-            self.play_shoot_sound()
+            DragBull(self)
             self.wait_frame = 0
             self.state = WAIT
 

@@ -4,7 +4,6 @@ from obj_class.bullet import Bullet32
 
 IDLE, MOVE, DASH, SHOOT, WAIT = range(5)
 
-
 class Marine(GroundObj):
     unit_type = 0  # 마린인걸 인식하는데 씀, 골리앗은 1, 드라군은 2
 
@@ -32,7 +31,8 @@ class Marine(GroundObj):
         self.stand_x = play_state.window_size[0] / 2  # 마린이 서있는 좌표
         self.stand_y = play_state.window_size[1] / 2
         self.face_dir = 0 #얼굴 방향
-        self.hp = 100  # 체력
+        self.hp = 200  # 체력
+        self.max_hp = 200
         self.AD = 3  # 공격력
         self.img = Marine.img
         self.img_now = [30, 2180 - 80 - 320]  # 스프라이트 좌표

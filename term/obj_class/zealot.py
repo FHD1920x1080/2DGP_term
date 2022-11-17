@@ -1,3 +1,4 @@
+import play_state
 from obj_class.obj import *
 
 AUTO, LOCK_ON, ATTACK, WAIT = range(4)
@@ -19,7 +20,7 @@ class Zealot(GroundObj):
 
     hp = 10
     speed = 2.5
-    zm = 0.015
+    zm = 0.010
 
     hit_sound = None
     def __init__(self, x, y):
@@ -159,6 +160,7 @@ class Zealot(GroundObj):
     def attack(self):
         self.img_now = 73 + 256 * self.face_dir, 3161 - 256 * self.attack_frame
         if self.attack_frame == 1:
+            play_state.player.hp -= 2
             play_state.sound.Zealot_hit = True
         elif self.attack_frame > 4:  # 여기서는 0, 1, 2, 3 ,4 동안 머물고 5가 되면 나감
             self.state = WAIT

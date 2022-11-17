@@ -1,4 +1,5 @@
 import game_world
+import play_state
 from obj_class.obj import *
 
 AUTO, LOCK_ON, ATTACK, WAIT = range(4)
@@ -20,7 +21,7 @@ class Zergling(GroundObj):
     hp = 6
     speed = 3
     speed_sup = speed / 3  # 저글링은 프레임마다 속도가 달라서 만들어준 변수 기본속도가 3이라고 가정하고 만듦
-    zm = 0.03
+    zm = 0.02
 
     hit_sound = None
 
@@ -183,6 +184,7 @@ class Zergling(GroundObj):
         self.img_now = 74 + 256 * self.face_dir, 2910 - 256 * self.attack_frame
         if self.attack_frame == 1:
             play_state.sound.Zergling_hit = True
+            play_state.player.hp -=1
         elif self.attack_frame > 3:  # 여기서는 0, 1, 2, 3 ,4 동안 머물고 5가 되면 나감
             self.state = WAIT
 
@@ -308,7 +310,7 @@ class DeathZergling(Effect):
     anim_direction = 'w'  # 스프라이트 이미지 재생 방향
     next_gap = 256
     max_frame = 5  # 몇개의 이미지로 되어있는 이펙트인가
-    any_frame_rate = 300
+    any_frame_rate = 200
 
     def __init__(self, x, y):
         self.exist = True  # 존재함
