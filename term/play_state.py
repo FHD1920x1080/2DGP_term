@@ -12,7 +12,7 @@ import game_framework
 import camera
 
 # 1. 게임 초기화
-window_size = [1600, 900]
+window_size = [1920, 1080]
 background_img = None
 FPS = None # 초당 프레임 90~100 생각 하고 있음.
 frame = None # 현재 프레임 0 ~ (FPS-1) 사이값
@@ -83,16 +83,19 @@ def update():
         # game_world.Marine.hp = clamp(0, game_world.Marine.hp, game_world.Marine.max_hp)
         # game_world.Dragoon.hp += 2
         # game_world.Dragoon.hp = clamp(0, game_world.Dragoon.hp, game_world.Dragoon.max_hp)
+    camera.moving()
 
 
 def draw_world():
-    background_img.draw(window_size[0] // 2, window_size[1] // 2)
+    #background_img.draw(window_size[0] // 2, window_size[1] // 2)
 
     for obj in game_world.all_objects():
         obj.show()
 
-    UI.draw_hp_bar(50, window_size[1] - 50, player)
-    UI.draw_hp_bar(50, window_size[1] - 100, sub_unit)
+    UI.draw_portrait(80, 82, player)
+    UI.draw_hp_bar(150, 20, player)
+    UI.draw_portrait(80, 222, sub_unit)
+    UI.draw_hp_bar(150, 160, sub_unit)
 
     cursor.show()
 

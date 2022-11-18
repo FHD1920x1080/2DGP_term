@@ -18,14 +18,14 @@ class Zealot(GroundObj):
     print_y_gap = 21
     hit_y_gap = 21
 
+    exist = True  # 존재 변수 삭제 할지 판정
+    collision = True  # 충돌체크 함.
     hp = 10
     speed = 2.5
     zm = 0.010
 
     hit_sound = None
     def __init__(self, x, y):
-        self.exist = True  # 존재 변수 삭제 할지 판정
-        self.collision = True  # 충돌체크 함.
         self.img_now = [4169, 1881]  ##256, 256 씩 옮겨야 함 73,3328-167 맨위에 첫 이미지
         self.stand_x = x
         self.stand_y = y
@@ -82,14 +82,15 @@ class Zealot(GroundObj):
             self.direction = random.randrange(1, 3)
 
     def auto_move(self):
-        r = math.dist([self.stand_x, self.stand_y],
-                      [play_state.player.stand_x, play_state.player.stand_y])  # 두 점 사이의 거리
-        if r > 0:
-            if r < 200:
-                self.time = 0
-                self.state = LOCK_ON
-                self.dir_adjust()
-                return
+        if self.move_frame == 0:
+            r = math.dist([self.stand_x, self.stand_y],
+                          [play_state.player.stand_x, play_state.player.stand_y])  # 두 점 사이의 거리
+            if r > 0:
+                if r < 200:
+                    self.time = 0
+                    self.state = LOCK_ON
+                    self.dir_adjust()
+                    return
         if self.direction == 0:
             self.stop()
         elif self.direction == 1:
@@ -140,17 +141,18 @@ class Zealot(GroundObj):
         # 여기서 사인 코사인 써서 이동하면 거리를 더 안재도 되겠네? 바보였잖아 나
 
     def lock_on_move(self):
-        r = math.dist([self.stand_x, self.stand_y],
-                      [play_state.player.stand_x, play_state.player.stand_y])  # 두 점 사이의 거리
-        if r > 0:
-            if play_state.player.unit_type == 0:
-                if r < 60:
-                    self.state = ATTACK
-                    return
-            else:
-                if r < 80:
-                    self.state = ATTACK
-                    return
+        if self.move_frame == 0:
+            r = math.dist([self.stand_x, self.stand_y],
+                          [play_state.player.stand_x, play_state.player.stand_y])  # 두 점 사이의 거리
+            if r > 0:
+                if play_state.player.unit_type == 0:
+                    if r < 60:
+                        self.state = ATTACK
+                        return
+                else:
+                    if r < 80:
+                        self.state = ATTACK
+                        return
         if self.rad == None:
             self.dir_adjust()
         self.x_move(math.cos(self.rad) * self.speed)

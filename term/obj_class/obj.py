@@ -52,9 +52,9 @@ class GroundObj:
     print_y_gap = 0  # y - stand_y
     hit_y_gap = 0  # hit_y - stand_y
 
+    exist = True  # 존재 변수 삭제 할지 판정
+    collision = True  # 충돌체크 함.
     def __init__(self):
-        self.exist = True  # 존재 변수 삭제 할지 판정
-        self.collision = True  # 충돌체크 함.
         # self.print_x, self.print_y = 0, 0  # 그릴 좌표
         self.img_now = [0, 0]
         self.stand_x, self.stand_y = 0, 0  # 서있는 좌표의 중앙 그리는건 중앙점과 서있는점의 차이를 더해줌.
@@ -173,6 +173,13 @@ class Effect:
         else:  # 애니메이션이 끝
             self.exist = False
 
+    def x_move(self, x):
+        self.stand_x += x
+        self.print_x += x
+
+    def y_move(self, y):
+        self.stand_y += y
+        self.print_y += y
 
     def play_sound(self):
         self.sound.play()
@@ -180,3 +187,81 @@ class Effect:
     def die(self): #사라지면서 해줄 게 있으면 재정의 해서 써야함.
         pass
 
+class FlyObj:
+    layer = FLY_OBJ
+
+    img = None
+    print_sx = 0  # 그려줄 스프라이트 크기
+    print_sy = 0
+    stand_sx = 0  # 발판 크기 반쪽
+    stand_sy = 0
+    hit_sx = 0  # 히트박스 크기 반쪽
+    hit_sy = 0
+    print_x_gap = 0  # x - stand_x
+    hit_x_gap = 0  # hit_x - stand_x
+    print_y_gap = 0  # y - stand_y
+    hit_y_gap = 0  # hit_y - stand_y
+
+    exist = True  # 존재 변수 삭제 할지 판정
+    collision = True  # 충돌체크 함.
+    def __init__(self):
+        # self.print_x, self.print_y = 0, 0  # 그릴 좌표
+        self.img_now = [0, 0]
+        self.print_x, self.print_y = 0, 0  # 서있는 좌표의 중앙 그리는건 중앙점과 서있는점의 차이를 더해줌.
+
+    def show(self):
+        self.img.clip_draw(self.img_now[0], self.img_now[1], self.print_sx, self.print_sy, self.print_x,
+                           self.print_y)
+        #draw_rectangle(*self.get_stand_box())
+        #draw_rectangle(*self.get_hit_box())
+
+    def update(self):
+        pass
+
+    def die(self):
+        pass
+
+    def hit_x(self):
+        return self.stand_x + self.hit_x_gap
+
+    def hit_y(self):
+        return self.stand_y + self.hit_y_gap
+
+    def stand_x(self):
+        return self.stand_x + self.print_x_gap
+
+    def stand_y(self):
+        return self.stand_y + self.print_y_gap
+
+    def get_hit_box(self):
+        return self.hit_x() - self.hit_sx, self.hit_y() - self.hit_sy, self.hit_x() + self.hit_sx, self.hit_y() + self.hit_sy
+
+    def x_move(self, x):
+        self.stand_x += x
+        self.print_x += x
+
+    def y_move(self, y):
+        self.stand_y += y
+        self.print_y += y
+
+    def x_move_point(self, x):
+        self.stand_x = x
+
+    def y_move_point(self, y):
+        self.stand_y = y
+
+    def move_point(self, x, y):
+        self.stand_x = x
+        self.stand_y = y
+
+    def get_hit_left(self):
+        return self.hit_x() - self.hit_sx
+
+    def get_hit_right(self):
+        return self.hit_x() + self.hit_sx
+
+    def get_hit_top(self):
+        return self.hit_y() + self.hit_sy
+
+    def get_hit_bottom(self):
+        return self.hit_y() - self.hit_sy

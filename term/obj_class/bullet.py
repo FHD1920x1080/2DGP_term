@@ -110,6 +110,12 @@ class DragBullEffect(Effect):
         DragBullEffect.img.clip_composite_draw(self.img_now[0], self.img_now[1], 188, 150, 0, '', self.print_x, self.print_y,
                                                  188 * self.cur_size, 150 * self.cur_size)
 
+    def x_move(self, x):
+        self.print_x += x
+
+    def y_move(self, y):
+        self.print_y += y
+
     def get_left(self, i):
         return self.print_x - self.rect_sx[i] * self.cur_size
 
@@ -339,6 +345,11 @@ class Bullet32_Effect(Effect):
         self.exist = True
         game_world.objects[GROUND_CRASH_EFFECT].append(self)
 
+    def x_move(self, x):
+        self.print_x += x
+
+    def y_move(self, y):
+        self.print_y += y
 
     @staticmethod
     def load_resource():

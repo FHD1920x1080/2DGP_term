@@ -15,7 +15,6 @@ def dummy_func():
     pass
 
 
-
 def crash(a, b):
     if a.hit_sx <= 0 or b.hit_sx <= 0:
         return False

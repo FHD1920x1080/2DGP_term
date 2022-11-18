@@ -1,3 +1,4 @@
+import play_state
 from obj_class.obj import *
 
 from obj_class.bullet import Bullet32
@@ -8,6 +9,7 @@ class Marine(GroundObj):
     unit_type = 0  # 마린인걸 인식하는데 씀, 골리앗은 1, 드라군은 2
 
     img = None
+    portrait = None
     print_sx = 110
     print_sy = 85
     stand_sx = 18
@@ -19,6 +21,9 @@ class Marine(GroundObj):
     print_y_gap = 20
     hit_y_gap = 20
 
+    exist = True  # 존재 변수 삭제 할지 판정
+    collision = True  # 충돌체크 함.
+
     hit_sound = None
     shoot_sound00 = None
     shoot_sound01 = None
@@ -26,8 +31,6 @@ class Marine(GroundObj):
     shoot_sound03 = None
 
     def __init__(self):
-        self.exist = True  # 존재 변수 삭제 할지 판정
-        self.collision = True  # 충돌체크 함.
         self.stand_x = play_state.window_size[0] / 2  # 마린이 서있는 좌표
         self.stand_y = play_state.window_size[1] / 2
         self.face_dir = 0 #얼굴 방향
@@ -54,8 +57,9 @@ class Marine(GroundObj):
         self.accuracy = 10  # 총의 정확도, 정확이는 오차율 0이 가장 높은 스텟
         self.interrupted_fire = 5  # 몇점사, 쏘는 시간만큼 쉼
         self.magazine_gun = False  # 연사모드
-        self.x1, self.y1 = None, None  # 대쉬할때 필요함
-        self.x2, self.y2 = None, None
+        self.rad = None
+        self.x1, self.y1 = self.stand_x, self.stand_y  # 대쉬할때 필요함
+        self.x2, self.y2 = 0, 0
         self.t = 0
         self.r = None
         self.dash_state = False
@@ -63,9 +67,36 @@ class Marine(GroundObj):
         self.cur_dash_cool_time = 0
         self.dash_frame = 0
         self.dash_dir = 0  # 16방향
-        self.dash_speed = 20
-        self.cur_dash_speed = 0 # self.dash_speed / self.r 대쉬 트라이에서 true 판정 나면 이렇게 초기화해줌
-        self.dash_accel = 0 # 같이 -0.9 / self.r로 초기화 해줌
+        self.dash_speed = 17
+        self.cur_dash_speed = 0 # self.dash_speed
+        self.dash_accel = -0.73 # 같이 -0.9 / self.r로 초기화 해줌
+        self.portrait_state = 0
+        self.portrait_frame = 0
+
+    def portrait_anim(self):
+        if play_state.frame % 10 == 0:
+            self.portrait_frame += 1
+            if self.portrait_state == 0:
+                if self.portrait_frame > 18:
+                    self.portrait_frame = 0
+                    self.rand_portrait()
+            elif self.portrait_state == 1:
+                if self.portrait_frame > 9:
+                    self.portrait_frame = 0
+                    self.rand_portrait()
+            elif self.portrait_state == 2:
+                if self.portrait_frame > 15:
+                    self.portrait_frame = 0
+                    self.rand_portrait()
+            elif self.portrait_state == 3:
+                if self.portrait_frame > 29:
+                    self.portrait_frame = 0
+                    self.rand_portrait()
+
+
+    def rand_portrait(self):
+        self.portrait_state = random.randint(0, 3)
+        pass
 
     @staticmethod
     def play_shoot_sound():
@@ -78,7 +109,10 @@ class Marine(GroundObj):
             Marine.shoot_sound02.play()
         elif i == 3:
             Marine.shoot_sound03.play()
-
+    # def x_move(self, x):
+    #     self.stand_x += x
+    #
+    # def y_move(self, y):
     def update(self):
         self.check_magazine()
         if self.dash_state == True:
@@ -180,11 +214,8 @@ class Marine(GroundObj):
                 User_input.down_key = False
 
     def dash_move(self):
-        self.t += self.cur_dash_speed
-        x = (1 - self.t) * self.x1 + self.t * self.x2
-        self.x_move_point(x)
-        y = (1 - self.t) * self.y1 + self.t * self.y2
-        self.y_move_point(y)
+        self.x_move(math.cos(self.rad) * self.cur_dash_speed)
+        self.y_move(math.sin(self.rad) * self.cur_dash_speed)
         self.cur_dash_speed += self.dash_accel
 
     def dash(self):
@@ -212,16 +243,12 @@ class Marine(GroundObj):
             return
         self.cur_dash_cool_time = 1
         if self.idle:  # 가만히 있을 때 대쉬
-            a = get_rad(self.stand_x, self.stand_y, play_state.cursor.x, play_state.cursor.y)
-            self.dash_dir = self.get_face_dir(a)
-            self.x1 = self.stand_x
-            self.y1 = self.stand_y
-            self.x2 = play_state.cursor.x
-            self.y2 = play_state.cursor.y
-            self.t = 0
+            self.rad = get_rad(self.stand_x, self.stand_y, play_state.cursor.x, play_state.cursor.y)
+            self.dash_dir = self.get_face_dir(self.rad)
             self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
             if self.r != 0:
                 self.dash_set()
+                return
         else:  # 움직이는 중, 또는 총 쏘는중
             if (User_input.left_key == True and User_input.right_key == False) or (
                     User_input.left_key == False and User_input.right_key == True):
@@ -234,13 +261,8 @@ class Marine(GroundObj):
             else:
                 self.Hmove_able = False
 
-            self.x1 = self.stand_x
-            self.y1 = self.stand_y
-            self.t = 0
             if self.Wmove_able == False and self.Hmove_able == False: # 가만히서 총만 쏘고 있는 상황
                 self.dash_dir = self.face_dir
-                self.x2 = play_state.cursor.x
-                self.y2 = play_state.cursor.y
                 self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
                 if self.r != 0:
                     self.dash_set()
@@ -260,55 +282,43 @@ class Marine(GroundObj):
             if right:
                 if up:  # 오른쪽 위 대각선
                     self.dash_dir = 4
-                    self.x2 = self.stand_x + 100
-                    self.y2 = self.stand_y + 100
+                    self.rad = 0.785398
                 elif down:  # 오른쪽 아래 대각선
                     self.dash_dir = 12
-                    self.x2 = self.stand_x + 100
-                    self.y2 = self.stand_y - 100
+                    self.rad = -0.785398
                 else:  # 그냥 오른쪽
                     self.dash_dir = 8
-                    self.x2 = self.stand_x + 100
-                    self.y2 = self.stand_y
-                self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
+                    self.rad = 0.0
                 self.dash_set()
                 return
             if left:
                 if up:  # 왼쪽 위 대각선
                     self.dash_dir = 28
-                    self.x2 = self.stand_x - 100
-                    self.y2 = self.stand_y + 100
+                    self.rad = 2.35619
                 elif down:  # 왼쪽 아래 대각선
                     self.dash_dir = 20
-                    self.x2 = self.stand_x - 100
-                    self.y2 = self.stand_y - 100
+                    self.rad = - 2.35619
                 else:  # 그냥 왼쪽
                     self.dash_dir = 24
-                    self.x2 = self.stand_x - 100
-                    self.y2 = self.stand_y
-                self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
+                    self.rad = 3.14159
                 self.dash_set()
                 return
             if up:  # 그냥 위
                 self.dash_dir = 0
-                self.x2 = self.stand_x
-                self.y2 = self.stand_y + 100
-                self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
+                self.rad = 1.5708
                 self.dash_set()
                 return
             if down:  # 그냥 아래
                 self.dash_dir = 16
-                self.x2 = self.stand_x
-                self.y2 = self.stand_y - 100
-                self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
+                self.rad = -1.5708
+                self.dash_set()
                 self.dash_set()
                 return
 
     def dash_set(self):
         self.dash_state = True
         self.cur_dash_cool_time = self.dash_cool_time
-        self.cur_dash_speed = self.dash_speed / self.r
-        self.dash_accel = -0.9 / self.r
+        self.cur_dash_speed = self.dash_speed
 
     def move(self):
         if self.move_able == True:  # 움직이는 상태 말고, 움직여도 되는 상태인지(총쏘고있으면 해당 안됨.)
@@ -489,6 +499,7 @@ class Marine(GroundObj):
     @staticmethod
     def load_resource():
         Marine.img = load_image('resource\\marine\\marine250x2_blue.png')
+        Marine.portrait = load_image('resource\\marine\\marine_portrait.png')
         Marine.shoot_sound00 = load_wav('resource\\marine\\shoot_sound\\00.wav')
         Marine.shoot_sound01 = load_wav('resource\\marine\\shoot_sound\\01.wav')
         Marine.shoot_sound02 = load_wav('resource\\marine\\shoot_sound\\02.wav')

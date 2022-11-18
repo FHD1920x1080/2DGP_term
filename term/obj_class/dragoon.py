@@ -10,6 +10,7 @@ class Dragoon(GroundObj):
     unit_type = 2
 
     img = None
+    portrait = None
     print_sx = 192
     print_sy = 192
     stand_sx = 34
@@ -20,12 +21,11 @@ class Dragoon(GroundObj):
     hit_x_gap = 0
     print_y_gap = 23
     hit_y_gap = 18
-
+    exist = True  # 존재 변수 삭제 할지 판정
+    collision = True  # 충돌체크 함.
     shoot_sound1 = None
     shoot_sound2 = None
     def __init__(self):
-        self.exist = True  # 존재 변수 삭제 할지 판정
-        self.collision = True  # 충돌체크 함.
         self.stand_x = play_state.window_size[0] / 2  # 마린이 서있는 좌표
         self.stand_y = play_state.window_size[1] / 2
         self.hp = 300  # 체력
@@ -48,8 +48,38 @@ class Dragoon(GroundObj):
         self.Hmove_able = False
         self.bull_x2, self.bull_y2 = None, None
         self.bull_size = 2
+        self.portrait_state = 0
+        self.portrait_frame = 0
 
 
+    def portrait_anim(self):
+        if play_state.frame % 10 == 0:
+            self.portrait_frame += 1
+            if self.portrait_state == 0:
+                if self.portrait_frame > 18:
+                    self.portrait_frame = 0
+                    self.rand_portrait()
+            elif self.portrait_state == 1:
+                if self.portrait_frame > 10:
+                    self.portrait_frame = 0
+                    self.rand_portrait()
+            elif self.portrait_state == 2:
+                if self.portrait_frame > 14:
+                    self.portrait_frame = 0
+                    self.rand_portrait()
+            elif self.portrait_state == 3:
+                if self.portrait_frame > 9:
+                    self.portrait_frame = 0
+                    self.rand_portrait()
+            elif self.portrait_state == 4:
+                if self.portrait_frame > 19:
+                    self.portrait_frame = 0
+                    self.rand_portrait()
+
+
+    def rand_portrait(self):
+        self.portrait_state = random.randint(0, 4)
+        pass
 
     @staticmethod
     def play_shoot_sound():
@@ -254,6 +284,7 @@ class Dragoon(GroundObj):
     @staticmethod
     def load_resource():
         Dragoon.img = load_image('resource\\dragoon\\dragoon200_em.png')
+        Dragoon.portrait = load_image('resource\\dragoon\\dragoon_portrait.png')
         Dragoon.shoot_sound1 = load_wav('resource\\dragoon\\sound\\dragbull.wav')
         Dragoon.shoot_sound2 = load_wav('resource\\dragoon\\sound\\tphfi201.wav')
         Sound.list.append(Dragoon.shoot_sound1)

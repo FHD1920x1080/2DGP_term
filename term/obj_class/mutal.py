@@ -5,12 +5,12 @@ from obj_class.obj import *
 AUTO, LOCK_ON, ATTACK, WAIT = range(4)
 
 
-class Zergling(GroundObj):
+class Mutal(GroundObj):
     img = None
-    print_sx = 110
-    print_sy = 78
-    stand_sx = 18
-    stand_sy = 16
+    print_sx = 140
+    print_sy = 130
+    stand_sx = 0
+    stand_sy = 0
     hit_sx = 22
     hit_sy = 20
     print_x_gap = 0
@@ -19,20 +19,21 @@ class Zergling(GroundObj):
     hit_y_gap = 5
 
     exist = True  # 존재 변수 삭제 할지 판정
-    collision = True  # 충돌체크 함.s
+    collision = False  # 충돌 안함
+    crash = True # 총알은 맞음
     hp = 6
     speed = 3
-    speed_sup = speed / 3  # 저글링은 프레임마다 속도가 달라서 만들어준 변수 기본속도가 3이라고 가정하고 만듦
     zm = 0.02
 
     hit_sound = None
 
     def __init__(self, x, y):
-        self.img_now = [74, 2910]
+
+        self.img_now = [74, 2910]  ##86, 84 씩 옮겨야 함
         self.stand_x = x
         self.stand_y = y
-        self.hp = Zergling.hp
-        self.speed = Zergling.speed
+        self.hp = Mutal.hp
+        self.speed = Mutal.speed
         self.move_frame = 0
         self.attack_frame = 0
         self.time = 0  # direction_rand_time
@@ -45,7 +46,7 @@ class Zergling(GroundObj):
 
     @staticmethod
     def play_hit_sound():
-        Zergling.hit_sound.play()
+        Mutal.hit_sound.play()
 
     def stop(self):
         self.img_now = 74 + 256 * self.face_dir, 1630
@@ -70,7 +71,7 @@ class Zergling(GroundObj):
         if self.get_hit_top() < 0:
             self.exist = False  # 화면 밖으로 나갔으니 없애버려라
             return False
-        cur_speed = Zergling.get_speed(self)
+        cur_speed = Mutal.get_speed(self)
         self.y_move(- cur_speed)
         self.face_dir = 8
         self.img_now = 74 + 256 * self.face_dir, 1630 - 256 * self.move_frame
@@ -79,7 +80,7 @@ class Zergling(GroundObj):
         if self.get_hit_top() < 0:
             self.exist = False  # 화면 밖으로 나갔으니 없애버려라
             return False
-        cur_speed = Zergling.get_speed(self) * 0.707
+        cur_speed = Mutal.get_speed(self) * 0.707
         self.y_move(-cur_speed)
         self.x_move(-cur_speed)
         self.face_dir = 10
@@ -94,7 +95,7 @@ class Zergling(GroundObj):
         if self.get_hit_top() < 0:
             self.exist = False  # 화면 밖으로 나갔으니 없애버려라
             return False
-        cur_speed = Zergling.get_speed(self) * 0.707
+        cur_speed = Mutal.get_speed(self) * 0.707
         self.y_move(-cur_speed)
         self.x_move(cur_speed)
         self.face_dir = 6
@@ -112,15 +113,14 @@ class Zergling(GroundObj):
                 self.move_frame = (self.move_frame + 1) % 7
 
     def auto_move(self):
-        if self.move_frame == 0:
-            r = math.dist([self.stand_x, self.stand_y],
-                          [play_state.player.stand_x, play_state.player.stand_y])  # 두 점 사이의 거리
-            if r > 0:
-                if r < 200:
-                    self.time = 0
-                    self.state = LOCK_ON
-                    self.dir_adjust()
-                    return
+        r = math.dist([self.stand_x, self.stand_y],
+                      [play_state.player.stand_x, play_state.player.stand_y])  # 두 점 사이의 거리
+        if r > 0:
+            if r < 200:
+                self.time = 0
+                self.state = LOCK_ON
+                self.dir_adjust()
+                return
         if self.direction == 0:
             self.stop()
         elif self.direction == 1:
@@ -163,19 +163,18 @@ class Zergling(GroundObj):
         # 여기서 사인 코사인 써서 이동하면 거리를 더 안재도 되겠네? 바보였잖아 나
 
     def lock_on_move(self):
-        if self.move_frame == 0:
-            r = math.dist([self.stand_x, self.stand_y],
-                          [play_state.player.stand_x, play_state.player.stand_y])  # 두 점 사이의 거리
-            if r > 0:
-                if play_state.player.unit_type == 0:
-                    if r < 60:
-                        self.state = ATTACK
-                        return
-                else:
-                    if r < 80:
-                        self.state = ATTACK
-                        return
-        cur_speed = Zergling.get_speed(self)
+        r = math.dist([self.stand_x, self.stand_y],
+                      [play_state.player.stand_x, play_state.player.stand_y])  # 두 점 사이의 거리
+        if r > 0:
+            if play_state.player.unit_type == 0:
+                if r < 60:
+                    self.state = ATTACK
+                    return
+            else:
+                if r < 80:
+                    self.state = ATTACK
+                    return
+        cur_speed = Mutal.get_speed(self)
         if self.rad == None:
             self.dir_adjust()
         self.x_move(math.cos(self.rad) * cur_speed)
@@ -185,7 +184,7 @@ class Zergling(GroundObj):
     def attack(self):
         self.img_now = 74 + 256 * self.face_dir, 2910 - 256 * self.attack_frame
         if self.attack_frame == 1:
-            play_state.sound.Zergling_hit = True
+            play_state.sound.Mutal_hit = True
             play_state.player.hp -=1
         elif self.attack_frame > 3:  # 여기서는 0, 1, 2, 3 ,4 동안 머물고 5가 되면 나감
             self.state = WAIT
@@ -244,28 +243,28 @@ class Zergling(GroundObj):
 
     def die(self):
         if self.hp <= 0:
-            DieZergling(self.stand_x, self.stand_y)
-        # print(len(Zergling.list))
+            DieMutal(self.stand_x, self.stand_y)
+        # print(len(mutal.list))
         pass
 
     @staticmethod
-    def make_zergling():
-        if random.random() <= Zergling.zm:
-            zergling = Zergling(random.randrange(Zergling.stand_sx, play_state.window_size[0] - Zergling.stand_sx),
-                                play_state.window_size[1] + Zergling.stand_sy)
-            # game_world.ground_obj.append(zergling)
-            game_world.ground_obj.insert(0, zergling)
+    def make_mutal():
+        if random.random() <= Mutal.zm:
+            mutal = Mutal(random.randrange(Mutal.stand_sx, play_state.window_size[0] - Mutal.stand_sx),
+                                play_state.window_size[1] + Mutal.stand_sy)
+            # game_world.ground_obj.append(mutal)
+            game_world.ground_obj.insert(0, mutal)
 
     @staticmethod
     def load_resource():
-        Zergling.img = load_image("resource\\zergling\\zergling200x2.png")
-        Zergling.hit_sound = load_wav('resource\\zergling\\zulhit00.wav')
-        Sound.list.append(Zergling.hit_sound)
-        Sound.volume_list.append(6)
-        DieZergling.load_resource()
+        Mutal.img = load_image("resource\\mutal\\mutal200x2.png")
+        #Mutal.hit_sound = load_wav('resource\\mutal\\zulhit00.wav')
+        #Sound.list.append(mutal.hit_sound)
+        #Sound.volume_list.append(6)
+        DieMutal.load_resource()
 
 
-class DieZergling(Effect):
+class DieMutal(Effect):
     img = None
     sound = None
     print_sx = 130
@@ -286,47 +285,19 @@ class DieZergling(Effect):
         self.cur_frame = 0  # 100이 되면 저글링 시체 사라짐
         self.start_frame = play_state.frame % self.any_frame_rate
         game_world.ground_obj.append(self)
-        play_state.sound.Zergling_die = True
+        play_state.sound.Mutal_die = True
 
     def die(self):
-        DeathZergling(self.print_x - 2, self.print_y - 7 )
+        pass
 
     @staticmethod
     def play_sound():
-        DieZergling.sound.play()
+        pass
+        #DieMutal.sound.play()
 
     @staticmethod
     def load_resource():
-        DieZergling.img = load_image("resource\\zergling\\die_zergling200.png")
-        DieZergling.sound = load_wav('resource\\zergling\\zzedth01.wav')
-        Sound.list.append(DieZergling.sound)
-        Sound.volume_list.append(8)
-
-        DeathZergling.load_resource()
-
-
-class DeathZergling(Effect):
-    img = None
-    print_sx = 130
-    print_sy = 64
-    anim_direction = 'w'  # 스프라이트 이미지 재생 방향
-    next_gap = 256
-    max_frame = 5  # 몇개의 이미지로 되어있는 이펙트인가
-    any_frame_rate = 200
-
-    def __init__(self, x, y):
-        self.exist = True  # 존재함
-        self.print_x, self.print_y = x, y
-        self.img_now = [42, 88]  # 스프라이트 좌표
-        self.cur_frame = 0  # 100이 되면 저글링 시체 사라짐
-        self.start_frame = play_state.frame % self.any_frame_rate
-        game_world.objects[FLOOR_EFFECT].append(self)
-
-    def x_move(self, x):
-        self.print_x += x
-
-    def y_move(self, y):
-        self.print_y += y
-    @staticmethod
-    def load_resource():
-        DeathZergling.img = load_image("resource\\zergling\\death_zergling200.png")
+        DieMutal.img = load_image("resource\\mutal\\die_mutal200.png")
+        #DieMutal.sound = load_wav('resource\\mutal\\zzedth01.wav')
+        #Sound.list.append(Diemutal.sound)
+        #Sound.volume_list.append(8)

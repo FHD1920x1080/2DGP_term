@@ -1,28 +1,20 @@
 import game_world
 import play_state
 
-
-gap_x = None
-gap_y = None
-center_x = None
 center_y = None
 
+
 def enter():
-    global center_x, center_y
-    center_x = play_state.window_size[0] / 2
+    global center_y
     center_y = play_state.window_size[1] / 2 - 100
 
 
-
-def camera():
-    global gap_x, gap_y
-    gap_y = center_y - play_state.Marine.list[0].stand_y
-
-    #마린은 센터로 보내고
-    #다른 모든 오브젝트는 gap만큼 이동
-    play_state.Marine.list[0].y_move(gap_y)
-    b_list = play_state.Marine.list[0].bullet_list
-    for b in b_list:
-        b.y_move(gap_y)
-    for em in game_world.enemy_list():
-        em.y_move(gap_y)
+def moving():
+    global center_y
+    gap_y = center_y - play_state.player.stand_y
+    if gap_y < 0:
+        play_state.player.y_move(gap_y)
+        game_world.ground_obj.remove(play_state.player)
+        for ob in game_world.all_objects():
+            ob.y_move(gap_y)
+        game_world.ground_obj.append(play_state.player)
