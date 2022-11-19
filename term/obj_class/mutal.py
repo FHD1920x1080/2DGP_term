@@ -204,12 +204,15 @@ class Mutal(FlyObj):
     @staticmethod
     def make_mutal():
         if random.random() <= Mutal.zm:
-            pos = random.randint(0, 1)
+            pos = random.randint(0, 4)
             if pos == 0:
                 mutal = Mutal(-200, random.randint(Mutal.start_pos, play_state.window_size[1] + 100))
                 game_world.fly_obj.append(mutal)
-            else:
+            elif pos == 1:
                 mutal = Mutal(play_state.window_size[0] + 200, random.randint(Mutal.start_pos, play_state.window_size[1] + 100))
+                game_world.fly_obj.append(mutal)
+            else:
+                mutal = Mutal(random.randint(-200, play_state.window_size[0] + 200), play_state.window_size[1] + 200)
                 game_world.fly_obj.append(mutal)
     @staticmethod
     def load_resource():

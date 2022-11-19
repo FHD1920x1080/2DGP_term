@@ -61,9 +61,21 @@ def handle_events():
                 if player.unit_type != 2:
                     change_character(3)
             if event.key == SDLK_o:
-                Zergling.zm = 0.03
+                Zergling.zm = 0.01
+                Zealot.zm = 0.004
+                Mutal.zm = 0.002
             if event.key == SDLK_p:
-                Zergling.zm = 0.15
+                Zergling.zm = 0.2
+                Zealot.zm = 0.08
+                Mutal.zm = 0.04
+                game_world.Marine.magazine_gun = True
+                game_world.Marine.nfs = 1
+                game_world.Marine.n_shot = 3
+                game_world.Marine.moving_attack = True
+                game_world.Marine.speed = 4
+                game_world.Dragoon.speed = 6
+                game_world.Dragoon.bull_size = 14
+                game_world.Dragoon.AD = 100
         player.handle_events(event)
 
 def update():

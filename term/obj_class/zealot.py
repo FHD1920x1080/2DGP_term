@@ -21,8 +21,8 @@ class Zealot(GroundObj):
     exist = True  # 존재 변수 삭제 할지 판정
     collision = True  # 충돌체크 함.
     hp = 10
-    speed = 4
-    zm = 0.002
+    speed = 3.5
+    zm = 0.004
     rd = 700
     hit_sound = None
     def __init__(self, x, y):
