@@ -1,6 +1,9 @@
 from pico2d import*
+import play_state
+
 class UI:
     green = None
+    lime = None
     yellow = None
     orenge = None
     red = None
@@ -8,54 +11,107 @@ class UI:
     hp_bar_frame = None
     terran_portrait_frame = None
     protoss_portrait_frame = None
+    warning = None
+    font22 = None
+    font16 = None
     hp_bar_max = 250
+    sub = 0.8
 
+    warning_frame = 0
+    warning_img_now = 0
     @staticmethod
-    def draw_portrait(x, y, unit):
+    def show_main_portrait(x, y, unit):
+        unit.portrait.clip_draw(unit.portrait_frame * 60, unit.portrait_state * 56, 60, 56, x, y, 126, 117)
         if unit.unit_type == 0:
-            unit.portrait.clip_draw(unit.portrait_frame * 60, unit.portrait_state * 56, 60, 56, x, y, 126, 117)
             UI.terran_portrait_frame.draw(x, y, 130, 128)
-            unit.portrait_anim()
-            pass
         elif unit.unit_type == 2:
-            unit.portrait.clip_draw(unit.portrait_frame * 60, unit.portrait_state * 56, 60, 56, x, y, 126, 117)
             UI.protoss_portrait_frame.draw(x, y, 130, 128)
-            unit.portrait_anim()
-            pass
-    @staticmethod
-    def draw_terran_portrait_frame():
-
-        pass
-    @staticmethod
-    def draw_protoss_portrait_frame():
-        pass
+        unit.portrait_anim()
 
     @staticmethod
-    def draw_hp_bar(x, y, unit):
+    def show_sub_portrait(x, y, unit):
+        unit.portrait.clip_draw(unit.portrait_frame * 60, unit.portrait_state * 56, 60, 56, x, y, 126 * UI.sub, 117 * UI.sub +1)
+        if unit.unit_type == 0:
+            UI.terran_portrait_frame.draw(x, y, 130 * UI.sub, 128 * UI.sub)
+        elif unit.unit_type == 2:
+            UI.protoss_portrait_frame.draw(x, y, 130 * UI.sub, 128 * UI.sub)
+        unit.portrait_anim()
+
+    @staticmethod
+    def show_main_hp_bar(x, y, unit):
         UI.hp_bar_frame.draw_to_origin(x, y, 259, 38)
         hp = unit.hp/unit.max_hp
-        if hp > 0.8:
+        if hp > 0.85:
             UI.green.draw_to_origin(x+4, y+4, UI.hp_bar_max * hp, 30)
-        elif hp > 0.6:
+        elif hp > 0.7:
+            UI.lime.draw_to_origin(x + 4, y + 4, UI.hp_bar_max * hp, 30)
+        elif hp > 0.5:
             UI.yellow.draw_to_origin(x + 4, y + 4, UI.hp_bar_max * hp, 30)
-        elif hp > 0.4:
+        elif hp > 0.3:
             UI.orenge.draw_to_origin(x + 4, y + 4, UI.hp_bar_max * hp, 30)
-        elif hp > 0.2:
-            UI.red.draw_to_origin(x + 4, y + 4, UI.hp_bar_max * hp, 30)
+            UI.warning.clip_draw_to_origin(UI.warning_img_now * 320, 0, 320, 180, 0, 0, 1920, 1080)
+            UI.warning_anim_off()
         else:
-            UI.deep_red.draw_to_origin(x + 4, y + 4, UI.hp_bar_max * hp, 30)
-        pass
+            if hp > 0.15:
+                UI.red.draw_to_origin(x + 4, y + 4, UI.hp_bar_max * hp, 30)
+            else:
+                UI.deep_red.draw_to_origin(x + 4, y + 4, UI.hp_bar_max * hp, 30)
+            UI.warning.clip_draw_to_origin(UI.warning_img_now * 320, 0, 320, 180, 0, 0, 1920, 1080)
+            UI.warning_anim()
+        UI.font22.draw(x+170, y+19, f'{unit.hp:3d}/{unit.max_hp}', (255, 255, 255))
 
-    def hp(self, unit):
-        return unit.hp
+    @staticmethod
+    def show_sub_hp_bar(x, y, unit):
+        UI.hp_bar_frame.draw_to_origin(x, y, 259 * UI.sub, 38 * UI.sub)
+        hp = unit.hp / unit.max_hp
+        if hp > 0.85:
+            UI.green.draw_to_origin(x + 4, y + 4, UI.hp_bar_max * hp * UI.sub, 30 * UI.sub)
+        elif hp > 0.7:
+            UI.lime.draw_to_origin(x + 4, y + 4, UI.hp_bar_max * hp * UI.sub, 30 * UI.sub)
+        elif hp > 0.5:
+            UI.yellow.draw_to_origin(x + 4, y + 4, UI.hp_bar_max * hp * UI.sub, 30 * UI.sub)
+        elif hp > 0.3:
+            UI.orenge.draw_to_origin(x + 4, y + 4, UI.hp_bar_max * hp * UI.sub, 30 * UI.sub)
+        elif hp > 0.15:
+            UI.red.draw_to_origin(x + 4, y + 4, UI.hp_bar_max * hp * UI.sub, 30 * UI.sub)
+        else:
+            UI.deep_red.draw_to_origin(x + 4, y + 4, UI.hp_bar_max * hp * UI.sub, 30 * UI.sub)
+        UI.font16.draw(x + 140, y + 15, f'{unit.hp:3d}/{unit.max_hp}', (255, 255, 255))
+
+
+    @staticmethod
+    def warning_anim():
+        if play_state.frame % 6 == 0:
+            UI.warning_frame = (UI.warning_frame + 1) % 40
+            if UI.warning_frame < 20:
+                UI.warning_img_now += 1
+            else:
+                UI.warning_img_now -= 1
+
+    @staticmethod
+    def warning_anim_off():
+        if play_state.frame % 6 == 0:
+            UI.warning_frame -= 1
+            UI.warning_img_now -= 1
+            if UI.warning_img_now < 0:
+                UI.warning_frame = 0
+                UI.warning_img_now = 0
+
 
     @staticmethod
     def load_resource():
         UI.green = load_image('resource\\ui\\green.png')
+        UI.lime = load_image('resource\\ui\\lime.png')
         UI.yellow = load_image('resource\\ui\\yellow.png')
         UI.orenge = load_image('resource\\ui\\orenge.png')
         UI.red = load_image('resource\\ui\\red.png')
         UI.deep_red = load_image('resource\\ui\\deep_red.png')
         UI.hp_bar_frame = load_image('resource\\ui\\hp_bar_frame.png')
+        UI.warning = load_image('resource\\ui\\warning.png')
+
         UI.terran_portrait_frame = load_image('resource\\ui\\terran_portrait_frame.png')
         UI.protoss_portrait_frame = load_image('resource\\ui\\protoss_portrait_frame.png')
+
+        #UI.font24 = load_font('resource\\ui\\DOSGothic.ttf', 24)
+        UI.font22 = load_font('resource\\ui\\DOSIyagiBoldface.ttf', 22)
+        UI.font16 = load_font('resource\\ui\\DOSIyagiBoldface.ttf', 16)

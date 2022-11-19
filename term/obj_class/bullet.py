@@ -18,7 +18,6 @@ class DragBull:
         if self.r == 0:
             del self
             return
-        game_world.objects[AIR_BULLET].append(self)
         play_state.sound.Dragoon_shoot = True
         self.cur_speed = self.speed / self.r
         self.accel = 0.5 / self.r # t에 더하는 self.cur_speed 에 더할 속도
@@ -26,6 +25,7 @@ class DragBull:
         self.frame = 0
         self.cur_size = player.bull_size  # 100% 기준
         self.exist = True
+        game_world.objects[AIR_BULLET].append(self)
 
     def show(self):
         self.img.clip_composite_draw(self.img_now_x, 0, 20, 18, 0, '', self.x, self.y, 20 * self.cur_size,
@@ -142,6 +142,14 @@ class DragBullEffect(Effect):
                             if obj.hp <= 0:
                                 obj.exist = False
                                 obj.collision = False
+                for obj in game_world.fly_obj:
+                    if tir_rect_crash(self, obj):
+                        obj.hp -= self.AD
+                        obj.state = 1
+                        Bullet32_Effect(obj.print_x, obj.print_y, 1)
+                        if obj.hp <= 0:
+                            obj.exist = False
+                            obj.collision = False
         else:
             self.exist = False
     # def die(self):
@@ -171,11 +179,15 @@ class Bullet32:
         self.AD = player.AD
         self.t = 0
         self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
+        if self.r == 0:
+            del self
+            return
         self.cur_speed = self.speed / self.r
         self.num = self.get_bullet_num(get_rad(self.x1, self.y1, self.x2, self.y2))
         self.img = Bullet32.img[self.num]
         # self.sx, self.sy = self.get_bullet_size(self.num)
         self.exist = True  # 충돌 gn False로 바꿔줄 존재 변수
+        game_world.ground_bullet.append(self)
 
     @staticmethod
     def play_hit_sound():
@@ -296,9 +308,10 @@ class Bullet32:
             self.exist = False
         else:
             for obj in game_world.ground_obj:
-                if obj != play_state.player: #주인공은 지 몸땡이에 서 총알 쏴서 충돌체크 하면 안됨.
+                if obj != play_state.player: #주인공은 지 몸땡이에서 총알 쏴서 충돌체크 하면 안됨.
                     if bullet_crash(self, obj) == True:
                         play_state.sound.Bullet32_hit = True
+                        Bullet32_Effect(self.x, self.y)
                         self.exist = False
                         obj.state = 1
                         obj.hp -= self.AD
@@ -306,9 +319,20 @@ class Bullet32:
                             obj.exist = False  # 마지막에 한번에 삭제해줄 것이고 지금은 아님
                             obj.collision = False  # 충돌체크 안함
                         break # 이제 사라진 불릿이기 때문에 다른 저글링이랑 체크 할 필요 없음
+            for obj in game_world.fly_obj:
+                if bullet_crash(self, obj) == True:
+                    play_state.sound.Bullet32_hit = True
+                    Bullet32_Effect(self.x, self.y)
+                    self.exist = False
+                    obj.state = 1
+                    obj.hp -= self.AD
+                    if obj.hp <= 0:
+                        obj.exist = False  # 마지막에 한번에 삭제해줄 것이고 지금은 아님
+                        obj.collision = False  # 충돌체크 안함
+                    break # 이제 사라진 불릿이기 때문에 다른 저글링이랑 체크 할 필요 없음
 
     def die(self):
-        Bullet32_Effect(self.x, self.y)
+        pass
 
     @staticmethod
     def load_resource():

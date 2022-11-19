@@ -1,7 +1,7 @@
 import math
 import game_world
 import play_state
-
+import ui
 
 class User_input:
     left_key = False  # 왼쪽으로 가는키가 눌렸는지
@@ -128,6 +128,9 @@ def change_character(key):
     if key == 1:
         play_state.sub_unit = game_world.Dragoon
         play_state.player = game_world.Marine
+        play_state.player.shoot_frame = 0  # 연사력과, 점사구현을 위한 프레임
+        play_state.player.move_frame = 0  # 마린의 걸어다니는 애니메이션을 위한 프레임
+        play_state.player.idle_frame = 0  # 아무것도 안한 시간만큼의 프레임
         play_state.player.shoot_able = False
         play_state.player.move_able = True
         play_state.player.dash_state = False
@@ -138,6 +141,8 @@ def change_character(key):
     play_state.player.x_move_point(sx)
     play_state.player.y_move_point(sy)
     game_world.ground_obj.append(play_state.player)
+    ui.UI.warning_frame = 0
+    ui.UI.warning_img_now = 0
 
 
 def get_rad(x1, y1, x2, y2):

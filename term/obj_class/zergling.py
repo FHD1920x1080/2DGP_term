@@ -21,10 +21,10 @@ class Zergling(GroundObj):
     exist = True  # 존재 변수 삭제 할지 판정
     collision = True  # 충돌체크 함.s
     hp = 6
-    speed = 3
+    speed = 4
     speed_sup = speed / 3  # 저글링은 프레임마다 속도가 달라서 만들어준 변수 기본속도가 3이라고 가정하고 만듦
-    zm = 0.02
-
+    zm = 0.01
+    rd = 500
     hit_sound = None
 
     def __init__(self, x, y):
@@ -54,17 +54,17 @@ class Zergling(GroundObj):
         if self.move_frame == 0:
             return 1 * self.speed_sup
         elif self.move_frame == 1:
-            return 2 * self.speed_sup
+            return 3 * self.speed_sup
         elif self.move_frame == 2:
-            return 5 * self.speed_sup
+            return 6 * self.speed_sup
         elif self.move_frame == 3:
             return 4 * self.speed_sup
         elif self.move_frame == 4:
             return 4 * self.speed_sup
         elif self.move_frame == 5:
-            return 3 * self.speed_sup
-        elif self.move_frame == 6:
             return 2 * self.speed_sup
+        elif self.move_frame == 6:
+            return 1 * self.speed_sup
 
     def move_down(self):
         if self.get_hit_top() < 0:
@@ -108,7 +108,7 @@ class Zergling(GroundObj):
             if self.time % 4 == 0:
                 self.attack_frame += 1
         else:
-            if self.time % 6 == 0:
+            if self.time % 5 == 0:
                 self.move_frame = (self.move_frame + 1) % 7
 
     def auto_move(self):
@@ -116,7 +116,7 @@ class Zergling(GroundObj):
             r = math.dist([self.stand_x, self.stand_y],
                           [play_state.player.stand_x, play_state.player.stand_y])  # 두 점 사이의 거리
             if r > 0:
-                if r < 200:
+                if r < Zergling.rd:
                     self.time = 0
                     self.state = LOCK_ON
                     self.dir_adjust()
@@ -160,10 +160,9 @@ class Zergling(GroundObj):
     def dir_adjust(self):
         self.rad = get_rad(self.stand_x, self.stand_y, play_state.player.stand_x, play_state.player.stand_y)
         self.face_dir = self.get_face_dir(self.rad)
-        # 여기서 사인 코사인 써서 이동하면 거리를 더 안재도 되겠네? 바보였잖아 나
 
     def lock_on_move(self):
-        if self.move_frame == 0:
+        if self.move_frame % 4 == 0:
             r = math.dist([self.stand_x, self.stand_y],
                           [play_state.player.stand_x, play_state.player.stand_y])  # 두 점 사이의 거리
             if r > 0:

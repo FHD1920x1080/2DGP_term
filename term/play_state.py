@@ -3,8 +3,10 @@ from obj_class.dragoon import Dragoon
 from obj_class.bullet import *
 from obj_class.zergling import *
 from obj_class.zealot import *
+from obj_class.mutal import *
 from obj_class.cursor import Cursor
-from ui import *
+from ui import UI
+from map import Map
 from sound import Sound
 
 import game_world
@@ -13,7 +15,6 @@ import camera
 
 # 1. 게임 초기화
 window_size = [1920, 1080]
-background_img = None
 FPS = None # 초당 프레임 90~100 생각 하고 있음.
 frame = None # 현재 프레임 0 ~ (FPS-1) 사이값
 sound = None
@@ -69,33 +70,29 @@ def update():
     #print(len(game_world.ground_obj))
     Zergling.make_zergling()
     Zealot.make_zealot()
+    Mutal.make_mutal()
     game_world.set_clean_list()
     game_world.update_game_world()
     game_world.clean_objects()
 
     global frame
-    if frame % 10 == 0:
+    if frame % 20 == 0:
         player.hp += 1
         player.hp = clamp(0, player.hp, player.max_hp)
-        sub_unit.hp += 2
+    if frame % 10 == 0:
+        sub_unit.hp += 1
         sub_unit.hp = clamp(0, sub_unit.hp, sub_unit.max_hp)
-        # game_world.Marine.hp += 1
-        # game_world.Marine.hp = clamp(0, game_world.Marine.hp, game_world.Marine.max_hp)
-        # game_world.Dragoon.hp += 2
-        # game_world.Dragoon.hp = clamp(0, game_world.Dragoon.hp, game_world.Dragoon.max_hp)
     camera.moving()
 
 
 def draw_world():
-    #background_img.draw(window_size[0] // 2, window_size[1] // 2)
-
     for obj in game_world.all_objects():
         obj.show()
 
-    UI.draw_portrait(80, 82, player)
-    UI.draw_hp_bar(150, 20, player)
-    UI.draw_portrait(80, 222, sub_unit)
-    UI.draw_hp_bar(150, 160, sub_unit)
+    UI.show_main_portrait(80, 82, player)
+    UI.show_main_hp_bar(150, 20, player)
+    UI.show_sub_portrait(68, 222, sub_unit)
+    UI.show_sub_hp_bar(126, 172, sub_unit)
 
     cursor.show()
 
@@ -123,15 +120,14 @@ def animation(frame):
 
 
 def load_resource():
-    global background_img
-
-    background_img = load_image('resource\\image\\map.png')
     Marine.load_resource()
     Dragoon.load_resource()
     Bullet32.load_resource()
     Zergling.load_resource()
     Zealot.load_resource()
+    Mutal.load_resource()
     UI.load_resource()
+    Map.load_resource()
 
 
 def exit():

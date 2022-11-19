@@ -16,15 +16,20 @@ ground_obj = []
 bomb_effect = []
 ground_crash_effect = []
 air_bullet = []
+fly_obj = []
 
+
+del_map_floor = []
 del_floor_effect = []
 del_ground_bullet = []
 del_ground_obj = []
 del_bomb_effect = []
 del_ground_crash_effect = []
 del_air_bullet = []
+del_fly_obj = []
+#밑에 있는 set_clean_list()에 꼭 등록 해주어야함
 
-objects = [map_floor, floor_effect, ground_bullet, ground_obj, bomb_effect, ground_crash_effect, air_bullet]
+objects = [map_floor, floor_effect, ground_bullet, ground_obj, bomb_effect, ground_crash_effect, air_bullet, fly_obj]
 
 
 def all_objects():
@@ -34,13 +39,14 @@ def all_objects():
 
 
 def set_clean_list():
-    global del_ground_obj, del_ground_bullet, del_ground_crash_effect, del_bomb_effect, del_air_bullet, del_floor_effect
+    global del_ground_obj, del_ground_bullet, del_ground_crash_effect, del_bomb_effect, del_air_bullet, del_floor_effect, del_fly_obj
     del_floor_effect = []
     del_ground_bullet = []
     del_ground_obj = []
     del_bomb_effect = []
     del_ground_crash_effect = []
     del_air_bullet = []
+    del_fly_obj = []
 
 
 def update_game_world():
@@ -54,6 +60,7 @@ def update_game_world():
     update_ground_bullet()  # 총알들 먼저 # 이펙트 생성, 적 유닛 존재변수 False 등 발생 가능
     update_air_bullet()  # 총알들 먼저
     update_ground_obj()  # 아직 시체를 만들이 않고 존재변수만 0으로 만듦, 시체는 claen 되는 순간에 자신의 die()에서 만들고 자신의 존재를 지움
+    update_fly_obj()
 
     update_ground_crash_effect()
     update_floor_effect()
@@ -98,6 +105,7 @@ def update_ground_obj():
             for j in range(first, last):
                 other = ground_obj[j]
                 func.cheak_collision_min_move(obj, other)
+                #func.cheak_collision_min_move(other, obj)
 
 
 def update_ground_crash_effect():
@@ -115,6 +123,14 @@ def update_air_bullet():
         if not ablt.exist:  #
             del_air_bullet.insert(0, i)
 
+def update_fly_obj():
+    pass
+    for i in range(len(fly_obj)):
+        obj = fly_obj[i]
+        obj.update()
+        if not obj.exist:
+            del_fly_obj.insert(0, i)
+
 
 def clean_objects():  # 얘네는 별도의 레이어이며 리스트이기 때문에 지우는 순서는 상관 없음.
     for i in del_ground_bullet:  # 먼저 넣은걸 뒤로 미는 insert를 했기 때문에 정렬 필요없이, 뒷쪽 인덱스부터 접근 가능->
@@ -129,6 +145,10 @@ def clean_objects():  # 얘네는 별도의 레이어이며 리스트이기 때�
         ground_obj[i].die()
         del ground_obj[i]
 
+    for i in del_fly_obj:
+        fly_obj[i].die()
+        del fly_obj[i]
+
     for i in del_ground_crash_effect:
         del ground_crash_effect[i]
 
@@ -137,6 +157,7 @@ def clean_objects():  # 얘네는 별도의 레이어이며 리스트이기 때�
 
     for i in del_bomb_effect:
         del bomb_effect[i]
+
 
 # def add_object(o, depth = 0):
 #     objects[depth].append(o)

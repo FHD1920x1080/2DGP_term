@@ -26,8 +26,8 @@ class Dragoon(GroundObj):
     shoot_sound1 = None
     shoot_sound2 = None
     def __init__(self):
-        self.stand_x = play_state.window_size[0] / 2  # 마린이 서있는 좌표
-        self.stand_y = play_state.window_size[1] / 2
+        self.stand_x = play_state.window_size[0] / 2
+        self.stand_y = 100
         self.hp = 300  # 체력
         self.max_hp = 300
         self.AD = 6
@@ -42,7 +42,7 @@ class Dragoon(GroundObj):
         self.wait_frame = 0
         self.shoot_frame = 0
         self.die_frame = 0
-        self.speed = 3.5
+        self.speed = 4
         self.state = IDLE
         self.Wmove_able = False
         self.Hmove_able = False
@@ -283,7 +283,7 @@ class Dragoon(GroundObj):
 
     @staticmethod
     def load_resource():
-        Dragoon.img = load_image('resource\\dragoon\\dragoon200_em.png')
+        Dragoon.img = load_image('resource\\dragoon\\dragoon200_green.png')
         Dragoon.portrait = load_image('resource\\dragoon\\dragoon_portrait.png')
         Dragoon.shoot_sound1 = load_wav('resource\\dragoon\\sound\\dragbull.wav')
         Dragoon.shoot_sound2 = load_wav('resource\\dragoon\\sound\\tphfi201.wav')

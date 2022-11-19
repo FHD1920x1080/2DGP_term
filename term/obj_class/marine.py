@@ -32,14 +32,14 @@ class Marine(GroundObj):
 
     def __init__(self):
         self.stand_x = play_state.window_size[0] / 2  # 마린이 서있는 좌표
-        self.stand_y = play_state.window_size[1] / 2
+        self.stand_y = 100
         self.face_dir = 0 #얼굴 방향
         self.hp = 200  # 체력
         self.max_hp = 200
         self.AD = 3  # 공격력
         self.img = Marine.img
         self.img_now = [30, 2180 - 80 - 320]  # 스프라이트 좌표
-        self.speed = 3  # 이동속도w
+        self.speed = 2.8  # 이동속도w
         self.shoot_able = False  # 마우스 좌클릭이 눌렸는지
         self.move_able = True  # 움직일 수 있는 상태인지
         self.Wmove_able = True  # 움직일 수 있다면 가로로 움직이는지
@@ -63,7 +63,7 @@ class Marine(GroundObj):
         self.t = 0
         self.r = None
         self.dash_state = False
-        self.dash_cool_time = 50  #
+        self.dash_cool_time = 100  #
         self.cur_dash_cool_time = 0
         self.dash_frame = 0
         self.dash_dir = 0  # 16방향
@@ -481,15 +481,10 @@ class Marine(GroundObj):
                     x2, y2 = play_state.cursor.x + random.randint(-self.accuracy,
                                                                   self.accuracy), play_state.cursor.y + random.randint(
                         -self.accuracy, self.accuracy)
-                    bullet = Bullet32(self, x2, y2)  # x1==x2 and y1==y2 일 때 False 반환
-                    if bullet.r == 0:
-                        del bullet
-                        return
-                    else:
-                        game_world.ground_bullet.append(bullet)
-                        self.shoot_idle = False
-                        self.idle = False
-                        self.img_now = 30 + (160 * self.face_dir), 1620  # 격발 이미지
+                    Bullet32(self, x2, y2)  # x1==x2 and y1==y2 일 때 False 반환
+                    self.shoot_idle = False
+                    self.idle = False
+                    self.img_now = 30 + (160 * self.face_dir), 1620  # 격발 이미지
             elif self.shoot_frame % self.nfs == self.nfs // 2:
                 self.img_now = 30 + (160 * self.face_dir), 1780  # 견착 이미지
         else:

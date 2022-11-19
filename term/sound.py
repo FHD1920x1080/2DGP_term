@@ -16,6 +16,7 @@ class Sound:
         self.Zergling_hit = False
         self.Zealot_die = False
         self.Zealot_hit = False
+        self.Mutal_die = False
 
     def play(self):
         if play_state.frame % 6 == 0:
@@ -44,6 +45,9 @@ class Sound:
             if self.Zealot_hit:
                 play_state.Zealot.play_hit_sound()
                 self.Zealot_hit = False
+            if self.Mutal_die:
+                play_state.DieMutal.play_sound()
+                self.Mutal_die = False
 
     @staticmethod
     def volume_set_up():
