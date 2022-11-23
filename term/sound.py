@@ -19,7 +19,7 @@ class Sound:
         self.Mutal_die = False
 
     def play(self):
-        if play_state.frame % 6 == 0:
+        if play_state.frame % 10 == 0:
             if self.Marine_shoot:
                 play_state.Marine.play_shoot_sound()
                 self.Marine_shoot = False
@@ -32,7 +32,7 @@ class Sound:
             if self.Dragoon_bull_bomb:
                 play_state.DragBullEffect.play_bomb_sound()
                 self.Dragoon_bull_bomb = False
-        elif (play_state.frame + 3) % 6 == 0:
+        elif (play_state.frame + 5) % 10 == 0:
             if self.Zergling_die:
                 play_state.DieZergling.play_sound()
                 self.Zergling_die = False

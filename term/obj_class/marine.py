@@ -119,8 +119,6 @@ class Marine(GroundObj):
             self.dash()
         else:
             self.move()
-            for em in game_world.ground_obj:
-                cheak_collision_min_move(self, em)
             self.shoot()
         self.shoot_frame += 1
         if self.magazine_gun == False:

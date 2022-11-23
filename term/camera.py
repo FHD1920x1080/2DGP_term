@@ -26,7 +26,7 @@ def moving():
         total_y -= gap_y
         create_map_y -= gap_y
         if create_map_y >= play_state.window_size[1]:
-            create_map_y = 0
+            create_map_y -= play_state.window_size[1]
             map.Map.create_floor()
         for ob in game_world.all_objects():
             ob.y_move(gap_y)

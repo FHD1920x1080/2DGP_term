@@ -39,8 +39,6 @@ def enter():
     player = game_world.Marine
     sub_unit = game_world.Dragoon
     game_world.ground_obj.append(player)
-    every_6frame = 0
-    every_3frame = 0
     camera.enter()
     #UnitState.red = load_image('red.png')
 
@@ -70,7 +68,7 @@ def handle_events():
                 Mutal.zm = 0.04
                 game_world.Marine.magazine_gun = True
                 game_world.Marine.nfs = 1
-                game_world.Marine.n_shot = 3
+                game_world.Marine.n_shot = 1
                 game_world.Marine.moving_attack = True
                 game_world.Marine.speed = 4
                 game_world.Dragoon.speed = 6
@@ -91,6 +89,7 @@ def update():
     if frame % 20 == 0:
         player.hp += 1
         player.hp = clamp(0, player.hp, player.max_hp)
+        print(len(game_world.ground_obj))
     if frame % 10 == 0:
         sub_unit.hp += 1
         sub_unit.hp = clamp(0, sub_unit.hp, sub_unit.max_hp)
@@ -101,11 +100,11 @@ def draw_world():
     for obj in game_world.all_objects():
         obj.show()
 
-    UI.show_main_portrait(80, 82, player)
-    UI.show_main_hp_bar(150, 20, player)
+
     UI.show_sub_portrait(68, 222, sub_unit)
     UI.show_sub_hp_bar(126, 172, sub_unit)
-
+    UI.show_main_portrait(80, 82, player)
+    UI.show_main_hp_bar(150, 20, player)
     cursor.show()
 
 def draw():

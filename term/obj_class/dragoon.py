@@ -91,8 +91,6 @@ class Dragoon(GroundObj):
     def update(self):
         if self.state == MOVE:
             self.move()
-            for em in game_world.ground_obj:
-                cheak_collision_min_move(self, em)
         elif self.state == IDLE:
             self.idle()
         elif self.state == OPEN:

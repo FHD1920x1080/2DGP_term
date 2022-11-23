@@ -6,7 +6,7 @@ import play_state
 
 Player = [Marine, Dragoon]
 
-MAP_FLOOR, FLOOR_EFFECT, GROUND_BULLET, GROUND_OBJ, BOMB_EFFECT, GROUND_CRASH_EFFECT, AIR_BULLET, FLY_OBJ, FLY_CRASH_EFFECT = range(
+MAP_FLOOR, FLOOR_EFFECT, GROUND_BULLET, GROUND_OBJ, BOMB_EFFECT, GROUND_CRASH_EFFECT, AIR_BULLET, FLY_OBJ, AIR_CRASH_EFFECT = range(
     9)
 
 map_floor = []
@@ -17,7 +17,7 @@ bomb_effect = []
 ground_crash_effect = []
 air_bullet = []
 fly_obj = []
-
+air_crash_effect = []
 
 del_map_floor = []
 del_floor_effect = []
@@ -27,9 +27,10 @@ del_bomb_effect = []
 del_ground_crash_effect = []
 del_air_bullet = []
 del_fly_obj = []
+del_air_crash_effect = []
 #밑에 있는 set_clean_list()에 꼭 등록 해주어야함
 
-objects = [map_floor, floor_effect, ground_bullet, ground_obj, bomb_effect, ground_crash_effect, air_bullet, fly_obj]
+objects = [map_floor, floor_effect, ground_bullet, ground_obj, bomb_effect, ground_crash_effect, air_bullet, fly_obj, air_crash_effect]
 
 
 def all_objects():
@@ -39,7 +40,7 @@ def all_objects():
 
 
 def set_clean_list():
-    global del_ground_obj, del_ground_bullet, del_ground_crash_effect, del_bomb_effect, del_air_bullet, del_floor_effect, del_fly_obj
+    global del_ground_obj, del_ground_bullet, del_ground_crash_effect, del_bomb_effect, del_air_bullet, del_floor_effect, del_fly_obj, del_air_crash_effect
     del_floor_effect = []
     del_ground_bullet = []
     del_ground_obj = []
@@ -47,14 +48,14 @@ def set_clean_list():
     del_ground_crash_effect = []
     del_air_bullet = []
     del_fly_obj = []
-
+    del_air_crash_effect = []
 
 def update_game_world():
     # 여기 문제인게 생성되고 바로 update를 하는 애들과, 다음 루프때가 되어야 첫 update를 하는 애들(내가 원하는 상황)이 나뉘었음
     # 그래서 이펙트 생성하고 바로 업데이트를 하는경우, 첫번째 스프라이트 이미지가 스킵됨.
     # 그래서 이펙트를 생성해야 하는 경우는 전부 die()에서 만들어 주기로 함.
     # 그래서 이펙트들은 생성 된 후 play_state.frame이 1 올라가기 때문에 다음 루프때 수행하는 update()에서 바로 애니메이션 조건에 해당되지 않아
-    # 이펙트의 첫번째 스프라이트가 스킵되는 현상을 방지함.
+    # 이펙트의 첫번째 스프라이트가 스킵되는 현상을 막음.
 
     # 이 밑의 3개의 순서는 고정 불릿이 먼저 서로 상호작용이 있기 때문
     update_ground_bullet()  # 총알들 먼저 # 이펙트 생성, 적 유닛 존재변수 False 등 발생 가능
@@ -64,7 +65,8 @@ def update_game_world():
 
     update_ground_crash_effect()
     update_floor_effect()
-    update_bomb_effect()#얘도
+    update_bomb_effect()
+    update_air_crash_effect()
 
 
 def update_floor_effect():
@@ -100,12 +102,14 @@ def update_ground_obj():
             del_ground_obj.insert(0, i)
         else:
             obj.update()  # 총알들이 먼저 업데이트 되므로 여기서 해도 됨
-            first = max(i - 20, 0)
-            last = min(i + 20, length)
-            for j in range(first, last):
+            first = max(i - 14, 0)
+            last = min(i + 14, length)
+            for j in range(first, i):
                 other = ground_obj[j]
                 func.cheak_collision_min_move(obj, other)
-                #func.cheak_collision_min_move(other, obj)
+            for j in range(i+1, last):
+                other = ground_obj[j]
+                func.cheak_collision_min_move(obj, other)
 
 
 def update_ground_crash_effect():
@@ -124,13 +128,18 @@ def update_air_bullet():
             del_air_bullet.insert(0, i)
 
 def update_fly_obj():
-    pass
     for i in range(len(fly_obj)):
         obj = fly_obj[i]
         obj.update()
         if not obj.exist:
             del_fly_obj.insert(0, i)
 
+def update_air_crash_effect():
+    for i in range(len(air_crash_effect)):
+        eft = air_crash_effect[i]
+        eft.update()
+        if not eft.exist:
+            del_air_crash_effect.insert(0, i)
 
 def clean_objects():  # 얘네는 별도의 레이어이며 리스트이기 때문에 지우는 순서는 상관 없음.
     for i in del_ground_bullet:  # 먼저 넣은걸 뒤로 미는 insert를 했기 때문에 정렬 필요없이, 뒷쪽 인덱스부터 접근 가능->
@@ -158,6 +167,8 @@ def clean_objects():  # 얘네는 별도의 레이어이며 리스트이기 때�
     for i in del_bomb_effect:
         del bomb_effect[i]
 
+    for i in del_air_crash_effect:
+        del air_crash_effect[i]
 
 # def add_object(o, depth = 0):
 #     objects[depth].append(o)

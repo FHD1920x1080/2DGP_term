@@ -91,8 +91,8 @@ def cheak_collision_min_move(unit1, unit2):  # unit1이 움직인놈
     if max < right:
         max = right
 
-    if unit1 == unit2:
-        return False
+    # if unit1 == unit2:
+    #     return False
 
     # top,bottom,right,left가 모두 음수이며 최대값인 놈으로 밀어냄,(가장 조금만 밀어도 되는 쪽으로 밀기 위함)
     if max == right:

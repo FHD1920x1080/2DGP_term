@@ -9,7 +9,7 @@ import play_state
 #회색인것들 다 상속받는 애들이 쓰니까 지우면 안됨.
 
 # 레이어
-MAP_FLOOR, FLOOR_EFFECT, GROUND_BULLET, GROUND_OBJ, BOMB_EFFECT, GROUND_CRASH_EFFECT, AIR_BULLET, FLY_OBJ, FLY_CRASH_EFFECT = range(
+MAP_FLOOR, FLOOR_EFFECT, GROUND_BULLET, GROUND_OBJ, BOMB_EFFECT, GROUND_CRASH_EFFECT, AIR_BULLET, FLY_OBJ, AIR_CRASH_EFFECT = range(
     9)
 
 
@@ -18,7 +18,7 @@ MAP_FLOOR, FLOOR_EFFECT, GROUND_BULLET, GROUND_OBJ, BOMB_EFFECT, GROUND_CRASH_EF
 
 
 class Obj:
-    layer = FLY_CRASH_EFFECT
+    layer = AIR_CRASH_EFFECT
 
     def __init__(self):
         self.print_x, self.print_y = 0, 0  # 그릴 좌표

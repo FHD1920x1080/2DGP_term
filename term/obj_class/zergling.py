@@ -22,6 +22,7 @@ class Zergling(GroundObj):
     collision = True  # 충돌체크 함.s
     hp = 6
     speed = 4
+    AD = 1
     speed_sup = speed / 3  # 저글링은 프레임마다 속도가 달라서 만들어준 변수 기본속도가 3이라고 가정하고 만듦
     zm = 0.01
     rd = 500
@@ -162,18 +163,18 @@ class Zergling(GroundObj):
         self.face_dir = self.get_face_dir(self.rad)
 
     def lock_on_move(self):
-        if self.move_frame % 4 == 0:
-            r = math.dist([self.stand_x, self.stand_y],
-                          [play_state.player.stand_x, play_state.player.stand_y])  # 두 점 사이의 거리
-            if r > 0:
-                if play_state.player.unit_type == 0:
-                    if r < 60:
-                        self.state = ATTACK
-                        return
-                else:
-                    if r < 80:
-                        self.state = ATTACK
-                        return
+        #if self.move_frame % 4 == 0:
+        r = math.dist([self.stand_x, self.stand_y],
+                      [play_state.player.stand_x, play_state.player.stand_y])  # 두 점 사이의 거리
+        if r > 0:
+            if play_state.player.unit_type == 0:
+                if r < 60:
+                    self.state = ATTACK
+                    return
+            else:
+                if r < 80:
+                    self.state = ATTACK
+                    return
         cur_speed = Zergling.get_speed(self)
         if self.rad == None:
             self.dir_adjust()
@@ -185,7 +186,7 @@ class Zergling(GroundObj):
         self.img_now = 74 + 256 * self.face_dir, 2910 - 256 * self.attack_frame
         if self.attack_frame == 1:
             play_state.sound.Zergling_hit = True
-            play_state.player.hp -=1
+            play_state.player.hp -= self.AD
         elif self.attack_frame > 3:  # 여기서는 0, 1, 2, 3 ,4 동안 머물고 5가 되면 나감
             self.state = WAIT
 
@@ -296,7 +297,7 @@ class DieZergling(Effect):
 
     @staticmethod
     def load_resource():
-        DieZergling.img = load_image("resource\\zergling\\die_zergling200.png")
+        DieZergling.img = load_image("resource\\zergling\\die_zergling200_80.png")
         DieZergling.sound = load_wav('resource\\zergling\\zzedth01.wav')
         Sound.list.append(DieZergling.sound)
         Sound.volume_list.append(8)
@@ -328,4 +329,4 @@ class DeathZergling(Effect):
         self.print_y += y
     @staticmethod
     def load_resource():
-        DeathZergling.img = load_image("resource\\zergling\\death_zergling200.png")
+        DeathZergling.img = load_image("resource\\zergling\\death_zergling200_80.png")
