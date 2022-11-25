@@ -153,49 +153,50 @@ class Mutal(FlyObj):
             self.move_frame = 0
             self.dir = None
 
-    def get_face_dir(self, rad):
+    @staticmethod
+    def get_face_dir(rad):
         if rad >= 0:  # 1, 2 사분면
-            if rad < 0.1963:  # 우측
-                return 4
-            elif rad < 0.589:
-                return 3
-            elif rad < 1.0517:
-                return 2
-            elif rad < 1.3844:
-                return 1
-            # elif rad < 1.5708:
-            #     return 0
-            elif rad < 1.8:
-                return 0
-            elif rad < 2.0898:
-                return 15
-            elif rad < 2.5525:
-                return 14
-            elif rad < 2.9452:
-                return 13
-            else:  # rad <= 3.1415:
-                return 12
+            if rad < 1.8:
+                if rad < 0.1963:  # 우측
+                    return 4
+                elif rad < 0.589:
+                    return 3
+                elif rad < 1.0517:
+                    return 2
+                elif rad < 1.3844:
+                    return 1
+                else: # rad < 1.8:
+                    return 0
+            else:
+                if rad < 2.0898:
+                    return 15
+                elif rad < 2.5525:
+                    return 14
+                elif rad < 2.9452:
+                    return 13
+                else:  # rad <= 3.1415:
+                    return 12
         else:  # 3,4분면
-            if rad > -0.0663:  # 우측
-                return 4
-            elif rad > -0.31:
-                return 5
-            elif rad > -0.7017:
-                return 6
-            elif rad > -1.2044:
-                return 7
-            # elif rad > -1.5708:
-            #     return 8
-            elif rad > -1.9371:
-                return 8
-            elif rad > -2.4398:
-                return 9
-            elif rad > -2.8315:
-                return 10
-            elif rad > -3.0752:
-                return 11
-            else:  # rad >= -3.1415:
-                return 12
+            if rad > -1.9371:
+                if rad > -0.0663:  # 우측
+                    return 4
+                elif rad > -0.31:
+                    return 5
+                elif rad > -0.7017:
+                    return 6
+                elif rad > -1.2044:
+                    return 7
+                else:# rad > -1.9371:
+                    return 8
+            else:
+                if rad > -2.4398:
+                    return 9
+                elif rad > -2.8315:
+                    return 10
+                elif rad > -3.0752:
+                    return 11
+                else:  # rad >= -3.1415:
+                    return 12
 
     def die(self):
         if self.hp <= 0:

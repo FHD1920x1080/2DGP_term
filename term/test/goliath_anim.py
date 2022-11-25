@@ -2,8 +2,8 @@ from pico2d import *
 import random
 
 open_canvas()
-head = load_image('resource\\goliath\\head200x2.png')
-leg = load_image('resource\\goliath\\leg200x2.png')
+head = load_image('../resource\\goliath\\head200x2.png')
+leg = load_image('../resource\\goliath\\leg200x2.png')
 running = True
 x = 800 // 2
 y = 600 // 2

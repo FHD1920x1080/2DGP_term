@@ -5,6 +5,7 @@ from obj_class.bullet import Bullet32
 
 IDLE, MOVE, DASH, SHOOT, WAIT = range(5)
 
+
 class Marine(GroundObj):
     unit_type = 0  # 마린인걸 인식하는데 씀, 골리앗은 1, 드라군은 2
 
@@ -14,7 +15,7 @@ class Marine(GroundObj):
     print_sy = 85
     stand_sx = 18
     stand_sy = 18
-    hit_sx = 24 # 히트박스 크기, 반쪽
+    hit_sx = 24  # 히트박스 크기, 반쪽
     hit_sy = 30
     print_x_gap = 0
     hit_x_gap = 0
@@ -33,7 +34,7 @@ class Marine(GroundObj):
     def __init__(self):
         self.stand_x = play_state.window_size[0] / 2  # 마린이 서있는 좌표
         self.stand_y = 100
-        self.face_dir = 0 #얼굴 방향
+        self.face_dir = 0  # 얼굴 방향
         self.hp = 200  # 체력
         self.max_hp = 200
         self.AD = 3  # 공격력
@@ -68,8 +69,8 @@ class Marine(GroundObj):
         self.dash_frame = 0
         self.dash_dir = 0  # 16방향
         self.dash_speed = 17
-        self.cur_dash_speed = 0 # self.dash_speed
-        self.dash_accel = -0.73 # 같이 -0.9 / self.r로 초기화 해줌
+        self.cur_dash_speed = 0  # self.dash_speed
+        self.dash_accel = -0.73  # 같이 -0.9 / self.r로 초기화 해줌
         self.portrait_state = 0
         self.portrait_frame = 0
 
@@ -93,7 +94,6 @@ class Marine(GroundObj):
                     self.portrait_frame = 0
                     self.rand_portrait()
 
-
     def rand_portrait(self):
         self.portrait_state = random.randint(0, 3)
         pass
@@ -109,20 +109,21 @@ class Marine(GroundObj):
             Marine.shoot_sound02.play()
         elif i == 3:
             Marine.shoot_sound03.play()
+
     # def x_move(self, x):
     #     self.stand_x += x
     #
     # def y_move(self, y):
     def update(self):
         self.check_magazine()
-        if self.dash_state == True:
+        if self.dash_state:
             self.dash()
         else:
             self.move()
             self.shoot()
         self.shoot_frame += 1
-        if self.magazine_gun == False:
-            if self.shoot_idle == True:
+        if not self.magazine_gun:
+            if self.shoot_idle:
                 self.shoot_idle_frame += 1
                 if self.shoot_idle_frame > self.nfs * self.interrupted_fire - 1:
                     self.shoot_frame = 0
@@ -132,7 +133,7 @@ class Marine(GroundObj):
             self.idle_frame += 1
         else:
             self.idle_frame = 0
-        if self.dash_state == True:
+        if self.dash_state:
             if play_state.frame % 2 == 0:
                 self.move_frame = (self.move_frame + 1) % 8
         else:
@@ -145,16 +146,16 @@ class Marine(GroundObj):
     def handle_events(self, event):
         if event.type == SDL_MOUSEBUTTONDOWN:
             if event.button == SDL_BUTTON_LEFT:
-                if self.magazine_gun == True:
+                if self.magazine_gun:
                     self.shoot_frame = 0
                     self.shoot_able = True
-                    if self.moving_attack == False:
+                    if not self.moving_attack:
                         self.move_able = False
                 else:
                     User_input.left_button = True
         elif event.type == SDL_MOUSEBUTTONUP:
             if event.button == SDL_BUTTON_LEFT:
-                if self.magazine_gun == True:
+                if self.magazine_gun:
                     self.shoot_frame = 0
                     self.shoot_able = False
                     self.idle = True
@@ -190,7 +191,7 @@ class Marine(GroundObj):
                 else:
                     self.moving_attack = True
             elif event.key == SDLK_t:
-                if self.magazine_gun == True:
+                if self.magazine_gun:
                     self.magazine_gun = False
                     self.nfs //= 2
                     User_input.left_button = False
@@ -229,7 +230,7 @@ class Marine(GroundObj):
         self.idle = False
         self.img_now = 30 + 160 * self.dash_dir, 1460 - (160 * self.move_frame)
         self.dash_frame += 1
-        if self.dash_frame > 25: # 0 ~ 24
+        if self.dash_frame > 25:  # 0 ~ 24
             self.dash_state = False
             self.dash_frame = 0
             self.shoot_frame = 0
@@ -259,7 +260,7 @@ class Marine(GroundObj):
             else:
                 self.Hmove_able = False
 
-            if self.Wmove_able == False and self.Hmove_able == False: # 가만히서 총만 쏘고 있는 상황
+            if self.Wmove_able == False and self.Hmove_able == False:  # 가만히서 총만 쏘고 있는 상황
                 self.dash_dir = self.face_dir
                 self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
                 if self.r != 0:
@@ -341,8 +342,8 @@ class Marine(GroundObj):
 
             right, left, up, down = False, False, False, False  # 실제 움직일 수 있는지를 담는 변수
             # 이 밑에선 실제로 움직일 수 있는지 검사
-            if self.Wmove_able == True:
-                if User_input.right_key == True:
+            if self.Wmove_able:
+                if User_input.right_key:
                     if self.get_stand_right() + speed > play_state.window_size[0]:
                         self.x_move(play_state.window_size[0] - self.get_stand_right())
                     else:
@@ -352,8 +353,8 @@ class Marine(GroundObj):
                         self.x_move(-self.get_stand_left())
                     else:
                         left = True
-            if self.Hmove_able == True:
-                if User_input.up_key == True:
+            if self.Hmove_able:
+                if User_input.up_key:
                     if self.get_stand_top() + speed > play_state.window_size[1]:
                         self.y_move(play_state.window_size[1] - self.get_stand_top())
                     else:
@@ -407,11 +408,11 @@ class Marine(GroundObj):
             self.img_now = self.img_now[0], 1460
 
     def check_magazine(self):
-        if self.magazine_gun == False:  # 점사모드일때
-            if User_input.left_button == True:
+        if not self.magazine_gun:  # 점사모드일때
+            if User_input.left_button:
                 if self.shoot_frame == 0:
                     self.shoot_able = True
-                    if self.moving_attack == False:
+                    if not self.moving_attack:
                         self.move_able = False
             else:
                 if self.shoot_frame // (self.nfs * self.interrupted_fire) % 2 != 0:
@@ -420,53 +421,58 @@ class Marine(GroundObj):
                     self.move_able = True
                     self.img_now = 30 + 160 * self.face_dir, 1780
 
-    def get_face_dir(self, rad):
+    @staticmethod
+    def get_face_dir(rad):
         if rad >= 0:  # 1, 2 사분면
-            if rad < 0.1963:  # 우측
-                return 8
-            elif rad < 0.589:
-                return 6
-            elif rad < 1.0517:
-                return 4
-            elif rad < 1.3844:
-                return 2
+            if rad < 1.8:
+                if rad < 0.1963:  # 우측
+                    return 8
+                elif rad < 0.589:
+                    return 6
+                elif rad < 1.0517:
+                    return 4
+                elif rad < 1.3844:
+                    return 2
             # elif rad < 1.5708:
             #     return 0
-            elif rad < 1.8:
-                return 0
-            elif rad < 2.0898:
-                return 30
-            elif rad < 2.5525:
-                return 28
-            elif rad < 2.9452:
-                return 26
-            else:  # rad <= 3.1415:
-                return 24
+                else: # rad < 1.8:
+                    return 0
+            else:
+                if rad < 2.0898:
+                    return 30
+                elif rad < 2.5525:
+                    return 28
+                elif rad < 2.9452:
+                    return 26
+                else:  # rad <= 3.1415:
+                    return 24
         else:  # 3,4분면
-            if rad > -0.0663:  # 우측
-                return 8
-            elif rad > -0.31:
-                return 10
-            elif rad > -0.7017:
-                return 12
-            elif rad > -1.2044:
-                return 14
-            elif rad > -1.5708:
-                return 16
-            elif rad > -1.9371:
-                return 17
-            elif rad > -2.4398:
-                return 18
-            elif rad > -2.8315:
-                return 20
-            elif rad > -3.0752:
-                return 22
-            else:  # rad >= -3.1415:
-                return 24
+            if rad > -1.5708:
+                if rad > -0.0663:  # 우측
+                    return 8
+                elif rad > -0.31:
+                    return 10
+                elif rad > -0.7017:
+                    return 12
+                elif rad > -1.2044:
+                    return 14
+                else: # rad > -1.5708:
+                    return 16
+            else:
+                if rad > -1.9371:
+                    return 17
+                elif rad > -2.4398:
+                    return 18
+                elif rad > -2.8315:
+                    return 20
+                elif rad > -3.0752:
+                    return 22
+                else:  # rad >= -3.1415:
+                    return 24
 
     def shoot(self):
-        if self.shoot_able == True:
-            if self.magazine_gun == False:
+        if self.shoot_able:
+            if not self.magazine_gun:
                 if (self.shoot_frame) // (self.nfs * self.interrupted_fire) % 2 != 0:  # 점사 구현
                     return
             if self.shoot_frame % self.nfs == 0:  # self.nfs은 마린이 몇프레임마다 쏠건지 1이 가장 빠름
@@ -487,7 +493,6 @@ class Marine(GroundObj):
                 self.img_now = 30 + (160 * self.face_dir), 1780  # 견착 이미지
         else:
             self.shoot_idle = True
-
 
     @staticmethod
     def load_resource():

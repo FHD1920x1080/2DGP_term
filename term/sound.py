@@ -40,7 +40,7 @@ class Sound:
                 play_state.Zergling.play_hit_sound()
                 self.Zergling_hit = False
             if self.Zealot_die:
-                play_state.Die_Zealot.play_sound()
+                play_state.DieZealot.play_sound()
                 self.Zealot_die = False
             if self.Zealot_hit:
                 play_state.Zealot.play_hit_sound()

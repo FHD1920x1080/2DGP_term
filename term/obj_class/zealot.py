@@ -178,51 +178,54 @@ class Zealot(GroundObj):
 
     def die(self):
         if self.hp <= 0:
-            Die_Zealot(self.stand_x, self.stand_y)
+            DieZealot(self.stand_x, self.stand_y)
 
-    def get_face_dir(self, rad):
+    @staticmethod
+    def get_face_dir(rad):
         if rad >= 0:  # 1, 2 사분면
-            if rad < 0.1963:  # 우측
-                return 8
-            elif rad < 0.589:
-                return 6
-            elif rad < 1.0517:
-                return 4
-            elif rad < 1.3844:
-                return 2
-            # elif rad < 1.5708:
-            #     return 0
-            elif rad < 1.8:
-                return 0
-            elif rad < 2.0898:
-                return 30
-            elif rad < 2.5525:
-                return 28
-            elif rad < 2.9452:
-                return 26
-            else:  # rad <= 3.1415:
-                return 24
+            if rad < 1.8:
+                if rad < 0.1963:  # 우측
+                    return 8
+                elif rad < 0.589:
+                    return 6
+                elif rad < 1.0517:
+                    return 4
+                elif rad < 1.3844:
+                    return 2
+                else:
+                    return 0
+            else:
+                if rad < 2.0898:
+                    return 30
+                elif rad < 2.5525:
+                    return 28
+                elif rad < 2.9452:
+                    return 26
+                else:  # rad <= 3.1415:
+                    return 24
         else:  # 3,4분면
-            if rad > -0.0663:  # 우측
-                return 8
-            elif rad > -0.31:
-                return 10
-            elif rad > -0.7017:
-                return 12
-            elif rad > -1.2044:
-                return 14
-            elif rad > -1.5708:
-                return 16
-            elif rad > -1.9371:
-                return 17
-            elif rad > -2.4398:
-                return 18
-            elif rad > -2.8315:
-                return 20
-            elif rad > -3.0752:
-                return 22
-            else:  # rad >= -3.1415:
-                return 24
+            if rad > -1.5708:
+                if rad > -0.0663:  # 우측
+                    return 8
+                elif rad > -0.31:
+                    return 10
+                elif rad > -0.7017:
+                    return 12
+                elif rad > -1.2044:
+                    return 14
+                else: # rad > -1.5708:
+                    return 16
+            else:
+                if rad > -1.9371:
+                    return 17
+                elif rad > -2.4398:
+                    return 18
+                elif rad > -2.8315:
+                    return 20
+                elif rad > -3.0752:
+                    return 22
+                else:  # rad >= -3.1415:
+                    return 24
 
     @staticmethod
     def make_zealot():
@@ -239,10 +242,10 @@ class Zealot(GroundObj):
         Sound.list.append(Zealot.hit_sound)
         Sound.volume_list.append(6)
 
-        Die_Zealot.load_resource()
+        DieZealot.load_resource()
 
 
-class Die_Zealot(Effect):
+class DieZealot(Effect):
     img = None
     sound = None
     print_sx = 100
@@ -266,12 +269,12 @@ class Die_Zealot(Effect):
 
     @staticmethod
     def play_sound():
-        Die_Zealot.sound.play()
+        DieZealot.sound.play()
 
     @staticmethod
     def load_resource():
-        Die_Zealot.img = load_image("resource\\zealot\\die_zealot200_75.png")
-        Die_Zealot.sound = load_wav('resource\\zealot\\pzedth00.wav')
-        Sound.list.append(Die_Zealot.sound)
+        DieZealot.img = load_image("resource\\zealot\\die_zealot200_75.png")
+        DieZealot.sound = load_wav('resource\\zealot\\pzedth00.wav')
+        Sound.list.append(DieZealot.sound)
         Sound.volume_list.append(8)
 

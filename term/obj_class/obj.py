@@ -6,14 +6,12 @@ import math
 import game_world
 import play_state
 
-#회색인것들 다 상속받는 애들이 쓰니까 지우면 안됨.
-
 # 레이어
 MAP_FLOOR, FLOOR_EFFECT, GROUND_BULLET, GROUND_OBJ, BOMB_EFFECT, GROUND_CRASH_EFFECT, AIR_BULLET, FLY_OBJ, AIR_CRASH_EFFECT = range(
     9)
 
 
-# GROUND_OBJ, BOMB_EFFECT, FLY_OBJ 는 정렬 후 출력, 커서는 하나밖에 없으니 그냥 마지막에 그리면 됨.
+# GROUND_OBJ 는 정렬 후 출력, 커서는 하나밖에 없으니 그냥 마지막에 그리면 됨.
 
 
 
@@ -35,7 +33,8 @@ class Obj:
         self.y += y
 
     def show(self):
-        self.img.clip_draw(self.img_now[0], self.img_now[1], self.sx, self.sy, self.print_x, self.print_y)
+        pass
+        #.img.clip_draw(self.img_now[0], self.img_now[1], self.sx, self.sy, self.print_x, self.print_y)
 
 class GroundObj:
     layer = GROUND_OBJ

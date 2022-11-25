@@ -19,7 +19,6 @@ class Map:
     def create_floor():
         Map(play_state.window_size[1])
         del game_world.map_floor[0]
-        print(len(game_world.map_floor))
 
 
     @staticmethod

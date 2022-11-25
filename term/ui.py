@@ -9,7 +9,7 @@ class UI:
     red = None
     deep_red = None
     hp_bar_frame = None
-    terran_portrait_frame = None
+    terran_portrait_frame = None # 재생하는 변수가 아니라, 이미지임
     protoss_portrait_frame = None
     warning = None
     font22 = None
@@ -41,15 +41,16 @@ class UI:
     def show_main_hp_bar(x, y, unit):
         UI.hp_bar_frame.draw_to_origin(x, y, 259, 38)
         hp = unit.hp/unit.max_hp
-        if hp > 0.85:
-            UI.green.draw_to_origin(x+4, y+4, UI.hp_bar_max * hp, 30)
-        elif hp > 0.7:
-            UI.lime.draw_to_origin(x + 4, y + 4, UI.hp_bar_max * hp, 30)
-        elif hp > 0.5:
-            UI.yellow.draw_to_origin(x + 4, y + 4, UI.hp_bar_max * hp, 30)
-        elif hp > 0.3:
-            UI.orenge.draw_to_origin(x + 4, y + 4, UI.hp_bar_max * hp, 30)
-            UI.warning.clip_draw_to_origin(UI.warning_img_now * 320, 0, 320, 180, 0, 0, 1920, 1080)
+        if hp > 0.3:
+            if hp > 0.85:
+                UI.green.draw_to_origin(x+4, y+4, UI.hp_bar_max * hp, 30)
+            elif hp > 0.7:
+                UI.lime.draw_to_origin(x + 4, y + 4, UI.hp_bar_max * hp, 30)
+            elif hp > 0.5:
+                UI.yellow.draw_to_origin(x + 4, y + 4, UI.hp_bar_max * hp, 30)
+            else:
+                UI.orenge.draw_to_origin(x + 4, y + 4, UI.hp_bar_max * hp, 30)
+                UI.warning.clip_draw_to_origin(UI.warning_img_now * 320, 0, 320, 180, 0, 0, 1920, 1080)
             UI.warning_anim_off()
         else:
             if hp > 0.15:

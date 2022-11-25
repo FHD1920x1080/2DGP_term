@@ -2,7 +2,6 @@ from obj_class.obj import *
 
 from obj_class.bullet import DragBull
 
-
 IDLE, MOVE, OPEN, READY, SHOOT, WAIT = range(6)
 
 
@@ -25,6 +24,7 @@ class Dragoon(GroundObj):
     collision = True  # 충돌체크 함.
     shoot_sound1 = None
     shoot_sound2 = None
+
     def __init__(self):
         self.stand_x = play_state.window_size[0] / 2
         self.stand_y = 100
@@ -51,7 +51,6 @@ class Dragoon(GroundObj):
         self.portrait_state = 0
         self.portrait_frame = 0
 
-
     def portrait_anim(self):
         if play_state.frame % 10 == 0:
             self.portrait_frame += 1
@@ -76,7 +75,6 @@ class Dragoon(GroundObj):
                     self.portrait_frame = 0
                     self.rand_portrait()
 
-
     def rand_portrait(self):
         self.portrait_state = random.randint(0, 4)
         pass
@@ -88,6 +86,7 @@ class Dragoon(GroundObj):
             Dragoon.shoot_sound1.play()
         else:
             Dragoon.shoot_sound2.play()
+
     def update(self):
         if self.state == MOVE:
             self.move()
@@ -105,6 +104,7 @@ class Dragoon(GroundObj):
         #     if len(game_world.explosive_bullet_list) > 0:
         #         if self.shoot_success == False:
         #             del game_world.explosive_bullet_list[0]
+
     def handle_events(self, event):
         if event.type == SDL_MOUSEBUTTONDOWN:
             if event.button == SDL_BUTTON_LEFT:
@@ -183,8 +183,8 @@ class Dragoon(GroundObj):
 
         right, left, up, down = False, False, False, False  # 실제 움직일 수 있는지를 담는 변수
         # 이 밑에선 실제로 움직일 수 있는지 검사
-        if self.Wmove_able == True:
-            if User_input.right_key == True:
+        if self.Wmove_able:
+            if User_input.right_key:
                 if self.get_stand_right() + speed > play_state.window_size[0]:
                     self.x_move(play_state.window_size[0] - self.get_stand_right())
                 else:
@@ -194,8 +194,8 @@ class Dragoon(GroundObj):
                     self.x_move(-self.get_stand_left())
                 else:
                     left = True
-        if self.Hmove_able == True:
-            if User_input.up_key == True:
+        if self.Hmove_able:
+            if User_input.up_key:
                 if self.get_stand_top() + speed > play_state.window_size[1]:
                     self.y_move(play_state.window_size[1] - self.get_stand_top())
                 else:
@@ -267,7 +267,7 @@ class Dragoon(GroundObj):
 
     def shoot(self):
         if self.shoot_frame % 6 == 0:
-            self.img_now = [960, 384 - (192 * (self.shoot_frame//6))]
+            self.img_now = [960, 384 - (192 * (self.shoot_frame // 6))]
         self.shoot_frame += 1
         if self.shoot_frame > 17:
             DragBull(self)
@@ -277,7 +277,6 @@ class Dragoon(GroundObj):
     def die(self):
         self.img_now = [192 * 6, (1536 - 192) - (192 * self.die_frame)]
         self.die_frame = (self.die_frame + 1) % 7
-
 
     @staticmethod
     def load_resource():

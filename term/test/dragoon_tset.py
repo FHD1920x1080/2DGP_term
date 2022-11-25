@@ -77,7 +77,7 @@ class Dragoon:
         self.img.clip_draw(self.img_now[0], self.img_now[1], self.sx, self.sy, self.x, self.y)
     @staticmethod
     def load_resource():
-        Dragoon.img = load_image('resource\\dragoon\\dragoon200.png')
+        Dragoon.img = load_image('../resource\\dragoon\\dragoon200.png')
 
 
 def handle_events():

@@ -4,35 +4,32 @@ from obj_class.bullet import *
 from obj_class.zergling import *
 from obj_class.zealot import *
 from obj_class.mutal import *
-from obj_class.cursor import Cursor
-from ui import UI
 from map import Map
+from cursor import Cursor
+from ui import UI
 from sound import Sound
+import camera # 얘는 객체가 아님
 
 import game_world
 import game_framework
-import camera
+
 
 # 1. 게임 초기화
 window_size = [1920, 1080]
-FPS = None # 초당 프레임 90~100 생각 하고 있음.
-frame = None # 현재 프레임 0 ~ (FPS-1) 사이값
+frame = None  # 현재 프레임
 sound = None
 cursor = None
 player = None
 sub_unit = None
-any_6frame = 0 # 6프레임마다 해줄 일들 FPS로 나누어 떨어지는 애들은 필요 없음
-any_3frame = 0 # 3프레임마다 해줄 일들
-die_ground_list = []
+
 
 def enter():
-    global FPS, frame, sound, cursor, every_6frame, every_3frame, player, sub_unit
+    global frame, sound, cursor, player, sub_unit
     load_resource()
     hide_cursor()
     cursor = Cursor()
     sound = Sound()
     Sound.volume_set_up()
-    FPS = 100
     frame = 0
     game_world.Marine = Marine()
     game_world.Dragoon = Dragoon()
@@ -40,7 +37,8 @@ def enter():
     sub_unit = game_world.Dragoon
     game_world.ground_obj.append(player)
     camera.enter()
-    #UnitState.red = load_image('red.png')
+    # UnitState.red = load_image('red.png')
+
 
 def handle_events():
     global player
@@ -76,8 +74,9 @@ def handle_events():
                 game_world.Dragoon.AD = 100
         player.handle_events(event)
 
+
 def update():
-    #print(len(game_world.ground_obj))
+    # print(len(game_world.ground_obj))
     Zergling.make_zergling()
     Zealot.make_zealot()
     Mutal.make_mutal()
@@ -89,7 +88,6 @@ def update():
     if frame % 20 == 0:
         player.hp += 1
         player.hp = clamp(0, player.hp, player.max_hp)
-        print(len(game_world.ground_obj))
     if frame % 10 == 0:
         sub_unit.hp += 1
         sub_unit.hp = clamp(0, sub_unit.hp, sub_unit.max_hp)
@@ -100,16 +98,16 @@ def draw_world():
     for obj in game_world.all_objects():
         obj.show()
 
-
     UI.show_sub_portrait(68, 222, sub_unit)
     UI.show_sub_hp_bar(126, 172, sub_unit)
     UI.show_main_portrait(80, 82, player)
     UI.show_main_hp_bar(150, 20, player)
     cursor.show()
 
+
 def draw():
     global frame
-    global any_6frame, any_3frame, sound, FPS
+    global sound
     clear_canvas()
     draw_world()
     update_canvas()
@@ -126,8 +124,6 @@ def draw():
 def animation(frame):
     if frame % 10 == 0:
         cursor.frame = (cursor.frame + 1) % 5  # 커서 프레임
-
-
 
 
 def load_resource():
