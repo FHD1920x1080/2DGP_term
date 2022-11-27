@@ -50,33 +50,26 @@ class Dragoon(GroundObj):
         self.bull_size = 2
         self.portrait_state = 0
         self.portrait_frame = 0
+        self.cur_portrait_max_frame = 18
+
+
 
     def portrait_anim(self):
         if play_state.frame % 10 == 0:
             self.portrait_frame += 1
-            if self.portrait_state == 0:
-                if self.portrait_frame > 18:
-                    self.portrait_frame = 0
-                    self.rand_portrait()
-            elif self.portrait_state == 1:
-                if self.portrait_frame > 10:
-                    self.portrait_frame = 0
-                    self.rand_portrait()
-            elif self.portrait_state == 2:
-                if self.portrait_frame > 14:
-                    self.portrait_frame = 0
-                    self.rand_portrait()
-            elif self.portrait_state == 3:
-                if self.portrait_frame > 9:
-                    self.portrait_frame = 0
-                    self.rand_portrait()
-            elif self.portrait_state == 4:
-                if self.portrait_frame > 19:
-                    self.portrait_frame = 0
-                    self.rand_portrait()
+            if self.portrait_frame > self.cur_portrait_max_frame:
+                self.portrait_frame = 0
+                self.rand_portrait()
+
+    portrait_max_frame = {0: 18,
+                          1: 10,
+                          2: 14,
+                          3: 9,
+                          4: 19}
 
     def rand_portrait(self):
         self.portrait_state = random.randint(0, 4)
+        self.cur_portrait_max_frame = self.portrait_max_frame[self.portrait_state]
         pass
 
     @staticmethod

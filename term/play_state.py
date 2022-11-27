@@ -25,9 +25,6 @@ sub_unit = None
 
 def enter():
     global frame, sound, cursor, player, sub_unit
-    load_resource()
-    hide_cursor()
-    cursor = Cursor()
     sound = Sound()
     Sound.volume_set_up()
     frame = 0
@@ -126,15 +123,6 @@ def animation(frame):
         cursor.frame = (cursor.frame + 1) % 5  # 커서 프레임
 
 
-def load_resource():
-    Marine.load_resource()
-    Dragoon.load_resource()
-    Bullet32.load_resource()
-    Zergling.load_resource()
-    Zealot.load_resource()
-    Mutal.load_resource()
-    UI.load_resource()
-    Map.load_resource()
 
 
 def exit():

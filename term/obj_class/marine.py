@@ -59,10 +59,6 @@ class Marine(GroundObj):
         self.interrupted_fire = 5  # 몇점사, 쏘는 시간만큼 쉼
         self.magazine_gun = False  # 연사모드
         self.rad = None
-        self.x1, self.y1 = self.stand_x, self.stand_y  # 대쉬할때 필요함
-        self.x2, self.y2 = 0, 0
-        self.t = 0
-        self.r = None
         self.dash_state = False
         self.dash_cool_time = 100  #
         self.cur_dash_cool_time = 0
@@ -73,30 +69,25 @@ class Marine(GroundObj):
         self.dash_accel = -0.73  # 같이 -0.9 / self.r로 초기화 해줌
         self.portrait_state = 0
         self.portrait_frame = 0
+        self.cur_portrait_max_frame = 18
+
 
     def portrait_anim(self):
         if play_state.frame % 10 == 0:
             self.portrait_frame += 1
-            if self.portrait_state == 0:
-                if self.portrait_frame > 18:
-                    self.portrait_frame = 0
-                    self.rand_portrait()
-            elif self.portrait_state == 1:
-                if self.portrait_frame > 9:
-                    self.portrait_frame = 0
-                    self.rand_portrait()
-            elif self.portrait_state == 2:
-                if self.portrait_frame > 15:
-                    self.portrait_frame = 0
-                    self.rand_portrait()
-            elif self.portrait_state == 3:
-                if self.portrait_frame > 29:
-                    self.portrait_frame = 0
-                    self.rand_portrait()
+            if self.portrait_frame > self.cur_portrait_max_frame:
+                self.portrait_frame = 0
+                self.rand_portrait()
+
+    portrait_max_frame = {0: 18,
+                          1: 9,
+                          2: 15,
+                          3: 29}
 
     def rand_portrait(self):
         self.portrait_state = random.randint(0, 3)
-        pass
+        self.cur_portrait_max_frame = self.portrait_max_frame[self.portrait_state]
+
 
     @staticmethod
     def play_shoot_sound():
@@ -244,10 +235,7 @@ class Marine(GroundObj):
         if self.idle:  # 가만히 있을 때 대쉬
             self.rad = get_rad(self.stand_x, self.stand_y, play_state.cursor.x, play_state.cursor.y)
             self.dash_dir = self.get_face_dir(self.rad)
-            self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
-            if self.r != 0:
-                self.dash_set()
-                return
+            self.dash_set()
         else:  # 움직이는 중, 또는 총 쏘는중
             if (User_input.left_key == True and User_input.right_key == False) or (
                     User_input.left_key == False and User_input.right_key == True):
@@ -262,9 +250,7 @@ class Marine(GroundObj):
 
             if self.Wmove_able == False and self.Hmove_able == False:  # 가만히서 총만 쏘고 있는 상황
                 self.dash_dir = self.face_dir
-                self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
-                if self.r != 0:
-                    self.dash_set()
+                self.dash_set()
                 return
             right, left, up, down = False, False, False, False  # 실질적인 입력값
             if self.Wmove_able:

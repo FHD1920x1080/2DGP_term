@@ -12,6 +12,7 @@ class UI:
     terran_portrait_frame = None # 재생하는 변수가 아니라, 이미지임
     protoss_portrait_frame = None
     warning = None
+    font64 = None
     font22 = None
     font16 = None
     hp_bar_max = 250
@@ -113,6 +114,21 @@ class UI:
         UI.terran_portrait_frame = load_image('resource\\ui\\terran_portrait_frame.png')
         UI.protoss_portrait_frame = load_image('resource\\ui\\protoss_portrait_frame.png')
 
-        #UI.font24 = load_font('resource\\ui\\DOSGothic.ttf', 24)
+        UI.font64 = load_font('resource\\ui\\DOSIyagiBoldface.ttf', 64)
         UI.font22 = load_font('resource\\ui\\DOSIyagiBoldface.ttf', 22)
         UI.font16 = load_font('resource\\ui\\DOSIyagiBoldface.ttf', 16)
+
+class Cursor:
+    img = None
+    cross_hair_img = None
+
+    def __init__(self):
+        if Cursor.img == None:
+            Cursor.img = load_image('resource\\ui\\arrowx200.png')
+        self.img_now = [2, 2]  # 스프라이트 좌표
+        self.x = round(play_state.window_size[0] / 2)
+        self.y = round(play_state.window_size[1] / 2)
+        self.frame = 0
+
+    def show(self):
+        self.img.clip_draw(self.img_now[0] + self.frame * 44, self.img_now[1], 40, 42, self.x + 20, self.y - 21)

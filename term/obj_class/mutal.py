@@ -24,6 +24,7 @@ class Mutal(FlyObj):
     crash = True # 총알은 맞음
     hp = 9
     max_speed = 5
+    accel = 0.05
     zm = 0.002
 
     hit_sound = None
@@ -36,7 +37,7 @@ class Mutal(FlyObj):
         self.hp = Mutal.hp
         self.max_speed = Mutal.max_speed
         self.cur_speed = 0
-        self.accel = 0.05
+        self.accel = Mutal.accel
         self.move_frame = 0
         self.attack_frame = 0
         self.time = 0  # direction_rand_time
