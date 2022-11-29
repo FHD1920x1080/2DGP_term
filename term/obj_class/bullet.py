@@ -101,7 +101,7 @@ class DragBullEffect(Effect):
         self.print_y = bullet.y
         self.img_now = [0, 0]
         self.cur_frame = 0
-        self.cur_size = bullet.cur_size
+        self.cur_size = bullet.cur_size * 1.2
         self.AD = bullet.AD
         self.start_frame = play_state.frame % self.any_frame_rate
         play_state.sound.Dragoon_bull_bomb = True
@@ -217,13 +217,12 @@ class Bullet32:
         self.img.draw(self.x, self.y)
 
     def get_start_point(self, player):
-        if player.unit_type == 0:  # 마린일 때 1 은 골리앗
-            if player.face_dir < 10:
-                return player.stand_x + 8, player.stand_y + 18
-            elif player.face_dir > 26:
-                return player.stand_x - 8, player.stand_y + 18
-            else:
-                return player.stand_x, player.stand_y + 14
+        if player.face_dir < 10:
+            return player.stand_x + 8, player.stand_y + 18
+        elif player.face_dir > 26:
+            return player.stand_x - 8, player.stand_y + 18
+        else:
+            return player.stand_x, player.stand_y + 14
 
     def get_bullet_num(self, rad):  # 그냥 쓸까 deg로 고쳐서 할까 정수연산으로 하는게 이득일라나
         # a5625 = 0.09817477
@@ -347,6 +346,35 @@ class Bullet32:
         Bullet32.hit_sound = load_wav('resource\\bullet\\hit_sound\\06.wav')
         Sound.list.append(Bullet32.hit_sound)
         Sound.volume_list.append(6)
+
+
+class Bullet32Gol(Bullet32):
+    def __init__(self, player):
+        self.x1, self.y1 = player.shoot_point  # x1, y1  # 시작 좌표
+        self.x, self.y = self.x1, self.y1  # 현재 좌표
+        self.speed = player.bullet_speed
+        self.AD = player.AD
+        rad = player.rad + player.error_rate()
+        self.cos = math.cos(rad)
+        self.sin = math.sin(rad)
+        self.num = self.get_bullet_num(rad)
+        self.img = Bullet32.img[self.num]
+        self.exist = True
+        game_world.ground_bullet.append(self)
+
+    @staticmethod
+    def play_hit_sound():
+        Bullet32.hit_sound.play()
+
+    def x_move(self, x):
+        self.x += x
+
+    def y_move(self, y):
+        self.y += y
+
+    def move(self):
+        self.x_move(self.cos * self.speed)
+        self.y_move(self.sin * self.speed)
 
 
 class Bullet32_Effect(Effect):

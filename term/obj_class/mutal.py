@@ -47,6 +47,8 @@ class Mutal(FlyObj):
         self.face_dir = 0
         self.state = LOCK_ON
         self.rad = None
+        self.cos = None
+        self.sin = None
 
     @staticmethod
     def play_hit_sound():
@@ -113,6 +115,8 @@ class Mutal(FlyObj):
 
     def dir_adjust(self):
         self.rad = get_rad(self.print_x, self.print_y - 40, play_state.player.stand_x, play_state.player.stand_y)
+        self.cos = math.cos(self.rad)
+        self.sin = math.sin(self.rad)
         self.face_dir = self.get_face_dir(self.rad)
 
     def lock_on_move(self):
@@ -126,16 +130,16 @@ class Mutal(FlyObj):
                     return
         if self.rad == None:
             self.dir_adjust()
-        self.x_move(math.cos(self.rad) * self.cur_speed)
-        self.y_move(math.sin(self.rad) * self.cur_speed)
+        self.x_move(self.cos * self.cur_speed)
+        self.y_move(self.sin * self.cur_speed)
         self.img_now = 60 + 256 * self.face_dir, 1100 - 256 * self.move_frame
 
     def inertia_move(self):
         self.cur_speed = max(self.cur_speed - self.accel * 2, 0)
         if self.rad == None:
             self.dir_adjust()
-        self.x_move(math.cos(self.rad) * self.cur_speed)
-        self.y_move(math.sin(self.rad) * self.cur_speed)
+        self.x_move(self.cos * self.cur_speed)
+        self.y_move(self.sin * self.cur_speed)
         self.img_now = 60 + 256 * self.face_dir, 1100 - 256 * self.move_frame
     def attack(self):
         self.img_now = 60 + 256 * self.face_dir, 1100 - 256 * self.move_frame

@@ -126,18 +126,42 @@ def change_character(key):
     sx, sy = play_state.player.stand_x, play_state.player.stand_y
     game_world.ground_obj.remove(play_state.player)
     if key == 1:
-        play_state.sub_unit = game_world.Dragoon
-        play_state.player = game_world.Marine
+        if play_state.sub_unit1 == game_world.Marine:
+            play_state.sub_unit1, play_state.player = play_state.player, play_state.sub_unit1
+        else:
+            play_state.sub_unit2, play_state.player = play_state.player, play_state.sub_unit2
         play_state.player.shoot_frame = 0  # 연사력과, 점사구현을 위한 프레임
         play_state.player.move_frame = 0  # 마린의 걸어다니는 애니메이션을 위한 프레임
         play_state.player.idle_frame = 0  # 아무것도 안한 시간만큼의 프레임
         play_state.player.shoot_able = False
         play_state.player.move_able = True
         play_state.player.dash_state = False
-    elif key == 3:
-        play_state.sub_unit = game_world.Marine
-        play_state.player = game_world.Dragoon
+        if User_input.left_button:
+            if play_state.player.magazine_gun:
+                play_state.player.shoot_frame = 0
+                play_state.player.shoot_able = True
+                if not play_state.player.moving_attack:
+                    play_state.player.move_able = False
+    elif key == 2:
+        if play_state.sub_unit1 == game_world.Goliath:
+            play_state.sub_unit1, play_state.player = play_state.player, play_state.sub_unit1
+        else:
+            play_state.sub_unit2, play_state.player = play_state.player, play_state.sub_unit2
         play_state.player.state = 1
+        play_state.player.shoot_state = False
+        if User_input.left_button:
+            play_state.player.shoot_state = True
+    elif key == 3:
+        if play_state.sub_unit1 == game_world.Dragoon:
+            play_state.sub_unit1, play_state.player = play_state.player, play_state.sub_unit1
+        else:
+            play_state.sub_unit2, play_state.player = play_state.player, play_state.sub_unit2
+        play_state.player.state = 1
+        if User_input.left_button:
+            if play_state.player.state < 3:
+                play_state.player.bull_x2, play_state.player.bull_y2 = play_state.cursor.x, play_state.cursor.y
+                play_state.player.open_frame = 0
+                play_state.player.state = 3
     play_state.player.x_move_point(sx)
     play_state.player.y_move_point(sy)
     game_world.ground_obj.append(play_state.player)

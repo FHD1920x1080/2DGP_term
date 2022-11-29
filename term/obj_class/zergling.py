@@ -43,6 +43,8 @@ class Zergling(GroundObj):
         self.face_dir = 0
         self.state = AUTO
         self.rad = None
+        self.cos = None
+        self.sin = None
         self.frame_speed = [1 * self.speed_sup, 3 * self.speed_sup, 6 * self.speed_sup, 4 * self.speed_sup, 4 * self.speed_sup, 2 * self.speed_sup, 1 * self.speed_sup]
 
     @staticmethod
@@ -148,6 +150,8 @@ class Zergling(GroundObj):
 
     def dir_adjust(self):
         self.rad = get_rad(self.stand_x, self.stand_y, play_state.player.stand_x, play_state.player.stand_y)
+        self.cos = math.cos(self.rad)
+        self.sin = math.sin(self.rad)
         self.face_dir = self.get_face_dir(self.rad)
 
     def lock_on_move(self):
@@ -159,6 +163,10 @@ class Zergling(GroundObj):
                 if r < 60:
                     self.state = ATTACK
                     return
+            elif play_state.player.unit_type == 1:
+                if r < 70:
+                    self.state = ATTACK
+                    return
             else:
                 if r < 80:
                     self.state = ATTACK
@@ -166,8 +174,8 @@ class Zergling(GroundObj):
         cur_speed = Zergling.get_speed(self)
         if self.rad == None:
             self.dir_adjust()
-        self.x_move(math.cos(self.rad) * cur_speed)
-        self.y_move(math.sin(self.rad) * cur_speed)
+        self.x_move(self.cos * cur_speed)
+        self.y_move(self.sin * cur_speed)
         self.img_now = 74 + 256 * self.face_dir, 1630 - 256 * self.move_frame
 
     def attack(self):

@@ -1,4 +1,5 @@
 from obj_class.marine import Marine
+from obj_class.goliath import Goliath
 from obj_class.dragoon import Dragoon
 from obj_class.bullet import *
 from obj_class.zergling import *
@@ -20,18 +21,20 @@ frame = None  # 현재 프레임
 sound = None
 cursor = None
 player = None
-sub_unit = None
-
+sub_unit1 = None
+sub_unit2 = None
 
 def enter():
-    global frame, sound, cursor, player, sub_unit
+    global frame, sound, cursor, player, sub_unit1, sub_unit2
     sound = Sound()
     Sound.volume_set_up()
     frame = 0
     game_world.Marine = Marine()
+    game_world.Goliath = Goliath()
     game_world.Dragoon = Dragoon()
     player = game_world.Marine
-    sub_unit = game_world.Dragoon
+    sub_unit1 = game_world.Goliath
+    sub_unit2 = game_world.Dragoon
     game_world.ground_obj.append(player)
     camera.enter()
     # UnitState.red = load_image('red.png')
@@ -47,17 +50,20 @@ def handle_events():
         if event.type == SDL_KEYDOWN:
             if event.key == SDLK_ESCAPE:
                 game_framework.quit()
-            if event.key == SDLK_1:
+            elif event.key == SDLK_1:
                 if player.unit_type != 0:
                     change_character(1)
-            if event.key == SDLK_3:
+            elif event.key == SDLK_2:
+                if player.unit_type != 1:
+                    change_character(2)
+            elif event.key == SDLK_3:
                 if player.unit_type != 2:
                     change_character(3)
-            if event.key == SDLK_o:
+            elif event.key == SDLK_o:
                 Zergling.zm = 0.01
                 Zealot.zm = 0.004
                 Mutal.zm = 0.002
-            if event.key == SDLK_p:
+            elif event.key == SDLK_p:
                 Zergling.zm = 0.2
                 Zealot.zm = 0.08
                 Mutal.zm = 0.04
@@ -82,12 +88,14 @@ def update():
     game_world.clean_objects()
 
     global frame
-    if frame % 20 == 0:
+    if frame % 40 == 0:
         player.hp += 1
         player.hp = clamp(0, player.hp, player.max_hp)
-    if frame % 10 == 0:
-        sub_unit.hp += 1
-        sub_unit.hp = clamp(0, sub_unit.hp, sub_unit.max_hp)
+    if frame % 20 == 0:
+        sub_unit1.hp += 1
+        sub_unit1.hp = clamp(0, sub_unit1.hp, sub_unit1.max_hp)
+        sub_unit2.hp += 1
+        sub_unit2.hp = clamp(0, sub_unit2.hp, sub_unit2.max_hp)
     camera.moving()
 
 
@@ -95,8 +103,10 @@ def draw_world():
     for obj in game_world.all_objects():
         obj.show()
 
-    UI.show_sub_portrait(68, 222, sub_unit)
-    UI.show_sub_hp_bar(126, 172, sub_unit)
+    UI.show_sub_portrait(68, 352, sub_unit1)
+    UI.show_sub_hp_bar(126, 302, sub_unit1)
+    UI.show_sub_portrait(68, 222, sub_unit2)
+    UI.show_sub_hp_bar(126, 172, sub_unit2)
     UI.show_main_portrait(80, 82, player)
     UI.show_main_hp_bar(150, 20, player)
     cursor.show()

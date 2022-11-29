@@ -4,7 +4,7 @@ from obj_class.obj import *
 from obj_class.bullet import Bullet32
 
 IDLE, MOVE, DASH, SHOOT, WAIT = range(5)
-
+#아담과 같은 캐릭터지만 전혀 객체 지향적이지 않은 막코드, 특히 상태 관련
 
 class Marine(GroundObj):
     unit_type = 0  # 마린인걸 인식하는데 씀, 골리앗은 1, 드라군은 2
@@ -51,7 +51,7 @@ class Marine(GroundObj):
         self.move_frame = 0  # 마린의 걸어다니는 애니메이션을 위한 프레임
         self.idle_frame = 0  # 아무것도 안한 시간만큼의 프레임
         self.shoot_idle_frame = 0  # 총을 안쏜 시간만큼의 프레임
-        self.bullet_speed = 20  # 탄속
+        self.bullet_speed = 30  # 탄속
         self.moving_attack = False  # 1이면 움직이면서 공격 가능 g키
         self.nfs = 8  # 몇프레임당 공격이 나갈건지
         self.n_shot = 1  # 산탄량
@@ -59,8 +59,10 @@ class Marine(GroundObj):
         self.interrupted_fire = 5  # 몇점사, 쏘는 시간만큼 쉼
         self.magazine_gun = False  # 연사모드
         self.rad = None
+        self.cos = None
+        self.sin = None
         self.dash_state = False
-        self.dash_cool_time = 100  #
+        self.dash_cool_time = 50  #
         self.cur_dash_cool_time = 0
         self.dash_frame = 0
         self.dash_dir = 0  # 16방향
@@ -112,7 +114,7 @@ class Marine(GroundObj):
         else:
             self.move()
             self.shoot()
-        self.shoot_frame += 1
+            self.shoot_frame += 1
         if not self.magazine_gun:
             if self.shoot_idle:
                 self.shoot_idle_frame += 1
@@ -204,8 +206,8 @@ class Marine(GroundObj):
                 User_input.down_key = False
 
     def dash_move(self):
-        self.x_move(math.cos(self.rad) * self.cur_dash_speed)
-        self.y_move(math.sin(self.rad) * self.cur_dash_speed)
+        self.x_move(self.cos * self.cur_dash_speed)
+        self.y_move(self.sin * self.cur_dash_speed)
         self.cur_dash_speed += self.dash_accel
 
     def dash(self):
@@ -225,6 +227,9 @@ class Marine(GroundObj):
             self.dash_state = False
             self.dash_frame = 0
             self.shoot_frame = 0
+            if not self.magazine_gun:
+                self.shoot_able = False
+                self.move_able = True
         pass
 
     def try_dash(self):
@@ -297,10 +302,11 @@ class Marine(GroundObj):
                 self.dash_dir = 16
                 self.rad = -1.5708
                 self.dash_set()
-                self.dash_set()
                 return
 
     def dash_set(self):
+        self.cos = math.cos(self.rad)
+        self.sin = math.sin(self.rad)
         self.dash_state = True
         self.cur_dash_cool_time = self.dash_cool_time
         self.cur_dash_speed = self.dash_speed
@@ -472,9 +478,9 @@ class Marine(GroundObj):
                                                                   self.accuracy), play_state.cursor.y + random.randint(
                         -self.accuracy, self.accuracy)
                     Bullet32(self, x2, y2)  # x1==x2 and y1==y2 일 때 False 반환
-                    self.shoot_idle = False
-                    self.idle = False
-                    self.img_now = 30 + (160 * self.face_dir), 1620  # 격발 이미지
+                self.shoot_idle = False
+                self.idle = False
+                self.img_now = 30 + (160 * self.face_dir), 1620  # 격발 이미지
             elif self.shoot_frame % self.nfs == self.nfs // 2:
                 self.img_now = 30 + (160 * self.face_dir), 1780  # 견착 이미지
         else:

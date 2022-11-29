@@ -41,6 +41,8 @@ class Zealot(GroundObj):
         self.face_dir = 0
         self.state = AUTO
         self.rad = None
+        self.cos = None
+        self.sin = None
 
     @staticmethod
     def play_hit_sound():
@@ -138,6 +140,8 @@ class Zealot(GroundObj):
 
     def dir_adjust(self):
         self.rad = get_rad(self.stand_x, self.stand_y, play_state.player.stand_x, play_state.player.stand_y)
+        self.cos = math.cos(self.rad)
+        self.sin = math.sin(self.rad)
         self.face_dir = self.get_face_dir(self.rad)
         # 여기서 사인 코사인 써서 이동하면 거리를 더 안재도 되겠네? 바보였잖아 나
 
@@ -150,14 +154,18 @@ class Zealot(GroundObj):
                     if r < 60:
                         self.state = ATTACK
                         return
+                elif play_state.player.unit_type == 1:
+                    if r < 70:
+                        self.state = ATTACK
+                        return
                 else:
                     if r < 80:
                         self.state = ATTACK
                         return
         if self.rad == None:
             self.dir_adjust()
-        self.x_move(math.cos(self.rad) * self.speed)
-        self.y_move(math.sin(self.rad) * self.speed)
+        self.x_move(self.cos * self.speed)
+        self.y_move(self.sin * self.speed)
         self.img_now = 73 + 256 * self.face_dir, 1881 - 256 * self.move_frame
 
     def attack(self):

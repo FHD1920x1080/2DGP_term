@@ -1,6 +1,7 @@
 import func
 
 Marine = None
+Goliath = None
 Dragoon = None
 import play_state
 

@@ -33,7 +33,6 @@ class Dragoon(GroundObj):
         self.AD = 6
         self.img = Dragoon.img
         self.state = IDLE
-        self.attack_ready_framet_frame = None
         self.img_now = [0, 1344]
         self.bullet_speed = 25
         self.idle_frame = 0
@@ -51,8 +50,6 @@ class Dragoon(GroundObj):
         self.portrait_state = 0
         self.portrait_frame = 0
         self.cur_portrait_max_frame = 18
-
-
 
     def portrait_anim(self):
         if play_state.frame % 10 == 0:
@@ -83,6 +80,8 @@ class Dragoon(GroundObj):
     def update(self):
         if self.state == MOVE:
             self.move()
+            if play_state.frame % 4 == 0:
+                self.move_frame = (self.move_frame + 1) % 8
         elif self.state == IDLE:
             self.idle()
         elif self.state == OPEN:
@@ -151,8 +150,6 @@ class Dragoon(GroundObj):
                     self.state = MOVE
 
     def move(self):
-        if play_state.frame % 4 == 0:
-            self.move_frame = (self.move_frame + 1) % 8
         if (User_input.left_key == True and User_input.right_key == False) or (
                 User_input.left_key == False and User_input.right_key == True):
             self.Wmove_able = True

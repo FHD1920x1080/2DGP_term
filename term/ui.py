@@ -10,6 +10,7 @@ class UI:
     deep_red = None
     hp_bar_frame = None
     terran_portrait_frame = None # 재생하는 변수가 아니라, 이미지임
+    terran_portrait_frame_g = None  # 재생하는 변수가 아니라, 이미지임
     protoss_portrait_frame = None
     warning = None
     font64 = None
@@ -25,7 +26,9 @@ class UI:
         unit.portrait.clip_draw(unit.portrait_frame * 60, unit.portrait_state * 56, 60, 56, x, y, 126, 117)
         if unit.unit_type == 0:
             UI.terran_portrait_frame.draw(x, y, 130, 128)
-        elif unit.unit_type == 2:
+        elif unit.unit_type == 1:
+            UI.terran_portrait_frame_g.draw(x, y, 130, 128)
+        else:
             UI.protoss_portrait_frame.draw(x, y, 130, 128)
         unit.portrait_anim()
 
@@ -34,7 +37,9 @@ class UI:
         unit.portrait.clip_draw(unit.portrait_frame * 60, unit.portrait_state * 56, 60, 56, x, y, 126 * UI.sub, 117 * UI.sub +1)
         if unit.unit_type == 0:
             UI.terran_portrait_frame.draw(x, y, 130 * UI.sub, 128 * UI.sub)
-        elif unit.unit_type == 2:
+        elif unit.unit_type == 1:
+            UI.terran_portrait_frame_g.draw(x, y, 130 * UI.sub, 128 * UI.sub)
+        else:
             UI.protoss_portrait_frame.draw(x, y, 130 * UI.sub, 128 * UI.sub)
         unit.portrait_anim()
 
@@ -112,6 +117,7 @@ class UI:
         UI.warning = load_image('resource\\ui\\warning.png')
 
         UI.terran_portrait_frame = load_image('resource\\ui\\terran_portrait_frame.png')
+        UI.terran_portrait_frame_g = load_image('resource\\ui\\terran_portrait_frame_green.png')
         UI.protoss_portrait_frame = load_image('resource\\ui\\protoss_portrait_frame.png')
 
         UI.font64 = load_font('resource\\ui\\DOSIyagiBoldface.ttf', 64)

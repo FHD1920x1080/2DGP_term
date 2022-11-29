@@ -1,4 +1,5 @@
 import obj_class.marine
+import obj_class.goliath
 import obj_class.dragoon
 import obj_class.bullet
 import obj_class.zergling
@@ -10,6 +11,7 @@ import map
 
 def load_resource():
     obj_class.marine.Marine.load_resource()
+    obj_class.goliath.Goliath.load_resource()
     obj_class.dragoon.Dragoon.load_resource()
     obj_class.bullet.Bullet32.load_resource()
     obj_class.zergling.Zergling.load_resource()
