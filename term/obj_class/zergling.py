@@ -58,18 +58,12 @@ class Zergling(GroundObj):
         return self.frame_speed[self.move_frame]
 
     def move_down(self):
-        if self.get_hit_top() < 0:
-            self.exist = False  # 화면 밖으로 나갔으니 없애버려라
-            return False
         cur_speed = Zergling.get_speed(self)
         self.y_move(- cur_speed)
         self.face_dir = 8
         self.img_now = 74 + 256 * self.face_dir, 1630 - 256 * self.move_frame
 
     def move_left_down(self):
-        if self.get_hit_top() < 0:
-            self.exist = False  # 화면 밖으로 나갔으니 없애버려라
-            return False
         cur_speed = Zergling.get_speed(self) * 0.707
         self.y_move(-cur_speed)
         self.x_move(-cur_speed)
@@ -82,9 +76,6 @@ class Zergling(GroundObj):
                 self.direction = 3
 
     def move_right_down(self):
-        if self.get_hit_top() < 0:
-            self.exist = False  # 화면 밖으로 나갔으니 없애버려라
-            return False
         cur_speed = Zergling.get_speed(self) * 0.707
         self.y_move(-cur_speed)
         self.x_move(cur_speed)
@@ -144,7 +135,9 @@ class Zergling(GroundObj):
             self.attack()
         elif self.state == WAIT:
             self.wait()
-
+        if self.stand_y < -100:
+            self.exist = False  # 화면 밖으로 나갔으니 없애버려라
+            return False
         self.anim()
         self.time += 1
 

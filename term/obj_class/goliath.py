@@ -1,6 +1,6 @@
 from obj_class.obj import *
 
-from obj_class.bullet import Bullet32Gol
+from obj_class.bullet import Bullet32Gol, Missile
 
 IDLE, MOVE = range(2)
 
@@ -36,25 +36,30 @@ class Goliath(GroundObj):
         self.rad = None  # 머리 각도
         self.max_hp = 250
         self.AD = 2
+        self.AD2 = 5
         self.head_img = Goliath.head_img
         self.leg_img = Goliath.leg_img
         self.head_img_now = [14, 1519]
         self.leg_img_now = [32, 1367]
-        self.state = IDLE
         self.bullet_speed = 20
+        self.missile_speed = 5
         self.idle_frame = 0
         self.move_frame = 0
         self.shoot_frame = 0
+        self.shoot_missile_frame = 0
         self.die_frame = 0
         self.speed = 3
         self.state = IDLE
         self.shoot_state = False
+        self.shoot_missile_state = False
         self.accuracy = 0.125
         self.accuracy2 = self.accuracy * 2.0
         self.Wmove_able = False
         self.Hmove_able = False
         self.nfs = 12  # 몇프레임당 공격이 나갈건지
         self.n_shot = 3 # 산탄량
+        self.nfs_m = 30  # 몇프레임당 공격이 나갈건지
+        self.n_shot_m = 1  # 산탄량
         self.portrait_state = 0
         self.portrait_frame = 0
         self.cur_portrait_max_frame = 9
@@ -107,6 +112,8 @@ class Goliath(GroundObj):
             self.shoot()
         else:
             self.head_img_now[1] = 1519 - 152 * self.move_frame
+        if self.shoot_missile_state:
+            self.shoot_missile()
 
     def handle_events(self, event):
         if event.type == SDL_MOUSEBUTTONDOWN:
@@ -114,6 +121,10 @@ class Goliath(GroundObj):
                 User_input.left_button = True
                 self.shoot_state = True
                 self.shoot_frame = 0
+            if event.button == SDL_BUTTON_RIGHT:
+                User_input.right_button = True
+                self.shoot_missile_state = True
+                self.shoot_missile_frame = 0
         elif event.type == SDL_MOUSEBUTTONUP:
             if event.button == SDL_BUTTON_LEFT:
                 User_input.left_button = False
@@ -123,6 +134,10 @@ class Goliath(GroundObj):
                     self.head_img_now = [14 + 152 * self.face_dir, 1519 - 152 * self.move_frame]
                 else:
                     self.head_img_now = [14 + 152 * self.face_dir, 1519 - 152 * 3]
+            if event.button == SDL_BUTTON_RIGHT:
+                User_input.right_button = False
+                self.shoot_missile_state = False
+                self.shoot_missile_frame = 0
         if event.type == SDL_KEYDOWN:
             if event.key == SDLK_a:
                 User_input.left_key = True
@@ -304,6 +319,12 @@ class Goliath(GroundObj):
                 self.head_img_now = [14 + 152 * self.face_dir, 1519 - 152 * 3]
         self.shoot_frame += 1
 
+    def shoot_missile(self):
+        if self.shoot_missile_frame % self.nfs_m == 0:  # 몇프레임마다 쏠건지 1이 가장 빠름
+            for i in range(self.n_shot_m):
+                Missile(self)  # x1==x2 and y1==y2 일 때 False 반환
+        self.shoot_missile_frame += 1
+
     @staticmethod
     def get_face_dir(rad):
         if rad >= 0:  # 1, 2 사분면
@@ -354,8 +375,7 @@ class Goliath(GroundObj):
                     return 24
 
     def die(self):
-        self.img_now = [192 * 6, (1536 - 192) - (192 * self.die_frame)]
-        self.die_frame = (self.die_frame + 1) % 7
+        pass
 
     @staticmethod
     def load_resource():

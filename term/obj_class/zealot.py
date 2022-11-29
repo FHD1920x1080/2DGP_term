@@ -52,16 +52,10 @@ class Zealot(GroundObj):
         self.img_now = self.img_now[0], 1881
 
     def move_down(self):
-        if self.get_hit_top() < 0:
-            self.exist = False  # 화면 밖으로 나갔으니 없애버려라
-            return False
         self.y_move(- self.speed)
         self.img_now = 4169, 1881 - 256 * self.move_frame
 
     def move_left_down(self):
-        if self.get_hit_top() < 0:
-            self.exist = False  # 화면 밖으로 나갔으니 없애버려라
-            return False
         cur_speed = self.speed * 0.707
         self.y_move(-cur_speed)
         self.x_move(-cur_speed)
@@ -73,9 +67,6 @@ class Zealot(GroundObj):
                 self.direction = 3
 
     def move_right_down(self):
-        if self.get_hit_top() < 0:
-            self.exist = False  # 화면 밖으로 나갔으니 없애버려라
-            return False
         cur_speed = self.speed * 0.707
         self.y_move(-cur_speed)
         self.x_move(cur_speed)
@@ -134,7 +125,9 @@ class Zealot(GroundObj):
             self.attack()
         elif self.state == WAIT:
             self.wait()
-
+        if self.stand_y < -100:
+            self.exist = False  # 화면 밖으로 나갔으니 없애버려라
+            return False
         self.anim()
         self.time += 1
 

@@ -68,13 +68,17 @@ def handle_events():
                 Zealot.zm = 0.08
                 Mutal.zm = 0.04
                 game_world.Marine.magazine_gun = True
-                game_world.Marine.nfs = 1
+                game_world.Marine.AD = 10
                 game_world.Marine.n_shot = 1
                 game_world.Marine.moving_attack = True
                 game_world.Marine.speed = 4
                 game_world.Dragoon.speed = 6
                 game_world.Dragoon.bull_size = 14
                 game_world.Dragoon.AD = 100
+                game_world.Goliath.AD = 3
+                game_world.Goliath.nfs = 6
+                game_world.Goliath.n_shot = 8
+                game_world.Goliath.speed = 5
         player.handle_events(event)
 
 

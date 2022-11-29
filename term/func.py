@@ -9,6 +9,7 @@ class User_input:
     up_key = False
     down_key = False
     left_button = False
+    right_button = False
 
 
 def dummy_func():
