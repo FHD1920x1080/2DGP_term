@@ -16,7 +16,8 @@ import game_framework
 
 
 # 1. 게임 초기화
-window_size = [1920, 1080]
+#window_size = [1920, 1080]
+window_size = [1600, 900]
 frame = None  # 현재 프레임
 sound = None
 cursor = None

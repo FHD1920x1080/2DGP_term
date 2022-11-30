@@ -232,9 +232,10 @@ class Zergling(GroundObj):
                 else:  # rad >= -3.1415:
                     return 12
 
-    def die(self):
+    def die(self, i=0):
         if self.hp <= 0:
-            DieZergling(self.stand_x, self.stand_y)
+            dz = DieZergling(self.stand_x, self.stand_y)
+            game_world.ground_obj.insert(i + 1, dz)
         # print(len(Zergling.list))
         pass
 
@@ -275,11 +276,10 @@ class DieZergling(Effect):
         self.img_now = [2, 0]  # 스프라이트 좌표
         self.cur_frame = 0  # 100이 되면 저글링 시체 사라짐
         self.start_frame = play_state.frame % self.any_frame_rate
-        game_world.ground_obj.append(self)
         play_state.sound.Zergling_die = True
 
-    def die(self):
-        DeathZergling(self.print_x - 2, self.print_y - 7 )
+    def die(self, i=0):
+        DeathZergling(self.print_x - 2, self.print_y - 7)
 
     @staticmethod
     def play_sound():

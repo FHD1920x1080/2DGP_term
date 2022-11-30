@@ -152,7 +152,7 @@ def clean_objects():  # 얘네는 별도의 레이어이며 리스트이기 때�
         del air_bullet[i]
 
     for i in del_ground_obj:
-        ground_obj[i].die()
+        ground_obj[i].die(i)
         del ground_obj[i]
 
     for i in del_fly_obj:

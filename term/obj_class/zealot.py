@@ -26,6 +26,7 @@ class Zealot(GroundObj):
     zm = 0.004
     rd = 700
     hit_sound = None
+
     def __init__(self, x, y):
         self.img_now = [4169, 1881]  ##256, 256 씩 옮겨야 함 73,3328-167 맨위에 첫 이미지
         self.stand_x = x
@@ -177,9 +178,10 @@ class Zealot(GroundObj):
             self.move_frame = 0
             self.rad = None
 
-    def die(self):
+    def die(self, i=0):
         if self.hp <= 0:
-            DieZealot(self.stand_x, self.stand_y)
+            dz = DieZealot(self.stand_x, self.stand_y)
+            game_world.ground_obj.insert(i + 1, dz)
 
     @staticmethod
     def get_face_dir(rad):
@@ -214,7 +216,7 @@ class Zealot(GroundObj):
                     return 12
                 elif rad > -1.2044:
                     return 14
-                else: # rad > -1.5708:
+                else:  # rad > -1.5708:
                     return 16
             else:
                 if rad > -1.9371:
@@ -233,7 +235,7 @@ class Zealot(GroundObj):
         if random.random() <= Zealot.zm:
             zealot = Zealot(random.randrange(Zealot.stand_sx, play_state.window_size[0] - Zealot.stand_sx),
                             play_state.window_size[1] + Zealot.stand_sy)
-            #game_world.ground_obj.append(zealot)
+            # game_world.ground_obj.append(zealot)
             game_world.ground_obj.insert(0, zealot)
 
     @staticmethod
@@ -257,20 +259,23 @@ class DieZealot(Effect):
     next_gap = 256
     max_frame = 7  # 몇개의 이미지로 되어있는 이펙트인가
     any_frame_rate = 6
-    def __init__(self, x, y): #질럿이 죽은 위치
-        self.exist = True # 존재함
+
+    def __init__(self, x, y):  # 질럿이 죽은 위치
+        self.exist = True  # 존재함
         self.stand_x = x
         self.stand_y = y
         self.print_x, self.print_y = self.stand_x + self.print_x_gap, self.stand_y + self.print_y_gap
         self.img_now = [85, 80]  # 스프라이트 좌표
         self.cur_frame = 0  # 100이 되면 저글링 시체 사라짐
         self.start_frame = play_state.frame % self.any_frame_rate
-        game_world.ground_obj.append(self)
         play_state.sound.Zealot_die = True
 
     @staticmethod
     def play_sound():
         DieZealot.sound.play()
+
+    def die(self, i=0):
+        pass
 
     @staticmethod
     def load_resource():
@@ -278,4 +283,3 @@ class DieZealot(Effect):
         DieZealot.sound = load_wav('resource\\zealot\\pzedth00.wav')
         Sound.list.append(DieZealot.sound)
         Sound.volume_list.append(8)
-

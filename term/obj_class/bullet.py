@@ -431,18 +431,20 @@ class Missile:
     img = None
 
     def __init__(self, player):
+        self.lock_on_rad = None
         self.x, self.y = player.head_x(), player.head_y()
         self.x2 = play_state.cursor.x
         self.y2 = play_state.cursor.y
         self.lock_on_obj = None
-        self.r = None
         self.speed = player.missile_speed
         self.AD = player.AD2
-        bullet_num = (Bullet32.get_bullet_num(player.rad) + 16) % 32
-        self.img_now_x = 12 + 64 * bullet_num
-        self.rad = player.rad + 3.14159
-        self.cos = math.cos(self.rad)
-        self.sin = math.sin(self.rad)
+        self.dir = (Bullet32.get_bullet_num(player.rad) + 16) % 32
+        self.img_now_x = 12 + 64 * self.dir
+        self.cur_rad = player.rad + math.pi
+        if self.cur_rad > math.pi:
+            self.cur_rad -= 2 * math.pi
+        self.cos = math.cos(self.cur_rad)
+        self.sin = math.sin(self.cur_rad)
         self.first_lock_on()
         self.exist = True
         game_world.objects[AIR_BULLET].append(self)
@@ -453,35 +455,47 @@ class Missile:
     def first_lock_on(self):
         length = len(game_world.fly_obj)
         if length == 0:
-            self.rad = get_rad(self.x, self.y, self.x2, self.y2)
-            self.cos = math.cos(self.rad)
-            self.sin = math.sin(self.rad)
-            self.img_now_x = 12 + 64 * Bullet32.get_bullet_num(self.rad)
-            return
-        self.lock_on_obj = game_world.fly_obj[0]
-        min_r = math.dist([self.x2, self.y2],
-                          [self.lock_on_obj.print_x, self.lock_on_obj.print_y])  # 두 점 사이의 거리
-        for i in range(1, length):
-            r = math.dist([self.x2, self.y2],
-                          [game_world.fly_obj[i].print_x, game_world.fly_obj[i].print_y])  # 두 점 사이의 거리
-            if r < min_r:
-                min_r = r
-                self.lock_on_obj = game_world.fly_obj[i]
+            self.lock_on_rad = get_rad(self.x, self.y, self.x2, self.y2)
+        else:
+            self.lock_on_obj = game_world.fly_obj[0]
+            min_r = math.dist([self.x2, self.y2],
+                              [self.lock_on_obj.print_x, self.lock_on_obj.print_y])  # 두 점 사이의 거리
+            for i in range(1, length):
+                r = math.dist([self.x2, self.y2],
+                              [game_world.fly_obj[i].print_x, game_world.fly_obj[i].print_y])  # 두 점 사이의 거리
+                if r < min_r:
+                    min_r = r
+                    self.lock_on_obj = game_world.fly_obj[i]
 
-    def lock_on(self):
+    def try_lock_on(self):
         length = len(game_world.fly_obj)
         if length == 0:
-            return
-        self.lock_on_obj = game_world.fly_obj[0]
-        min_r = math.dist([self.x, self.y],
-                          [self.lock_on_obj.print_x, self.lock_on_obj.print_y])  # 두 점 사이의 거리
+            return False
+        else:
+            self.lock_on_obj = game_world.fly_obj[0]
+            min_r = math.dist([self.x, self.y],
+                              [self.lock_on_obj.print_x, self.lock_on_obj.print_y])  # 두 점 사이의 거리
 
-        for i in range(1, length):
-            r = math.dist([self.x, self.y],
-                          [game_world.fly_obj[i].print_x, game_world.fly_obj[i].print_y])  # 두 점 사이의 거리
-            if r < min_r:
-                min_r = r
-                self.lock_on_obj = game_world.fly_obj[i]
+            for i in range(1, length):
+                r = math.dist([self.x, self.y],
+                              [game_world.fly_obj[i].print_x, game_world.fly_obj[i].print_y])  # 두 점 사이의 거리
+                if r < min_r:
+                    min_r = r
+                    self.lock_on_obj = game_world.fly_obj[i]
+            self.lock_on_update()
+
+    def lock_on_update(self):
+        self.x2 = self.lock_on_obj.print_x
+        self.y2 = self.lock_on_obj.print_y
+        self.lock_on_rad = get_rad(self.x, self.y, self.x2, self.y2)
+        pass
+
+    def rotate(self):
+        self.cur_rad = self.lock_on_rad
+        self.cos = math.cos(self.cur_rad)
+        self.sin = math.sin(self.cur_rad)
+        self.img_now_x = 12 + 64 * Bullet32.get_bullet_num(self.cur_rad)
+        pass
 
     def x_move(self, x):
         self.x += x
@@ -493,26 +507,23 @@ class Missile:
         self.x_move(self.cos * self.speed)
         self.y_move(self.sin * self.speed)
 
-    def rotate(self):
-        pass
-
     def update(self):
-        if self.lock_on_obj is None:
-            self.lock_on()
-        else:
-            self.x2 = self.lock_on_obj.print_x
-            self.y2 = self.lock_on_obj.print_y
-            self.rad = get_rad(self.x, self.y, self.x2, self.y2)
-            self.cos = math.cos(self.rad)
-            self.sin = math.sin(self.rad)
-            self.img_now_x = 12 + 64 * Bullet32.get_bullet_num(self.rad)
-            self.crash_check()
         self.move()
         self.out_check()
+        if self.lock_on_obj is None:
+            self.try_lock_on()
+            self.rotate()
+        else:  # lock_on == True
+            print(self.lock_on_obj)
+            self.lock_on_update()
+            self.rotate()
+            self.crash_check()
 
     def out_check(self):
-        if self.y > play_state.window_size[1] + 60 or self.y < - 60 or self.x > play_state.window_size[0] + 60 or self.x < - 60:
+        if self.y > play_state.window_size[1] + 60 or self.y < - 60 or self.x > play_state.window_size[
+            0] + 60 or self.x < - 60:
             self.exist = False
+
     def crash_check(self):
         if self.y > self.y2 + 3:
             return

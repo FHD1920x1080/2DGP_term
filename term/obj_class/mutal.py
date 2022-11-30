@@ -203,9 +203,10 @@ class Mutal(FlyObj):
                 else:  # rad >= -3.1415:
                     return 12
 
-    def die(self):
+    def die(self, i=0):
         if self.hp <= 0:
-            DieMutal(self.print_x, self.print_y)
+            dm = DieMutal(self.print_x, self.print_y)
+            game_world.fly_obj.insert(i + 1, dm)
 
     @staticmethod
     def make_mutal():
@@ -250,10 +251,9 @@ class DieMutal(Effect):
         self.img_now = [3, 20]  # 스프라이트 좌표
         self.cur_frame = 0  # 100이 되면 저글링 시체 사라짐
         self.start_frame = play_state.frame % self.any_frame_rate
-        game_world.fly_obj.append(self)
         play_state.sound.Mutal_die = True
 
-    def die(self):
+    def die(self, i=0):
         pass
 
     @staticmethod
