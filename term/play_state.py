@@ -16,8 +16,8 @@ import game_framework
 
 
 # 1. 게임 초기화
-#window_size = [1920, 1080]
-window_size = [1600, 900]
+window_size = [1920, 1080]
+#window_size = [1600, 900]
 frame = None  # 현재 프레임
 sound = None
 cursor = None
@@ -67,7 +67,7 @@ def handle_events():
             elif event.key == SDLK_p:
                 Zergling.zm = 0.2
                 Zealot.zm = 0.08
-                Mutal.zm = 0.04
+                Mutal.zm = 0.12
                 game_world.Marine.magazine_gun = True
                 game_world.Marine.AD = 10
                 game_world.Marine.n_shot = 1
@@ -76,17 +76,17 @@ def handle_events():
                 game_world.Dragoon.speed = 6
                 game_world.Dragoon.bull_size = 14
                 game_world.Dragoon.AD = 100
-                game_world.Goliath.AD = 3
+                game_world.Goliath.AD = 6
                 game_world.Goliath.nfs = 6
-                game_world.Goliath.n_shot = 8
+                game_world.Goliath.n_shot = 4
                 game_world.Goliath.speed = 5
         player.handle_events(event)
 
 
 def update():
     # print(len(game_world.ground_obj))
-    Zergling.make_zergling()
-    Zealot.make_zealot()
+    # Zergling.make_zergling()
+    # Zealot.make_zealot()
     Mutal.make_mutal()
     game_world.set_clean_list()
     game_world.update_game_world()

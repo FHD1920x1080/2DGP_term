@@ -4,7 +4,7 @@ from obj_class.obj import *
 from obj_class.bullet import Bullet32
 
 IDLE, MOVE, DASH, SHOOT, WAIT = range(5)
-#아담과 같은 캐릭터지만 전혀 객체 지향적이지 않은 막코드, 특히 상태 관련
+#첫째 아들이지만 전혀 객체 지향적이지 않은 막코드, 특히 상태 관련
 
 class Marine(GroundObj):
     unit_type = 0  # 마린인걸 인식하는데 씀, 골리앗은 1, 드라군은 2

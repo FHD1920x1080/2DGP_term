@@ -20,8 +20,7 @@ class Mutal(FlyObj):
     hit_y_gap = -12
 
     exist = True  # 존재 변수 삭제 할지 판정
-    collision = True  # 충돌 안함
-    crash = True # 총알은 맞음
+    collision = True  # 충돌 함
     hp = 9
     max_speed = 5
     accel = 0.05
@@ -44,6 +43,7 @@ class Mutal(FlyObj):
         self.direction = random.randrange(0, 4)  # 0==멈춤,1==아래,2==왼쪽 3==오른쪽
         self.direction_rand_time = random.randrange(50, 200)
         self.exist = True  # 충돌 gn False로 바꿔줄 존재 변수
+        self.collision = True
         self.face_dir = 0
         self.state = LOCK_ON
         self.rad = None

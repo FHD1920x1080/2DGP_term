@@ -1,6 +1,10 @@
+import math
+
 import game_world
 import play_state
 from obj_class.obj import *
+
+pi2 = math.pi * 2
 
 
 class Bullet32:
@@ -156,7 +160,7 @@ class Bullet32:
         else:
             for obj in game_world.ground_obj:
                 if obj != play_state.player:  # 주인공은 지 몸땡이에서 총알 쏴서 충돌체크 하면 안됨.
-                    if bullet_crash(self, obj) == True:
+                    if bullet_crash(self, obj):
                         play_state.sound.Bullet32_hit = True
                         Bullet32_Effect(self.x, self.y)
                         self.exist = False
@@ -167,7 +171,7 @@ class Bullet32:
                             obj.collision = False  # 충돌체크 안함
                         break  # 이제 사라진 불릿이기 때문에 다른 저글링이랑 체크 할 필요 없음
             for obj in game_world.fly_obj:
-                if bullet_crash(self, obj) == True:
+                if bullet_crash(self, obj):
                     play_state.sound.Bullet32_hit = True
                     Bullet32_Effect(self.x, self.y)
                     self.exist = False
@@ -216,9 +220,31 @@ class Bullet32Gol(Bullet32):
     def y_move(self, y):
         self.y += y
 
+    def update(self):
+        self.move()
+        self.crash_check()
+
     def move(self):
         self.x_move(self.cos * self.speed)
         self.y_move(self.sin * self.speed)
+
+    def crash_check(self):
+        if self.y > play_state.window_size[1] + 60 or self.y < - 60 or self.x > play_state.window_size[
+            0] + 60 or self.x < - 60:  # 지금은 화면 밖인데 나중에 벽으로 바꿀 예정, 화면 밖 멀리에 벽을 둘 예정, 또 벽에 충돌하면 먼지 이펙트같은것도 추가 예정
+            self.exist = False
+        else:
+            for obj in game_world.ground_obj:
+                if obj != play_state.player:  # 주인공은 지 몸땡이에서 총알 쏴서 충돌체크 하면 안됨.
+                    if bullet_crash(self, obj):
+                        play_state.sound.Bullet32_hit = True
+                        Bullet32_Effect(self.x, self.y)
+                        self.exist = False
+                        obj.state = 1
+                        obj.hp -= self.AD
+                        if obj.hp <= 0:
+                            obj.exist = False  # 마지막에 한번에 삭제해줄 것이고 지금은 아님
+                            obj.collision = False  # 충돌체크 안함
+                        break  # 이제 사라진 불릿이기 때문에 다른 저글링이랑 체크 할 필요 없음
 
 
 class Bullet32_Effect(Effect):
@@ -429,60 +455,111 @@ class DragBullEffect(Effect):
 
 class Missile:
     img = None
+    rand1 = 1.0
+    rand2 = rand1 * 2.0
+    back_rand = math.pi - rand1
+
+    max_speed = 27
+    max_speed_3 = max_speed // 3
 
     def __init__(self, player):
         self.lock_on_rad = None
         self.x, self.y = player.head_x(), player.head_y()
         self.x2 = play_state.cursor.x
         self.y2 = play_state.cursor.y
+        self.line = False
         self.lock_on_obj = None
-        self.speed = player.missile_speed
+        self.cur_speed = random.randint(6, 9)
+        self.accel = 0.3
+        self.time = 0
+        self.dr = random.random() * 0.005 + 0.005
         self.AD = player.AD2
-        self.dir = (Bullet32.get_bullet_num(player.rad) + 16) % 32
-        self.img_now_x = 12 + 64 * self.dir
-        self.cur_rad = player.rad + math.pi
+        self.cur_rad = player.rad + Missile.error_rate()
         if self.cur_rad > math.pi:
-            self.cur_rad -= 2 * math.pi
+            self.cur_rad -= pi2
         self.cos = math.cos(self.cur_rad)
         self.sin = math.sin(self.cur_rad)
+        self.dir = Bullet32.get_bullet_num(self.cur_rad)
+        self.img_now_x = 12 + 64 * self.dir
         self.first_lock_on()
         self.exist = True
         game_world.objects[AIR_BULLET].append(self)
 
     def show(self):
         self.img.clip_draw(self.img_now_x, 0, 40, 40, self.x, self.y)
+        if self.lock_on_obj is not None:
+            draw_rectangle(*self.lock_on_obj.get_hit_box())
+
+    @staticmethod
+    def error_rate():
+        return random.random() * Missile.rand2 + Missile.back_rand
 
     def first_lock_on(self):
         length = len(game_world.fly_obj)
         if length == 0:
             self.lock_on_rad = get_rad(self.x, self.y, self.x2, self.y2)
+            return False
         else:
-            self.lock_on_obj = game_world.fly_obj[0]
-            min_r = math.dist([self.x2, self.y2],
-                              [self.lock_on_obj.print_x, self.lock_on_obj.print_y])  # 두 점 사이의 거리
-            for i in range(1, length):
-                r = math.dist([self.x2, self.y2],
-                              [game_world.fly_obj[i].print_x, game_world.fly_obj[i].print_y])  # 두 점 사이의 거리
-                if r < min_r:
-                    min_r = r
+            min_r = None
+            start = 0
+            for i in range(0, length):
+                if game_world.fly_obj[i].collision:
                     self.lock_on_obj = game_world.fly_obj[i]
+                    min_r = math.dist([self.x2, self.y2],
+                                      [self.lock_on_obj.print_x, self.lock_on_obj.print_y])  # 두 점 사이의 거리
+                    break
+                else:
+                    start += 1
+            for i in range(start + 1, length):
+                if game_world.fly_obj[i].collision:
+                    r = math.dist([self.x2, self.y2],
+                                  [game_world.fly_obj[i].print_x, game_world.fly_obj[i].print_y])  # 두 점 사이의 거리
+                    if r < min_r:
+                        min_r = r
+                        self.lock_on_obj = game_world.fly_obj[i]
+            if min_r is not None:
+                self.lock_on_update()
+                return True
+            else:
+                self.lock_on_rad = get_rad(self.x, self.y, self.x2, self.y2)
+                return False
 
     def try_lock_on(self):
         length = len(game_world.fly_obj)
         if length == 0:
+            if not self.line:
+                self.lock_on_rad = get_rad(self.x, self.y, self.x2, self.y2)
             return False
         else:
-            self.lock_on_obj = game_world.fly_obj[0]
-            min_r = math.dist([self.x, self.y],
-                              [self.lock_on_obj.print_x, self.lock_on_obj.print_y])  # 두 점 사이의 거리
-
-            for i in range(1, length):
-                r = math.dist([self.x, self.y],
-                              [game_world.fly_obj[i].print_x, game_world.fly_obj[i].print_y])  # 두 점 사이의 거리
-                if r < min_r:
-                    min_r = r
-                    self.lock_on_obj = game_world.fly_obj[i]
-            self.lock_on_update()
+            min_r = None
+            start = 0
+            for i in range(0, length):
+                if game_world.fly_obj[i].collision:
+                    r = math.dist([self.x, self.y],
+                                  [game_world.fly_obj[i].print_x, game_world.fly_obj[i].print_y])  # 두 점 사이의 거리
+                    if r < 300:
+                        min_r = r
+                        self.lock_on_obj = game_world.fly_obj[i]
+                        break
+                    else:
+                        start += 1
+                else:
+                    start += 1
+            for i in range(start + 1, length):
+                if game_world.fly_obj[i].collision:
+                    r = math.dist([self.x, self.y],
+                                  [game_world.fly_obj[i].print_x, game_world.fly_obj[i].print_y])  # 두 점 사이의 거리
+                    if r < min_r:
+                        min_r = r
+                        self.lock_on_obj = game_world.fly_obj[i]
+            if min_r is not None:
+                self.lock_on_update()
+                self.line = True
+                return True
+            else:
+                if not self.line:
+                    self.lock_on_rad = get_rad(self.x, self.y, self.x2, self.y2)
+                return False
 
     def lock_on_update(self):
         self.x2 = self.lock_on_obj.print_x
@@ -491,49 +568,99 @@ class Missile:
         pass
 
     def rotate(self):
-        self.cur_rad = self.lock_on_rad
-        self.cos = math.cos(self.cur_rad)
-        self.sin = math.sin(self.cur_rad)
-        self.img_now_x = 12 + 64 * Bullet32.get_bullet_num(self.cur_rad)
-        pass
+        # self.cur_rad = self.lock_on_rad#천천히 돌기 위해 수정해야하는 부분
+        if self.time % 2 == 0:
+            dr = None
+            if self.cur_rad >= 0:
+                if self.lock_on_rad >= 0:
+                    dr = self.lock_on_rad - self.cur_rad
+                else:  #
+                    dr = self.lock_on_rad - self.cur_rad
+                    if dr < -math.pi:
+                        dr += pi2
+                    pass
+            else:
+                if self.lock_on_rad < 0:
+                    dr = self.lock_on_rad - self.cur_rad
+                else:
+                    dr = self.lock_on_rad - self.cur_rad
+                    if dr > math.pi:
+                        dr -= pi2
+                    pass
+            if -0.0001 < dr < 0.0001:
+                self.line = True
+                print("44")
+            else:
+                if self.time < 100:
+                    a = self.dr * self.time
+                    dr = clamp(-a, dr, a)
+                else:
+                    dr = clamp(-1, dr, 1)
+                    # self.lock_on_rad = get_rad(self.x, self.y, self.x2, self.y2)
+                print("44")
+                self.cur_rad += dr
+                if self.cur_rad > math.pi:  # dr > 0
+                    self.cur_rad -= pi2
+                elif self.cur_rad <= -math.pi:  # dr < 0
+                    self.cur_rad += pi2
+                self.cos = math.cos(self.cur_rad)
+                self.sin = math.sin(self.cur_rad)
+                self.img_now_x = 12 + 64 * Bullet32.get_bullet_num(self.cur_rad)
+                pass
 
     def x_move(self, x):
         self.x += x
+        self.x2 += x
 
     def y_move(self, y):
         self.y += y
+        self.y2 += y
+
+    def xx_move(self, x):
+        self.x += x
+
+    def yy_move(self, y):
+        self.y += y
 
     def move(self):
-        self.x_move(self.cos * self.speed)
-        self.y_move(self.sin * self.speed)
+        self.xx_move(self.cos * self.cur_speed)
+        self.yy_move(self.sin * self.cur_speed)
+        if self.time < 20:
+            self.cur_speed = max(self.cur_speed - self.accel, 0)
+        else:
+            self.cur_speed = min(self.cur_speed + self.accel, self.max_speed)
+        # self.cur_speed += self.accel
+        # if self.cur_speed > self.max_speed:
+        #     self.cur_speed = self.max_speed
 
     def update(self):
         self.move()
-        self.out_check()
-        if self.lock_on_obj is None:
+        if self.y > play_state.window_size[1] + 60 or self.y < - 60 or self.x > play_state.window_size[  # 아웃체크
+            0] + 60 or self.x < - 60:
+            self.exist = False
+            return
+        if self.time > 300:
+            self.exist = False
+            return
+        if self.lock_on_obj == None:
             self.try_lock_on()
             self.rotate()
         else:  # lock_on == True
-            print(self.lock_on_obj)
+            if not self.lock_on_obj.collision:
+                self.lock_on_obj = None
+                self.lock_on_rad = get_rad(self.x, self.y, self.x2, self.y2)
+                self.cur_speed = self.cur_speed // 2
+                return
             self.lock_on_update()
             self.rotate()
-            self.crash_check()
-
-    def out_check(self):
-        if self.y > play_state.window_size[1] + 60 or self.y < - 60 or self.x > play_state.window_size[
-            0] + 60 or self.x < - 60:
-            self.exist = False
-
-    def crash_check(self):
-        if self.y > self.y2 + 3:
-            return
-        if self.y2 - 3 > self.y:
-            return
-        if self.x > self.x2 + 3:
-            return
-        if self.x2 - 3 > self.x:
-            return
-        self.exist = False
+            if bullet_crash(self, self.lock_on_obj):
+                self.exist = False
+                self.lock_on_obj.state = 1
+                self.lock_on_obj.hp -= self.AD
+                if self.lock_on_obj.hp < 0:
+                    self.lock_on_obj.collision = False
+                    self.lock_on_obj.exist = False
+        self.time += 1
 
     def die(self):
         pass

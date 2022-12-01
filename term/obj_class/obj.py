@@ -204,10 +204,11 @@ class FlyObj:#
 
     exist = True  # 존재 변수 삭제 할지 판정
     collision = True  # 충돌체크 함.
+
     def __init__(self):
         # self.print_x, self.print_y = 0, 0  # 그릴 좌표
         self.img_now = [0, 0]
-        self.print_x, self.print_y = 0, 0  # 서있는 좌표의 중앙 그리는건 중앙점과 서있는점의 차이를 더해줌.
+        self.print_x, self.print_y = 0, 0  # 서있는 좌표의 중앙 그리는건 중앙점과 서있는점의 차이를 더해줌.s
 
     def show(self):
         self.shadow.clip_draw(self.img_now[0], self.img_now[1], self.print_sx, self.print_sy, self.stand_x(),
@@ -215,7 +216,6 @@ class FlyObj:#
         self.img.clip_draw(self.img_now[0], self.img_now[1], self.print_sx, self.print_sy, self.print_x,
                            self.print_y)
         #draw_rectangle(*self.get_stand_box())
-        #draw_rectangle(*self.get_hit_box())
 
     def update(self):
         pass

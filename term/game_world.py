@@ -156,7 +156,7 @@ def clean_objects():  # 얘네는 별도의 레이어이며 리스트이기 때�
         del ground_obj[i]
 
     for i in del_fly_obj:
-        fly_obj[i].die()
+        fly_obj[i].die(i)
         del fly_obj[i]
 
     for i in del_ground_crash_effect:

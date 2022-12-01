@@ -30,7 +30,6 @@ def crash(a, b):
 def bullet_crash(bullet, obj):
     if bullet.exist == False or obj.collision == False:
         return False
-
     if bullet.x < obj.hit_x() - obj.hit_sx:
         return False
     if bullet.x > obj.hit_x() + obj.hit_sx:
