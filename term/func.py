@@ -151,6 +151,10 @@ def change_character(key):
         play_state.player.shoot_state = False
         if User_input.left_button:
             play_state.player.shoot_state = True
+        play_state.player.shoot_missile_state = False
+        if User_input.right_button:
+            play_state.player.shoot_missile_state = True
+            play_state.player.shoot_missile_frame = 0
     elif key == 3:
         if play_state.sub_unit1 == game_world.Dragoon:
             play_state.sub_unit1, play_state.player = play_state.player, play_state.sub_unit1

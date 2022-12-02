@@ -104,7 +104,7 @@ def update_ground_obj():
         else:
             obj.update()  # 총알들이 먼저 업데이트 되므로 여기서 해도 됨
             first = max(i - 14, 0)
-            last = min(i + 14, length)
+            last = min(i + 15, length)
             for j in range(first, i):
                 other = ground_obj[j]
                 func.cheak_collision_min_move(obj, other)

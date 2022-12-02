@@ -21,10 +21,11 @@ class Zealot(GroundObj):
     exist = True  # 존재 변수 삭제 할지 판정
     collision = True  # 충돌체크 함.
     hp = 10
-    speed = 3.5
+    speed = 2.5
+    anger_speed = 4
     AD = 2
     zm = 0.004
-    rd = 700
+    rd = 600
     hit_sound = None
 
     def __init__(self, x, y):
@@ -80,12 +81,12 @@ class Zealot(GroundObj):
         if self.move_frame == 0:
             r = math.dist([self.stand_x, self.stand_y],
                           [play_state.player.stand_x, play_state.player.stand_y])  # 두 점 사이의 거리
-            if r > 0:
-                if r < Zealot.rd:
-                    self.time = 0
-                    self.state = LOCK_ON
-                    self.dir_adjust()
-                    return
+            if r < Zealot.rd:
+                self.speed = self.anger_speed
+                self.time = 0
+                self.state = LOCK_ON
+                self.dir_adjust()
+                return
         if self.direction == 0:
             self.stop()
         elif self.direction == 1:
@@ -140,22 +141,22 @@ class Zealot(GroundObj):
         # 여기서 사인 코사인 써서 이동하면 거리를 더 안재도 되겠네? 바보였잖아 나
 
     def lock_on_move(self):
-        if self.move_frame == 0:
-            r = math.dist([self.stand_x, self.stand_y],
-                          [play_state.player.stand_x, play_state.player.stand_y])  # 두 점 사이의 거리
-            if r > 0:
-                if play_state.player.unit_type == 0:
-                    if r < 60:
-                        self.state = ATTACK
-                        return
-                elif play_state.player.unit_type == 1:
-                    if r < 70:
-                        self.state = ATTACK
-                        return
-                else:
-                    if r < 80:
-                        self.state = ATTACK
-                        return
+        #if self.move_frame == 0:
+        r = math.dist([self.stand_x, self.stand_y],
+                      [play_state.player.stand_x, play_state.player.stand_y])  # 두 점 사이의 거리
+        if r > 0:
+            if play_state.player.unit_type == 0:
+                if r < 60:
+                    self.state = ATTACK
+                    return
+            elif play_state.player.unit_type == 1:
+                if r < 70:
+                    self.state = ATTACK
+                    return
+            else:
+                if r < 80:
+                    self.state = ATTACK
+                    return
         if self.rad == None:
             self.dir_adjust()
         self.x_move(self.cos * self.speed)
@@ -240,7 +241,7 @@ class Zealot(GroundObj):
 
     @staticmethod
     def load_resource():
-        Zealot.img = load_image("resource\\zealot\\zealot200x2.png")
+        Zealot.img = load_image("resource\\zealot\\zealot200x2_yellow.png")
         Zealot.hit_sound = load_wav('resource\\zealot\\pzehit00.wav')
         Sound.list.append(Zealot.hit_sound)
         Sound.volume_list.append(6)

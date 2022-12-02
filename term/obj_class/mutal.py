@@ -50,6 +50,7 @@ class Mutal(FlyObj):
         self.cos = None
         self.sin = None
 
+
     @staticmethod
     def play_hit_sound():
         pass
@@ -224,7 +225,7 @@ class Mutal(FlyObj):
     @staticmethod
     def load_resource():
         Mutal.start_pos = play_state.window_size[1] // 3 * 2
-        Mutal.img = load_image("resource\\mutal\\mutal200x2.png")
+        Mutal.img = load_image("resource\\mutal\\mutal200x2_red.png")
         Mutal.shadow = load_image("resource\\mutal\\mutal_shad200x2_30.png")
         #Mutal.hit_sound = load_wav('resource\\mutal\\zulhit00.wav')
         #Sound.list.append(mutal.hit_sound)

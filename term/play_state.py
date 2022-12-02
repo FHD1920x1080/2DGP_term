@@ -67,7 +67,7 @@ def handle_events():
             elif event.key == SDLK_p:
                 Zergling.zm = 0.2
                 Zealot.zm = 0.08
-                Mutal.zm = 0.12
+                Mutal.zm = 0.05
                 game_world.Marine.magazine_gun = True
                 game_world.Marine.AD = 10
                 game_world.Marine.n_shot = 1
@@ -85,8 +85,10 @@ def handle_events():
 
 def update():
     # print(len(game_world.ground_obj))
-    # Zergling.make_zergling()
-    # Zealot.make_zealot()
+    if len(game_world.ground_obj) < 140:
+        Zergling.make_zergling()
+        BombZergling.make_zergling()
+        Zealot.make_zealot()
     Mutal.make_mutal()
     game_world.set_clean_list()
     game_world.update_game_world()
@@ -101,7 +103,7 @@ def update():
         sub_unit1.hp = clamp(0, sub_unit1.hp, sub_unit1.max_hp)
         sub_unit2.hp += 1
         sub_unit2.hp = clamp(0, sub_unit2.hp, sub_unit2.max_hp)
-    camera.moving()
+    #camera.moving()
 
 
 def draw_world():

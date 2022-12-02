@@ -105,10 +105,14 @@ class Dragoon(GroundObj):
                     self.open_frame = 0
                     self.state = OPEN
                 User_input.left_button = True
+            if event.button == SDL_BUTTON_RIGHT:
+                User_input.right_button = True
         elif event.type == SDL_MOUSEBUTTONUP:
             if event.button == SDL_BUTTON_LEFT:
                 User_input.left_button = False
                 pass
+            if event.button == SDL_BUTTON_RIGHT:
+                User_input.right_button = False
         if event.type == SDL_KEYDOWN:
             if event.key == SDLK_a:
                 User_input.left_key = True

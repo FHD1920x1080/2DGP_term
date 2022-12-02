@@ -164,22 +164,14 @@ class Bullet32:
                         play_state.sound.Bullet32_hit = True
                         Bullet32_Effect(self.x, self.y)
                         self.exist = False
-                        obj.state = 1
-                        obj.hp -= self.AD
-                        if obj.hp <= 0:
-                            obj.exist = False  # 마지막에 한번에 삭제해줄 것이고 지금은 아님
-                            obj.collision = False  # 충돌체크 안함
+                        obj.suffer(self.AD)
                         break  # 이제 사라진 불릿이기 때문에 다른 저글링이랑 체크 할 필요 없음
             for obj in game_world.fly_obj:
                 if bullet_crash(self, obj):
                     play_state.sound.Bullet32_hit = True
                     Bullet32_Effect(self.x, self.y)
                     self.exist = False
-                    obj.state = 1
-                    obj.hp -= self.AD
-                    if obj.hp <= 0:
-                        obj.exist = False  # 마지막에 한번에 삭제해줄 것이고 지금은 아님
-                        obj.collision = False  # 충돌체크 안함
+                    obj.suffer(self.AD)
                     break  # 이제 사라진 불릿이기 때문에 다른 저글링이랑 체크 할 필요 없음
 
     def die(self):
@@ -239,12 +231,8 @@ class Bullet32Gol(Bullet32):
                         play_state.sound.Bullet32_hit = True
                         Bullet32_Effect(self.x, self.y)
                         self.exist = False
-                        obj.state = 1
-                        obj.hp -= self.AD
-                        if obj.hp <= 0:
-                            obj.exist = False  # 마지막에 한번에 삭제해줄 것이고 지금은 아님
-                            obj.collision = False  # 충돌체크 안함
-                        break  # 이제 사라진 불릿이기 때문에 다른 저글링이랑 체크 할 필요 없음
+                        obj.suffer(self.AD)
+                        break
 
 
 class Bullet32_Effect(Effect):
@@ -421,20 +409,12 @@ class DragBullEffect(Effect):
                 for obj in game_world.ground_obj:
                     if obj != play_state.player:
                         if tir_rect_crash(self, obj):
-                            obj.hp -= self.AD
-                            obj.state = 1
                             Bullet32_Effect(obj.stand_x, obj.stand_y, 1)
-                            if obj.hp <= 0:
-                                obj.exist = False
-                                obj.collision = False
+                            obj.suffer(self.AD)
                 for obj in game_world.fly_obj:
                     if tir_rect_crash(self, obj):
-                        obj.hp -= self.AD
-                        obj.state = 1
                         Bullet32_Effect(obj.print_x, obj.print_y, 1, AIR_CRASH_EFFECT)
-                        if obj.hp <= 0:
-                            obj.exist = False
-                            obj.collision = False
+                        obj.suffer(self.AD)
         else:
             self.exist = False
 
@@ -455,26 +435,24 @@ class DragBullEffect(Effect):
 
 class Missile:
     img = None
-    rand1 = 1.0
-    rand2 = rand1 * 2.0
-    back_rand = math.pi - rand1
-
+    hit_sound = None
     max_speed = 27
-    max_speed_3 = max_speed // 3
 
     def __init__(self, player):
-        self.lock_on_rad = None
         self.x, self.y = player.head_x(), player.head_y()
         self.x2 = play_state.cursor.x
         self.y2 = play_state.cursor.y
+        self.AD = player.AD2
+        self.time = 0
         self.line = False
         self.lock_on_obj = None
+        self.lock_on_rad = None
         self.cur_speed = random.randint(6, 9)
         self.accel = 0.3
-        self.time = 0
-        self.dr = random.random() * 0.005 + 0.005
-        self.AD = player.AD2
-        self.cur_rad = player.rad + Missile.error_rate()
+        if player.shoulder == 0:
+            self.cur_rad = player.rad + math.pi + random.random()
+        else:
+            self.cur_rad = player.rad - math.pi - random.random()
         if self.cur_rad > math.pi:
             self.cur_rad -= pi2
         self.cos = math.cos(self.cur_rad)
@@ -489,10 +467,6 @@ class Missile:
         self.img.clip_draw(self.img_now_x, 0, 40, 40, self.x, self.y)
         if self.lock_on_obj is not None:
             draw_rectangle(*self.lock_on_obj.get_hit_box())
-
-    @staticmethod
-    def error_rate():
-        return random.random() * Missile.rand2 + Missile.back_rand
 
     def first_lock_on(self):
         length = len(game_world.fly_obj)
@@ -554,7 +528,6 @@ class Missile:
                         self.lock_on_obj = game_world.fly_obj[i]
             if min_r is not None:
                 self.lock_on_update()
-                self.line = True
                 return True
             else:
                 if not self.line:
@@ -569,7 +542,7 @@ class Missile:
 
     def rotate(self):
         # self.cur_rad = self.lock_on_rad#천천히 돌기 위해 수정해야하는 부분
-        if self.time % 2 == 0:
+        if self.time % 4 == 0:
             dr = None
             if self.cur_rad >= 0:
                 if self.lock_on_rad >= 0:
@@ -587,17 +560,19 @@ class Missile:
                     if dr > math.pi:
                         dr -= pi2
                     pass
-            if -0.0001 < dr < 0.0001:
+            abs_dr = abs(dr)
+            if abs_dr < 0.0001: #거의 일자이니까 이후 연산 안함.
                 self.line = True
-                print("44")
             else:
-                if self.time < 100:
-                    a = self.dr * self.time
-                    dr = clamp(-a, dr, a)
-                else:
-                    dr = clamp(-1, dr, 1)
-                    # self.lock_on_rad = get_rad(self.x, self.y, self.x2, self.y2)
-                print("44")
+                # if abs_dr > 0.523599:#15도
+                #     abs_dr = 0.523599
+                #     dr = clamp(-0.523599, dr, 0.523599)
+                # self.cur_speed *= (5 - (abs_dr / 0.523599)) / 5
+                # 아래의 수식으로 단순화
+                if abs_dr > 0.5:  # 약 28.6479 deg
+                    abs_dr = 0.5
+                    dr = clamp(-0.5, dr, 0.5)
+                self.cur_speed *= 1 - abs_dr * 0.4
                 self.cur_rad += dr
                 if self.cur_rad > math.pi:  # dr > 0
                     self.cur_rad -= pi2
@@ -606,7 +581,6 @@ class Missile:
                 self.cos = math.cos(self.cur_rad)
                 self.sin = math.sin(self.cur_rad)
                 self.img_now_x = 12 + 64 * Bullet32.get_bullet_num(self.cur_rad)
-                pass
 
     def x_move(self, x):
         self.x += x
@@ -626,40 +600,33 @@ class Missile:
         self.xx_move(self.cos * self.cur_speed)
         self.yy_move(self.sin * self.cur_speed)
         if self.time < 20:
-            self.cur_speed = max(self.cur_speed - self.accel, 0)
+            self.cur_speed = max(self.cur_speed - self.accel, 0)  # 20프레임까지는 감속
         else:
             self.cur_speed = min(self.cur_speed + self.accel, self.max_speed)
-        # self.cur_speed += self.accel
-        # if self.cur_speed > self.max_speed:
-        #     self.cur_speed = self.max_speed
 
     def update(self):
-        self.move()
-        if self.y > play_state.window_size[1] + 60 or self.y < - 60 or self.x > play_state.window_size[  # 아웃체크
-            0] + 60 or self.x < - 60:
-            self.exist = False
-            return
         if self.time > 300:
             self.exist = False
             return
-        if self.lock_on_obj == None:
+        self.move()
+        if self.y > play_state.window_size[1] + 300 or self.y < - 300 or self.x > play_state.window_size[  # 아웃체크
+            0] + 300 or self.x < - 300:
+            self.exist = False
+            return
+        if self.lock_on_obj is None:
             self.try_lock_on()
             self.rotate()
-        else:  # lock_on == True
+        else:  # lock_on is True
             if not self.lock_on_obj.collision:
                 self.lock_on_obj = None
                 self.lock_on_rad = get_rad(self.x, self.y, self.x2, self.y2)
-                self.cur_speed = self.cur_speed // 2
                 return
             self.lock_on_update()
             self.rotate()
             if bullet_crash(self, self.lock_on_obj):
                 self.exist = False
-                self.lock_on_obj.state = 1
-                self.lock_on_obj.hp -= self.AD
-                if self.lock_on_obj.hp < 0:
-                    self.lock_on_obj.collision = False
-                    self.lock_on_obj.exist = False
+                Missile.hit_sound.play()
+                self.lock_on_obj.suffer(self.AD)
         self.time += 1
 
     def die(self):
@@ -668,3 +635,6 @@ class Missile:
     @staticmethod
     def load_resource():
         Missile.img = load_image('resource\\bullet\\missile200x2.png')
+        Missile.hit_sound = load_wav('resource\\bullet\\hit_sound\\weapon-sound19.wav')
+        Sound.list.append(Missile.hit_sound)
+        Sound.volume_list.append(4)

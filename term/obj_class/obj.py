@@ -55,6 +55,11 @@ class GroundObj:
     collision = True  # 충돌체크 함.
     def __init__(self):
         # self.print_x, self.print_y = 0, 0  # 그릴 좌표
+        self.time = None
+        self.hp = None
+        self.state = None
+        self.speed = None
+        self.anger_speed = None
         self.img_now = [0, 0]
         self.stand_x, self.stand_y = 0, 0  # 서있는 좌표의 중앙 그리는건 중앙점과 서있는점의 차이를 더해줌.
 
@@ -66,6 +71,18 @@ class GroundObj:
 
     def update(self):
         pass
+
+    def suffer(self, damage):#피격당하면 해줄것
+        self.hp -= damage
+        if self.hp <= 0:
+            self.exist = False  # 마지막에 한번에 삭제해줄 것이고 지금은 아님
+            self.collision = False  # 충돌체크 안함
+            return
+        if self.state != 1:
+            self.state = 1
+            self.speed = self.anger_speed
+            self.time = 0
+            self.dir_adjust()
 
     def die(self):
         pass
@@ -127,6 +144,9 @@ class GroundObj:
 
     def get_hit_bottom(self):
         return self.hit_y() - self.hit_sy
+
+    def dir_adjust(self):
+        pass
 
 
 class Effect:
@@ -207,6 +227,10 @@ class FlyObj:#
 
     def __init__(self):
         # self.print_x, self.print_y = 0, 0  # 그릴 좌표
+        self.state = None
+        self.speed = None
+        self.anger_speed = None
+        self.hp = None
         self.img_now = [0, 0]
         self.print_x, self.print_y = 0, 0  # 서있는 좌표의 중앙 그리는건 중앙점과 서있는점의 차이를 더해줌.s
 
@@ -220,7 +244,16 @@ class FlyObj:#
     def update(self):
         pass
 
-    def die(self):
+    def suffer(self, damage):#피격당하면 해줄것
+        self.state = 1
+        #self.speed = self.anger_speed
+        self.hp -= damage
+        if self.hp <= 0:
+            self.exist = False  # 마지막에 한번에 삭제해줄 것이고 지금은 아님
+            self.collision = False  # 충돌체크 안함
+        pass
+
+    def die(self):#죽으면서 해줄것
         pass
 
     def hit_x(self):

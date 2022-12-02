@@ -21,7 +21,8 @@ class Zergling(GroundObj):
     exist = True  # 존재 변수 삭제 할지 판정
     collision = True  # 충돌체크 함.s
     hp = 6
-    speed = 4
+    speed = 3
+    anger_speed = 4
     AD = 1
     speed_sup = speed / 3  # 저글링은 프레임마다 속도가 달라서 만들어준 변수 기본속도가 3이라고 가정하고 만듦
     zm = 0.01
@@ -34,6 +35,7 @@ class Zergling(GroundObj):
         self.stand_y = y
         self.hp = Zergling.hp
         self.speed = Zergling.speed
+        self.speed_sup = self.speed / 3
         self.move_frame = 0
         self.attack_frame = 0
         self.time = 0  # direction_rand_time
@@ -45,7 +47,9 @@ class Zergling(GroundObj):
         self.rad = None
         self.cos = None
         self.sin = None
-        self.frame_speed = [1 * self.speed_sup, 3 * self.speed_sup, 6 * self.speed_sup, 4 * self.speed_sup, 4 * self.speed_sup, 2 * self.speed_sup, 1 * self.speed_sup]
+        self.frame_speed = [1 * self.speed_sup, 3 * self.speed_sup, 6 * self.speed_sup, 4 * self.speed_sup,
+                            4 * self.speed_sup, 2 * self.speed_sup, 1 * self.speed_sup]
+        self.cur_speed = Zergling.get_speed(self)
 
     @staticmethod
     def play_hit_sound():
@@ -58,15 +62,14 @@ class Zergling(GroundObj):
         return self.frame_speed[self.move_frame]
 
     def move_down(self):
-        cur_speed = Zergling.get_speed(self)
-        self.y_move(- cur_speed)
+        self.y_move(- self.cur_speed)
         self.face_dir = 8
         self.img_now = 74 + 256 * self.face_dir, 1630 - 256 * self.move_frame
 
     def move_left_down(self):
-        cur_speed = Zergling.get_speed(self) * 0.707
-        self.y_move(-cur_speed)
-        self.x_move(-cur_speed)
+        s = self.cur_speed * 0.707
+        self.y_move(-s)
+        self.x_move(-s)
         self.face_dir = 10
         self.img_now = 74 + 256 * self.face_dir, 1630 - 256 * self.move_frame
         if self.get_stand_left() < 0:
@@ -76,9 +79,9 @@ class Zergling(GroundObj):
                 self.direction = 3
 
     def move_right_down(self):
-        cur_speed = Zergling.get_speed(self) * 0.707
-        self.y_move(-cur_speed)
-        self.x_move(cur_speed)
+        s = self.cur_speed * 0.707
+        self.y_move(-s)
+        self.x_move(s)
         self.face_dir = 6
         self.img_now = 74 + 256 * self.face_dir, 1630 - 256 * self.move_frame
         if self.get_stand_right() > play_state.window_size[0]:
@@ -92,17 +95,37 @@ class Zergling(GroundObj):
         else:
             if self.time % 5 == 0:
                 self.move_frame = (self.move_frame + 1) % 7
+                self.cur_speed = Zergling.get_speed(self)
+
+    def suffer(self, damage):  # 피격당하면 해줄것
+        self.hp -= damage
+        if self.hp <= 0:
+            self.exist = False  # 마지막에 한번에 삭제해줄 것이고 지금은 아님
+            self.collision = False  # 충돌체크 안함
+            return
+        if self.state != 1:
+            self.state = 1
+            self.time = 0
+            self.speed = self.anger_speed
+            self.dir_adjust()
+            self.speed_sup = self.speed / 3
+            self.frame_speed = [1 * self.speed_sup, 3 * self.speed_sup, 6 * self.speed_sup, 4 * self.speed_sup,
+                                4 * self.speed_sup, 2 * self.speed_sup, 1 * self.speed_sup]
 
     def auto_move(self):
         if self.move_frame == 0:
             r = math.dist([self.stand_x, self.stand_y],
                           [play_state.player.stand_x, play_state.player.stand_y])  # 두 점 사이의 거리
-            if r > 0:
-                if r < Zergling.rd:
-                    self.time = 0
-                    self.state = LOCK_ON
-                    self.dir_adjust()
-                    return
+
+            if r < Zergling.rd:
+                self.state = LOCK_ON
+                self.time = 0
+                self.dir_adjust()
+                self.speed = self.anger_speed
+                self.speed_sup = self.speed / 3
+                self.frame_speed = [1 * self.speed_sup, 3 * self.speed_sup, 6 * self.speed_sup, 4 * self.speed_sup,
+                                    4 * self.speed_sup, 2 * self.speed_sup, 1 * self.speed_sup]
+                return
         if self.direction == 0:
             self.stop()
         elif self.direction == 1:
@@ -148,7 +171,7 @@ class Zergling(GroundObj):
         self.face_dir = self.get_face_dir(self.rad)
 
     def lock_on_move(self):
-        #if self.move_frame % 4 == 0:
+        # if self.move_frame % 4 == 0:
         r = math.dist([self.stand_x, self.stand_y],
                       [play_state.player.stand_x, play_state.player.stand_y])  # 두 점 사이의 거리
         if r > 0:
@@ -164,11 +187,10 @@ class Zergling(GroundObj):
                 if r < 80:
                     self.state = ATTACK
                     return
-        cur_speed = Zergling.get_speed(self)
-        if self.rad == None:
-            self.dir_adjust()
-        self.x_move(self.cos * cur_speed)
-        self.y_move(self.sin * cur_speed)
+        # if self.rad == None:
+        #     self.dir_adjust()
+        self.x_move(self.cos * self.cur_speed)
+        self.y_move(self.sin * self.cur_speed)
         self.img_now = 74 + 256 * self.face_dir, 1630 - 256 * self.move_frame
 
     def attack(self):
@@ -199,7 +221,7 @@ class Zergling(GroundObj):
                     return 2
                 elif rad < 1.3844:
                     return 1
-                else:# rad < 1.8:
+                else:  # rad < 1.8:
                     return 0
             else:
                 if rad < 2.0898:
@@ -220,7 +242,7 @@ class Zergling(GroundObj):
                     return 6
                 elif rad > -1.2044:
                     return 7
-                else:# rad > -1.9371:
+                else:  # rad > -1.9371:
                     return 8
             else:
                 if rad > -2.4398:
@@ -249,11 +271,12 @@ class Zergling(GroundObj):
 
     @staticmethod
     def load_resource():
-        Zergling.img = load_image("resource\\zergling\\zergling200x2.png")
+        Zergling.img = load_image("resource\\zergling\\zergling200x2_brown.png")
         Zergling.hit_sound = load_wav('resource\\zergling\\zulhit00.wav')
         Sound.list.append(Zergling.hit_sound)
         Sound.volume_list.append(6)
         DieZergling.load_resource()
+        BombZergling.load_resource()
 
 
 class DieZergling(Effect):
@@ -317,6 +340,57 @@ class DeathZergling(Effect):
 
     def y_move(self, y):
         self.print_y += y
+
     @staticmethod
     def load_resource():
         DeathZergling.img = load_image("resource\\zergling\\death_zergling200_80.png")
+
+
+class BombZergling(Zergling):
+    img = None
+
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        #self.img = BombZergling.img
+        self.AD = 10
+
+    def lock_on_move(self):
+        # if self.move_frame % 4 == 0:
+        r = math.dist([self.stand_x, self.stand_y],
+                      [play_state.player.stand_x, play_state.player.stand_y])  # 두 점 사이의 거리
+        if r > 0:
+            if play_state.player.unit_type == 0:
+                if r < 60:
+                    self.hp = 0
+                    self.exist = False
+                    self.collision = False
+                    return
+            elif play_state.player.unit_type == 1:
+                if r < 70:
+                    self.hp = 0
+                    self.exist = False
+                    self.collision = False
+                    return
+            else:
+                if r < 80:
+                    self.hp = 0
+                    self.exist = False
+                    self.collision = False
+                    return
+        # if self.rad == None:
+        #     self.dir_adjust()
+        self.x_move(self.cos * self.cur_speed)
+        self.y_move(self.sin * self.cur_speed)
+        self.img_now = 74 + 256 * self.face_dir, 1630 - 256 * self.move_frame
+
+    @staticmethod
+    def make_zergling():
+        if random.random() <= BombZergling.zm:
+            zergling = BombZergling(random.randrange(Zergling.stand_sx, play_state.window_size[0] - Zergling.stand_sx),
+                                play_state.window_size[1] + Zergling.stand_sy)
+            # game_world.ground_obj.append(zergling)
+            game_world.ground_obj.insert(0, zergling)
+
+    @staticmethod
+    def load_resource():
+        BombZergling.img = load_image("resource\\zergling\\zergling200x2_green.png")

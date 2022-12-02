@@ -11,6 +11,7 @@ class Goliath(GroundObj):
     head_img = None
     leg_img = None
     portrait = None
+
     stand_sx = 28
     stand_sy = 28
     hit_sx = 30
@@ -29,6 +30,7 @@ class Goliath(GroundObj):
         self.stand_x = play_state.window_size[0] / 2
         self.stand_y = 100
         self.hand = 0
+        self.shoulder = 0
         self.shoot_point = [self.head_x(), self.head_y()]
         self.hp = 300  # 체력
         self.face_dir = 0  # 얼굴 방향
@@ -39,12 +41,12 @@ class Goliath(GroundObj):
         self.AD2 = 5
         self.nfs = 12  # 몇프레임당 공격이 나갈건지
         self.n_shot = 3 # 산탄량
-        self.nfs_m = 24  # 몇프레임당 공격이 나갈건지
-        self.n_shot_m = 3  # 미사일 산탄량
+        self.nfs_m = 12  # 몇프레임당 공격이 나갈건지
+        self.n_shot_m = 1  # 미사일 산탄량
         self.head_img = Goliath.head_img
         self.leg_img = Goliath.leg_img
         self.bullet_speed = 20
-        self.head_img_now = [14, 1519]
+        self.head_img_now = [14, 1823]
         self.leg_img_now = [32, 1367]
         self.idle_frame = 0
         self.move_frame = 0
@@ -110,7 +112,7 @@ class Goliath(GroundObj):
         if self.shoot_state:
             self.shoot()
         else:
-            self.head_img_now[1] = 1519 - 152 * self.move_frame
+            self.head_img_now[1] = 1823 - 152 * self.move_frame
         if self.shoot_missile_state:
             self.shoot_missile()
 
@@ -130,9 +132,9 @@ class Goliath(GroundObj):
                 self.shoot_state = False
                 self.shoot_frame = 0
                 if self.state == MOVE:
-                    self.head_img_now = [14 + 152 * self.face_dir, 1519 - 152 * self.move_frame]
+                    self.head_img_now = [14 + 152 * self.face_dir, 1823 - 152 * self.move_frame]
                 else:
-                    self.head_img_now = [14 + 152 * self.face_dir, 1519 - 152 * 3]
+                    self.head_img_now = [14 + 152 * self.face_dir, 1823 - 152 * 3]
             if event.button == SDL_BUTTON_RIGHT:
                 User_input.right_button = False
                 self.shoot_missile_state = False
@@ -182,7 +184,6 @@ class Goliath(GroundObj):
 
         if self.Wmove_able == False and self.Hmove_able == False:
             self.state = IDLE
-            self.img_now = [0, 1344]
             return
 
         if self.Wmove_able == True and self.Hmove_able == True:
@@ -227,7 +228,7 @@ class Goliath(GroundObj):
             else:  # 그냥 오른쪽
                 self.x_move(speed)
                 self.leg_dir = 4
-            self.leg_img_now = [32 + 152 * self.leg_dir, 1519 - 152 - 152 * self.move_frame]
+            self.leg_img_now = [32 + 152 * self.leg_dir, 1367 - 152 * self.move_frame]
             return
         if left:
             if up:  # 왼쪽 위 대각선
@@ -303,25 +304,30 @@ class Goliath(GroundObj):
             play_state.sound.Marine_shoot = True
             if self.hand == 0:
                 self.shoot_point = self.right_hand[self.face_dir].copy()
+                self.head_img_now = [14 + 152 * self.face_dir, 1823 - 152 * 11]
+                self.hand = 1
             else:
                 self.shoot_point = self.left_hand[self.face_dir].copy()
+                self.head_img_now = [14 + 152 * self.face_dir, 1823 - 152 * 12]
+                self.hand = 0
             self.shoot_point[0] += self.head_x()
             self.shoot_point[1] += self.head_y()
-            self.hand = (self.hand + 1) % 2  # 오른손 왼손 변경
             for i in range(self.n_shot):
                 Bullet32Gol(self)  # x1==x2 and y1==y2 일 때 False 반환
-            self.head_img_now = [14 + 152 * self.face_dir, 1519 - 152 * 10]
+            #self.head_img_now = [14 + 152 * self.face_dir, 1823 - 152 * 10]
         elif self.shoot_frame % self.nfs == self.nfs // 2:
             if self.state == MOVE:
-                self.head_img_now = [14 + 152 * self.face_dir, 1519 - 152 * self.move_frame]
+                self.head_img_now = [14 + 152 * self.face_dir, 1823 - 152 * self.move_frame]
             else:
-                self.head_img_now = [14 + 152 * self.face_dir, 1519 - 152 * 3]
+                self.head_img_now = [14 + 152 * self.face_dir, 1823 - 152 * 3]
         self.shoot_frame += 1
 
     def shoot_missile(self):
         if self.shoot_missile_frame % self.nfs_m == 0:  # 몇프레임마다 쏠건지 1이 가장 빠름
+            Goliath.shoot_sound2.play()
             for i in range(self.n_shot_m):
                 Missile(self)  # x1==x2 and y1==y2 일 때 False 반환
+                self.shoulder = (self.shoulder + 1) % 2  # 오른손 왼손 변경
         self.shoot_missile_frame += 1
 
     @staticmethod
@@ -378,13 +384,13 @@ class Goliath(GroundObj):
 
     @staticmethod
     def load_resource():
-        Goliath.head_img = load_image('resource\\goliath\\goliath_head200x2.png')
+        Goliath.head_img = load_image('resource\\goliath\\goliath_head200x2v2.png')
         Goliath.leg_img = load_image('resource\\goliath\\goliath_leg200x2.png')
         Goliath.portrait = load_image('resource\\goliath\\goliath_portrait.png')
         # Goliath.portrait = load_image('resource\\goliath\\goliath_portrait.png')
-        # Goliath.shoot_sound1 = load_wav('resource\\goliath\\sound\\dragbull.wav')
-        # Goliath.shoot_sound2 = load_wav('resource\\goliath\\sound\\tphfi201.wav')
+        #Goliath.shoot_sound1 = load_wav('resource\\goliath\\sound\\dragbull.wav')
         # Sound.list.append(Goliath.shoot_sound1)
         # Sound.volume_list.append(10)
-        # Sound.list.append(Goliath.shoot_sound2)
-        # Sound.volume_list.append(10)
+        Goliath.shoot_sound2 = load_wav('resource\\goliath\\pinlau001.wav')
+        Sound.list.append(Goliath.shoot_sound2)
+        Sound.volume_list.append(10)

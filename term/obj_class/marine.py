@@ -146,6 +146,8 @@ class Marine(GroundObj):
                         self.move_able = False
                 else:
                     User_input.left_button = True
+            if event.button == SDL_BUTTON_RIGHT:
+                User_input.right_button = True
         elif event.type == SDL_MOUSEBUTTONUP:
             if event.button == SDL_BUTTON_LEFT:
                 if self.magazine_gun:
@@ -156,7 +158,8 @@ class Marine(GroundObj):
                     self.img_now = 30 + 160 * self.face_dir, 1780
                 else:
                     User_input.left_button = False
-
+            if event.button == SDL_BUTTON_RIGHT:
+                User_input.right_button = False
         if event.type == SDL_KEYDOWN:
             if event.key == SDLK_SPACE:
                 self.try_dash()
