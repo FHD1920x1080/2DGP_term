@@ -30,7 +30,7 @@ class Mutal(FlyObj):
 
     start_pos = None
     def __init__(self, x, y):
-        self.img_now = [60, 1100]  ##86, 84 씩 옮겨야 함
+        self.img_now = [56, 1100]  ##86, 84 씩 옮겨야 함
         self.print_x = x
         self.print_y = y
         self.hp = Mutal.hp
@@ -56,7 +56,7 @@ class Mutal(FlyObj):
         pass
 
     def stop(self):
-        self.img_now = 60 + 256 * self.face_dir, 1100 - 256 * self.move_frame
+        self.img_now = 56 + 256 * self.face_dir, 1100 - 256 * self.move_frame
 
     def anim(self):
         if self.state > LOCK_ON:
@@ -68,36 +68,12 @@ class Mutal(FlyObj):
             if self.time % 3 == 0:
                 self.move_frame = (self.move_frame + 1) % 5
 
-    # def auto_move(self):
-    #     if self.move_frame == 0:
-    #         r = math.dist([self.stand_x, self.stand_y],
-    #                       [play_state.player.stand_x, play_state.player.stand_y])  # 두 점 사이의 거리
-    #     if r > 0:
-    #         if r < 200:
-    #             self.time = 0
-    #             self.state = LOCK_ON
-    #             self.dir_adjust()
-    #             return
-    #     if self.direction == 0:
-    #         self.stop()
-    #     elif self.direction == 1:
-    #         if self.move_down() == False:
-    #             return
-    #     if self.direction == 2:
-    #         if self.move_left_down() == False:
-    #             return
-    #     elif self.direction == 3:
-    #         if self.move_right_down() == False:
-    #             return
-    #     if self.time % self.direction_rand_time == 0:
-    #         j = self.direction
-    #         self.direction = random.randrange(0, 4)
-    #         if j == 0 and self.direction != 0:  # 멈춰있었다가 움직이면 무브프레임 초기화
-    #             self.move_frame = 0
-    #         if self.direction == 0:
-    #             self.direction_rand_time = self.time + random.randrange(10, 30)
-    #         else:
-    #             self.direction_rand_time = self.time + random.randrange(50, 200)
+    def suffer(self, damage):#피격당하면 해줄것
+        self.hp -= damage
+        if self.hp <= 0:
+            self.exist = False  # 마지막에 한번에 삭제해줄 것이고 지금은 아님
+            self.collision = False  # 충돌체크 안함
+        pass
 
     def update(self):
         if self.state == LOCK_ON:  # player를 발견한 상태
@@ -133,7 +109,7 @@ class Mutal(FlyObj):
             self.dir_adjust()
         self.x_move(self.cos * self.cur_speed)
         self.y_move(self.sin * self.cur_speed)
-        self.img_now = 60 + 256 * self.face_dir, 1100 - 256 * self.move_frame
+        self.img_now = 56 + 256 * self.face_dir, 1100 - 256 * self.move_frame
 
     def inertia_move(self):
         self.cur_speed = max(self.cur_speed - self.accel * 2, 0)
@@ -141,9 +117,9 @@ class Mutal(FlyObj):
             self.dir_adjust()
         self.x_move(self.cos * self.cur_speed)
         self.y_move(self.sin * self.cur_speed)
-        self.img_now = 60 + 256 * self.face_dir, 1100 - 256 * self.move_frame
+        self.img_now = 56 + 256 * self.face_dir, 1100 - 256 * self.move_frame
     def attack(self):
-        self.img_now = 60 + 256 * self.face_dir, 1100 - 256 * self.move_frame
+        self.img_now = 56 + 256 * self.face_dir, 1100 - 256 * self.move_frame
         if self.attack_frame == 1:
             #play_state.sound.Mutal_hit = True
             #play_state.player.hp -= 1
@@ -152,7 +128,7 @@ class Mutal(FlyObj):
             self.state = WAIT
 
     def wait(self):
-        self.img_now = 60 + 256 * self.face_dir, 1100  - 256 * self.move_frame
+        self.img_now = 56 + 256 * self.face_dir, 1100  - 256 * self.move_frame
         if self.attack_frame > 10:
             self.state = LOCK_ON
             self.attack_frame = 0

@@ -40,7 +40,7 @@ class Marine(GroundObj):
         self.AD = 3  # 공격력
         self.img = Marine.img
         self.img_now = [30, 2180 - 80 - 320]  # 스프라이트 좌표
-        self.speed = 2.8  # 이동속도w
+        self.speed = 2.5  # 이동속도w
         self.shoot_able = False  # 마우스 좌클릭이 눌렸는지
         self.move_able = True  # 움직일 수 있는 상태인지
         self.Wmove_able = True  # 움직일 수 있다면 가로로 움직이는지

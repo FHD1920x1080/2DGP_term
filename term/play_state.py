@@ -25,6 +25,7 @@ player = None
 sub_unit1 = None
 sub_unit2 = None
 
+
 def enter():
     global frame, sound, cursor, player, sub_unit1, sub_unit2
     sound = Sound()
@@ -38,6 +39,10 @@ def enter():
     sub_unit2 = game_world.Dragoon
     game_world.ground_obj.append(player)
     camera.enter()
+    Zergling.zm = 0.01
+    BombZergling.zm = 0.002
+    Zealot.zm = 0.004
+    Mutal.zm = 0.0015
     # UnitState.red = load_image('red.png')
 
 
@@ -62,12 +67,14 @@ def handle_events():
                     change_character(3)
             elif event.key == SDLK_o:
                 Zergling.zm = 0.01
+                BombZergling.zm = 0.002
                 Zealot.zm = 0.004
-                Mutal.zm = 0.002
+                Mutal.zm = 0.0015
             elif event.key == SDLK_p:
                 Zergling.zm = 0.2
+                BombZergling.zm = 0.04
                 Zealot.zm = 0.08
-                Mutal.zm = 0.05
+                Mutal.zm = 0.045
                 game_world.Marine.magazine_gun = True
                 game_world.Marine.AD = 10
                 game_world.Marine.n_shot = 1
@@ -79,6 +86,7 @@ def handle_events():
                 game_world.Goliath.AD = 6
                 game_world.Goliath.nfs = 6
                 game_world.Goliath.n_shot = 4
+                game_world.Goliath.n_shot_m = 6
                 game_world.Goliath.speed = 5
         player.handle_events(event)
 

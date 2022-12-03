@@ -74,15 +74,7 @@ class GroundObj:
 
     def suffer(self, damage):#피격당하면 해줄것
         self.hp -= damage
-        if self.hp <= 0:
-            self.exist = False  # 마지막에 한번에 삭제해줄 것이고 지금은 아님
-            self.collision = False  # 충돌체크 안함
-            return
-        if self.state != 1:
-            self.state = 1
-            self.speed = self.anger_speed
-            self.time = 0
-            self.dir_adjust()
+        pass
 
     def die(self):
         pass
@@ -239,19 +231,13 @@ class FlyObj:#
                            self.stand_y())
         self.img.clip_draw(self.img_now[0], self.img_now[1], self.print_sx, self.print_sy, self.print_x,
                            self.print_y)
-        #draw_rectangle(*self.get_stand_box())
+        #draw_rectangle(*self.get_hit_box())
 
     def update(self):
         pass
 
     def suffer(self, damage):#피격당하면 해줄것
-        self.state = 1
-        #self.speed = self.anger_speed
         self.hp -= damage
-        if self.hp <= 0:
-            self.exist = False  # 마지막에 한번에 삭제해줄 것이고 지금은 아님
-            self.collision = False  # 충돌체크 안함
-        pass
 
     def die(self):#죽으면서 해줄것
         pass

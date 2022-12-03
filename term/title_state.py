@@ -25,6 +25,7 @@ from pico2d import *
 import game_framework
 import play_state
 
+
 class Title_State:
     def __init__(self):
         self.image = load_image('resource\\image\\starkraft_tag.png')
@@ -35,9 +36,6 @@ class Title_State:
         self.font_frame = 0
         self.font_color = 255
         self.timer = 1
-
-
-
 
 
 ts = None
@@ -79,7 +77,7 @@ def draw():
     ts.image.draw_to_origin(0, 0, play_state.window_size[0], play_state.window_size[1])
     if ts.timer < 0:
         ts.font48.draw(play_state.window_size[0] // 2 - 290, 50, 'P R E S S  A N Y  K E Y',
-                               (255, 255, ts.font_color))
+                       (255, 255, ts.font_color))
         ts.font_frame = (ts.font_frame + 1) % 256
         if ts.font_frame < 128:
             ts.font_color -= 2

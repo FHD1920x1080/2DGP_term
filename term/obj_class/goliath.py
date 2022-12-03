@@ -37,11 +37,11 @@ class Goliath(GroundObj):
         self.leg_dir = 0  # 다리 방향
         self.rad = None  # 머리 각도
         self.max_hp = 250
-        self.AD = 2
+        self.AD = 1
         self.AD2 = 5
         self.nfs = 12  # 몇프레임당 공격이 나갈건지
         self.n_shot = 3 # 산탄량
-        self.nfs_m = 12  # 몇프레임당 공격이 나갈건지
+        self.nfs_m = 24  # 몇프레임당 공격이 나갈건지
         self.n_shot_m = 1  # 미사일 산탄량
         self.head_img = Goliath.head_img
         self.leg_img = Goliath.leg_img

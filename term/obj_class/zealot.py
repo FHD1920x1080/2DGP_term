@@ -22,7 +22,7 @@ class Zealot(GroundObj):
     collision = True  # 충돌체크 함.
     hp = 10
     speed = 2.5
-    anger_speed = 4
+    anger_speed = 3.5
     AD = 2
     zm = 0.004
     rd = 600
@@ -76,6 +76,19 @@ class Zealot(GroundObj):
         if self.get_stand_right() > play_state.window_size[0]:
             self.x_move_point(play_state.window_size[0] - self.stand_sx)
             self.direction = random.randrange(1, 3)
+
+    def suffer(self, damage):#피격당하면 해줄것
+        self.hp -= damage
+        pass
+        if self.hp <= 0:
+            self.exist = False  # 마지막에 한번에 삭제해줄 것이고 지금은 아님
+            self.collision = False  # 충돌체크 안함
+            return
+        if self.state != 1:
+            self.state = 1
+            self.speed = self.anger_speed
+            self.time = 0
+            self.dir_adjust()
 
     def auto_move(self):
         if self.move_frame == 0:
@@ -150,11 +163,11 @@ class Zealot(GroundObj):
                     self.state = ATTACK
                     return
             elif play_state.player.unit_type == 1:
-                if r < 70:
+                if r < 68:
                     self.state = ATTACK
                     return
             else:
-                if r < 80:
+                if r < 75:
                     self.state = ATTACK
                     return
         if self.rad == None:

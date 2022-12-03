@@ -4,6 +4,7 @@ from obj_class.obj import *
 
 AUTO, LOCK_ON, ATTACK, WAIT = range(4)
 
+from obj_class.bullet import ZergBomb
 
 class Zergling(GroundObj):
     img = None
@@ -180,11 +181,11 @@ class Zergling(GroundObj):
                     self.state = ATTACK
                     return
             elif play_state.player.unit_type == 1:
-                if r < 70:
+                if r < 68:
                     self.state = ATTACK
                     return
             else:
-                if r < 80:
+                if r < 75:
                     self.state = ATTACK
                     return
         # if self.rad == None:
@@ -351,7 +352,7 @@ class BombZergling(Zergling):
 
     def __init__(self, x, y):
         super().__init__(x, y)
-        #self.img = BombZergling.img
+        # self.img = BombZergling.img
         self.AD = 10
 
     def lock_on_move(self):
@@ -360,19 +361,19 @@ class BombZergling(Zergling):
                       [play_state.player.stand_x, play_state.player.stand_y])  # 두 점 사이의 거리
         if r > 0:
             if play_state.player.unit_type == 0:
-                if r < 60:
+                if r < 50:
                     self.hp = 0
                     self.exist = False
                     self.collision = False
                     return
             elif play_state.player.unit_type == 1:
-                if r < 70:
+                if r < 58:
                     self.hp = 0
                     self.exist = False
                     self.collision = False
                     return
             else:
-                if r < 80:
+                if r < 65:
                     self.hp = 0
                     self.exist = False
                     self.collision = False
@@ -387,9 +388,25 @@ class BombZergling(Zergling):
     def make_zergling():
         if random.random() <= BombZergling.zm:
             zergling = BombZergling(random.randrange(Zergling.stand_sx, play_state.window_size[0] - Zergling.stand_sx),
-                                play_state.window_size[1] + Zergling.stand_sy)
+                                    play_state.window_size[1] + Zergling.stand_sy)
             # game_world.ground_obj.append(zergling)
             game_world.ground_obj.insert(0, zergling)
+
+    def die(self, i=0):
+        # if self.hp > 0:
+            #if self.state == LOCK_ON:
+        if self.hp <= 0:
+            self.x = self.stand_x
+            self.y = self.stand_y
+            self.cur_size = 1.0
+            self.index = i
+            ZergBomb(self)
+            # dz = DieZergling(self.stand_x, self.stand_y)
+            # game_world.ground_obj.insert(i + 1, dz)
+        # else:
+        #     dz = DieZergling(self.stand_x, self.stand_y)
+        #     game_world.ground_obj.insert(i + 1, dz)
+
 
     @staticmethod
     def load_resource():
