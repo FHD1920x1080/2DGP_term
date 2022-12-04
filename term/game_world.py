@@ -29,9 +29,10 @@ del_ground_crash_effect = []
 del_air_bullet = []
 del_fly_obj = []
 del_air_crash_effect = []
-#밑에 있는 set_clean_list()에 꼭 등록 해주어야함
+# 밑에 있는 set_clean_list()에 꼭 등록 해주어야함
 
-objects = [map_floor, floor_effect, ground_bullet, ground_obj, bomb_effect, ground_crash_effect, air_bullet, fly_obj, air_crash_effect]
+objects = [map_floor, floor_effect, ground_bullet, ground_obj, bomb_effect, ground_crash_effect, air_bullet, fly_obj,
+           air_crash_effect]
 
 
 def all_objects():
@@ -50,6 +51,7 @@ def set_clean_list():
     del_air_bullet = []
     del_fly_obj = []
     del_air_crash_effect = []
+
 
 def update_game_world():
     # 여기 문제인게 생성되고 바로 update를 하는 애들과, 다음 루프때가 되어야 첫 update를 하는 애들(내가 원하는 상황)이 나뉘었음
@@ -105,12 +107,20 @@ def update_ground_obj():
             obj.update()  # 총알들이 먼저 업데이트 되므로 여기서 해도 됨
             first = max(i - 14, 0)
             last = min(i + 15, length)
-            for j in range(first, i):
-                other = ground_obj[j]
-                func.cheak_collision_min_move(obj, other)
-            for j in range(i+1, last):
-                other = ground_obj[j]
-                func.cheak_collision_min_move(obj, other)
+            if obj.collision_type == 1:
+                for j in range(first, i):
+                    other = ground_obj[j]
+                    func.cheak_collision_min_move(obj, other)
+                for j in range(i + 1, last):
+                    other = ground_obj[j]
+                    func.cheak_collision_min_move(obj, other)
+            # elif obj.collision_type == 2:
+            #     for j in range(first, i):
+            #         other = ground_obj[j]
+            #         func.cheak_collision_min_move(other, obj)
+            #     for j in range(i + 1, last):
+            #         other = ground_obj[j]
+            #         func.cheak_collision_min_move(other, obj)
 
 
 def update_ground_crash_effect():
@@ -128,6 +138,7 @@ def update_air_bullet():
         if not ablt.exist:  #
             del_air_bullet.insert(0, i)
 
+
 def update_fly_obj():
     for i in range(len(fly_obj)):
         obj = fly_obj[i]
@@ -135,12 +146,14 @@ def update_fly_obj():
         if not obj.exist:
             del_fly_obj.insert(0, i)
 
+
 def update_air_crash_effect():
     for i in range(len(air_crash_effect)):
         eft = air_crash_effect[i]
         eft.update()
         if not eft.exist:
             del_air_crash_effect.insert(0, i)
+
 
 def clean_objects():  # 얘네는 별도의 레이어이며 리스트이기 때문에 지우는 순서는 상관 없음.
     for i in del_ground_bullet:  # 먼저 넣은걸 뒤로 미는 insert를 했기 때문에 정렬 필요없이, 뒷쪽 인덱스부터 접근 가능->

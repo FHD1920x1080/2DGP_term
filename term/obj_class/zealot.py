@@ -154,7 +154,6 @@ class Zealot(GroundObj):
         # 여기서 사인 코사인 써서 이동하면 거리를 더 안재도 되겠네? 바보였잖아 나
 
     def lock_on_move(self):
-        #if self.move_frame == 0:
         r = math.dist([self.stand_x, self.stand_y],
                       [play_state.player.stand_x, play_state.player.stand_y])  # 두 점 사이의 거리
         if r > 0:
@@ -170,19 +169,18 @@ class Zealot(GroundObj):
                 if r < 75:
                     self.state = ATTACK
                     return
-        if self.rad == None:
-            self.dir_adjust()
         self.x_move(self.cos * self.speed)
         self.y_move(self.sin * self.speed)
         self.img_now = 73 + 256 * self.face_dir, 1881 - 256 * self.move_frame
 
     def attack(self):
-        self.img_now = 73 + 256 * self.face_dir, 3161 - 256 * self.attack_frame
-        if self.attack_frame == 1:
-            play_state.player.hp -= self.AD
-            play_state.sound.Zealot_hit = True
-        elif self.attack_frame > 4:  # 여기서는 0, 1, 2, 3 ,4 동안 머물고 5가 되면 나감
-            self.state = WAIT
+        if self.time % 4 == 0:
+            self.img_now = 73 + 256 * self.face_dir, 3161 - 256 * self.attack_frame
+            if self.attack_frame == 1:
+                play_state.player.suffer(self.AD)
+                play_state.sound.Zealot_hit = True
+            elif self.attack_frame > 4:  # 여기서는 0, 1, 2, 3 ,4 동안 머물고 5가 되면 나감
+                self.state = WAIT
 
     def wait(self):
         self.img_now = 73 + 256 * self.face_dir, 3161
@@ -190,7 +188,6 @@ class Zealot(GroundObj):
             self.state = LOCK_ON
             self.attack_frame = 0
             self.move_frame = 0
-            self.rad = None
 
     def die(self, i=0):
         if self.hp <= 0:
@@ -281,7 +278,7 @@ class DieZealot(Effect):
         self.print_x, self.print_y = self.stand_x + self.print_x_gap, self.stand_y + self.print_y_gap
         self.img_now = [85, 80]  # 스프라이트 좌표
         self.cur_frame = 0  # 100이 되면 저글링 시체 사라짐
-        self.start_frame = play_state.frame % self.any_frame_rate
+        self.time = 0
         play_state.sound.Zealot_die = True
 
     @staticmethod

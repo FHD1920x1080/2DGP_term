@@ -37,7 +37,7 @@ class Bomb(Effect):
         self.img_now = [0, 0]
         self.cur_frame = 0
         self.AD = bullet.AD
-        self.start_frame = play_state.frame % self.any_frame_rate
+        self.time = 0
         self.cur_size = bullet.cur_size * self.size  # 배율
         self.cur_size_x = self.cur_size * self.print_sx
         self.cur_size_y = self.cur_size * self.print_sy
@@ -45,12 +45,6 @@ class Bomb(Effect):
     def show(self):
         self.img.clip_draw(self.img_now[0], self.img_now[1], self.print_sx, self.print_sy, self.print_x, self.print_y,
                            self.cur_size_x, self.cur_size_y)
-
-    def x_move(self, x):
-        self.print_x += x
-
-    def y_move(self, y):
-        self.print_y += y
 
     def get_left(self, i):
         return self.print_x - self.rect_sx[i] * self.cur_size
@@ -264,6 +258,7 @@ class Bullet32:
         Sound.list.append(Bullet32.hit_sound)
         Sound.volume_list.append(6)
         DragBull.load_resource()
+        MutalBullet.load_resource()
         Missile.load_resource()
         ZergBomb.load_resource()
 
@@ -334,22 +329,16 @@ class Bullet32_Effect(Effect):
         self.print_y = y
         self.img_now = [0, random.randint(3, 14) * 80]  # 1120  # 스프라이트 좌표
         self.cur_frame = 0
-        self.start_frame = play_state.frame % self.any_frame_rate
+        self.time = 0
         self.exist = True
         game_world.objects[layer].append(self)
-
-    def x_move(self, x):
-        self.print_x += x
-
-    def y_move(self, y):
-        self.print_y += y
 
     @staticmethod
     def load_resource():
         pass
         Bullet32_Effect.img_red = load_image('resource\\bullet\\bullet_hit_effect_orange.png')
         Bullet32_Effect.img_blue = load_image('resource\\bullet\\bullet_hit_effect_blue.png')
-
+        ZergSpark.load_resource()
 
 class DragBull:
     img = None
@@ -419,7 +408,6 @@ class DragBull:
         DragBull.img = load_image('resource\\bullet\\dragbull.png')
         DragBullEffect.load_resource()
 
-
 class DragBullEffect(Bomb):
     img = None
     bomb_sound = None
@@ -480,6 +468,71 @@ class DragBullEffect(Bomb):
         Sound.volume_list.append(26)
 
 
+class MutalBullet:
+    img = None
+
+    def __init__(self, player, x2, y2):
+        self.x1, self.y1 = player.print_x, player.print_y  # x1, y1  # 시작 좌표
+        self.x2, self.y2 = x2, y2  # 가야할 좌표, 지나치고 계속 가도 됨.
+        self.x, self.y = self.x1, self.y1  # 현재 좌표
+        self.speed = player.bullet_speed
+        self.AD = player.AD
+        self.t = 0
+        self.r = math.dist([self.x1, self.y1], [self.x2, self.y2])  # 두 점 사이의 거리
+        if self.r == 0:
+            del self
+            return
+        #play_state.sound.Dragoon_shoot = True
+        self.cur_speed = self.speed / self.r
+        self.img_now_x = 15
+        self.frame = 0
+        self.exist = True
+        game_world.objects[AIR_BULLET].append(self)
+
+    def show(self):
+        self.img.clip_draw(self.img_now_x, 0, 44, 44, self.x, self.y)
+
+    def x_move(self, x):
+        self.x += x
+        self.x1 += x
+        self.x2 += x
+
+    def y_move(self, y):
+        self.y += y
+        self.y1 += y
+        self.y2 += y
+
+    def update(self):
+        self.move()
+        self.anim()
+    def die(self):
+        #DragBullEffect(self)
+        pass
+
+    def move(self):
+        self.t += self.cur_speed
+        self.x = (1 - self.t) * self.x1 + self.t * self.x2
+        self.y = (1 - self.t) * self.y1 + self.t * self.y2
+        if self.y > play_state.window_size[1] + 60 or self.y < - 60 or self.x > play_state.window_size[
+            0] + 60 or self.x < - 60:  # 지금은 화면 밖인데 나중에 벽으로 바꿀 예정, 화면 밖 멀리에 벽을 둘 예정, 또 벽에 충돌하면 먼지 이펙트같은것도 추가 예정
+            self.exist = False
+        elif self.t > 0.99:
+            #여기서 충돌
+            if bullet_crash(self, play_state.player):
+                play_state.player.suffer(self.AD)
+                ZergSpark(self.x, self.y)
+            #이펙트 추가
+            self.exist = False
+
+    def anim(self):
+        self.img_now_x = 15 + self.frame * 72
+        self.frame = (self.frame + 1) % 10
+
+    @staticmethod
+    def load_resource():
+        MutalBullet.img = load_image('resource\\bullet\\mutalbull200.png')
+
+
 class ZergBomb(Bomb):
     img = None
     bomb_sound = None
@@ -513,12 +566,12 @@ class ZergBomb(Bomb):
         self.cur_frame += 1
         if self.cur_frame < self.max_frame:
             self.img_now[0] += self.next_gap
-            if self.cur_frame == 2:
+            if self.cur_frame == 1:
                 ZergBomb.bomb_sound.play()
-            elif self.cur_frame == 4:
+            elif self.cur_frame == 3:
                 for obj in game_world.ground_obj:
                     if tir_rect_crash(self, obj):
-                        Bullet32_Effect(obj.stand_x, obj.stand_y, 1)
+                        ZergSpark(obj.stand_x, obj.stand_y)
                         obj.suffer(self.AD)
                         #ZergBomb.bomb_sound.play()
 
@@ -526,7 +579,6 @@ class ZergBomb(Bomb):
             self.exist = False
 
     def die(self):
-
         pass
 
     @staticmethod
@@ -540,6 +592,29 @@ class ZergBomb(Bomb):
         Sound.list.append(ZergBomb.bomb_sound)
         Sound.volume_list.append(12)
 
+class ZergSpark(Effect):
+    img = None
+
+    print_sx = 80  # 그려줄 스프라이트 시트에서 얼마나 잘라다가 쓸꺼냐
+    print_sy = 80
+    anim_direction = 'w'  # 스프라이트 이미지 재생 방향
+    next_gap = 80  # 스프라이트에서 어느 만큼씩 옮길건지
+    max_frame = 8  # 몇개의 이미지로 되어있는 이펙트인가
+    any_frame_rate = 4  # 몇프레임마다 재생할것인가
+
+    def __init__(self, x, y, layer=GROUND_CRASH_EFFECT):
+        self.print_x = x
+        self.print_y = y
+        self.img_now = [0, 0]  # 1120  # 스프라이트 좌표
+        self.cur_frame = 0
+        self.time = 0
+        self.exist = True
+        game_world.objects[layer].append(self)
+
+    @staticmethod
+    def load_resource():
+        pass
+        ZergSpark.img = load_image('resource\\bullet\\zerg_spark200.png')
 
 
 class Missile:
@@ -771,7 +846,7 @@ class MissilePropelEffect(Effect):
         self.print_x, self.print_y = x, y
         self.img_now = [60, 8]  # 스프라이트 좌표
         self.cur_frame = 0  # 100이 되면 저글링 시체 사라짐
-        self.start_frame = play_state.frame % self.any_frame_rate
+        self.time = 0
         game_world.objects[AIR_BULLET].append(self)
 
     def show(self):
@@ -800,7 +875,7 @@ class MissileHitEffect(Effect):
         self.print_x, self.print_y = x, y
         self.img_now = [0, 0]  # 스프라이트 좌표
         self.cur_frame = 0  # 100이 되면 저글링 시체 사라짐
-        self.start_frame = play_state.frame % self.any_frame_rate
+        self.time = 0
         game_world.objects[AIR_CRASH_EFFECT].append(self)
 
     def show(self):

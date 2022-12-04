@@ -53,6 +53,7 @@ class GroundObj:
 
     exist = True  # 존재 변수 삭제 할지 판정
     collision = True  # 충돌체크 함.
+    collision_type = 1 # 기본 충돌 남을 못밀어냄
     def __init__(self):
         # self.print_x, self.print_y = 0, 0  # 그릴 좌표
         self.time = None
@@ -144,6 +145,7 @@ class GroundObj:
 class Effect:
     layer = GROUND_OBJ
     collision = False
+    collision_type = 0 # 충돌 안함.
 
     img = None
     sound = None
@@ -163,20 +165,22 @@ class Effect:
         self.stand_x, self.stand_y = 0, 0  # 서있는 좌표의 중앙 그리는건 중앙점과 서있는점의 차이를 더해줌.
         self.print_x, self.print_y = self.stand_x + self.print_x_gap, self.stand_y + self.print_y_gap
         self.cur_frame = 0
-        self.start_frame = play_state.frame % self.any_frame_rate
+        self.time = 0
         game_world.ground_obj.append(self)
 
     def show(self):
         self.img.clip_draw(self.img_now[0], self.img_now[1], self.print_sx, self.print_sy, self.print_x, self.print_y)
 
     def update(self):
-        if (play_state.frame - self.start_frame) % self.any_frame_rate == 0:
+        self.time += 1 #O으로 시작하므로 바로 애니메이션을 재생시켜버림. 첫번째 이미지가 스킵되는걸 막기 위해 먼저 올려줌
+        if self.time % self.any_frame_rate == 0:
             self.anim()
 
 
+
     def anim(self):
-        self.cur_frame += 1
-        if self.cur_frame < self.max_frame: #if max == 3 0드로우 애님 1드로우 애님 2 드로우 애님
+        self.cur_frame += 1 # 맥스랑 맞춰주기 위해서 먼저 프레임 올림.
+        if self.cur_frame < self.max_frame:
             if self.anim_direction == 'w':
                 self.img_now[0] += self.next_gap
             else:
@@ -185,11 +189,9 @@ class Effect:
             self.exist = False
 
     def x_move(self, x):
-        #self.stand_x += x
         self.print_x += x
 
     def y_move(self, y):
-        #self.stand_y += y
         self.print_y += y
 
     def play_sound(self):

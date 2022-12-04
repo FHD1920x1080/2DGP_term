@@ -384,8 +384,8 @@ class Goliath(GroundObj):
 
     @staticmethod
     def load_resource():
-        Goliath.head_img = load_image('resource\\goliath\\goliath_head200x2v2.png')
-        Goliath.leg_img = load_image('resource\\goliath\\goliath_leg200x2.png')
+        Goliath.head_img = load_image('resource\\goliath\\goliath_head200x2v2_eva.png')
+        Goliath.leg_img = load_image('resource\\goliath\\goliath_leg200x2_eva.png')
         Goliath.portrait = load_image('resource\\goliath\\goliath_portrait.png')
         # Goliath.portrait = load_image('resource\\goliath\\goliath_portrait.png')
         #Goliath.shoot_sound1 = load_wav('resource\\goliath\\sound\\dragbull.wav')

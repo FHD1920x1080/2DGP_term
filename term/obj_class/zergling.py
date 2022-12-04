@@ -4,7 +4,6 @@ from obj_class.obj import *
 
 AUTO, LOCK_ON, ATTACK, WAIT = range(4)
 
-from obj_class.bullet import ZergBomb
 
 class Zergling(GroundObj):
     img = None
@@ -172,7 +171,6 @@ class Zergling(GroundObj):
         self.face_dir = self.get_face_dir(self.rad)
 
     def lock_on_move(self):
-        # if self.move_frame % 4 == 0:
         r = math.dist([self.stand_x, self.stand_y],
                       [play_state.player.stand_x, play_state.player.stand_y])  # 두 점 사이의 거리
         if r > 0:
@@ -195,12 +193,13 @@ class Zergling(GroundObj):
         self.img_now = 74 + 256 * self.face_dir, 1630 - 256 * self.move_frame
 
     def attack(self):
-        self.img_now = 74 + 256 * self.face_dir, 2910 - 256 * self.attack_frame
-        if self.attack_frame == 1:
-            play_state.sound.Zergling_hit = True
-            play_state.player.hp -= self.AD
-        elif self.attack_frame > 3:  # 여기서는 0, 1, 2, 3 ,4 동안 머물고 5가 되면 나감
-            self.state = WAIT
+        if self.time % 4 == 0:
+            self.img_now = 74 + 256 * self.face_dir, 2910 - 256 * self.attack_frame
+            if self.attack_frame == 1:
+                play_state.player.suffer(self.AD)
+                play_state.sound.Zergling_hit = True
+            elif self.attack_frame > 3:  # 여기서는 0, 1, 2, 3동안 머물고 4가 되면 나감
+                self.state = WAIT
 
     def wait(self):
         self.img_now = 74 + 256 * self.face_dir, 1630
@@ -208,7 +207,6 @@ class Zergling(GroundObj):
             self.state = LOCK_ON
             self.attack_frame = 0
             self.move_frame = 0
-            self.dir = None
 
     @staticmethod
     def get_face_dir(rad):
@@ -299,7 +297,7 @@ class DieZergling(Effect):
         self.print_x, self.print_y = self.stand_x + self.print_x_gap, self.stand_y + self.print_y_gap
         self.img_now = [2, 0]  # 스프라이트 좌표
         self.cur_frame = 0  # 100이 되면 저글링 시체 사라짐
-        self.start_frame = play_state.frame % self.any_frame_rate
+        self.time = 0
         play_state.sound.Zergling_die = True
 
     def die(self, i=0):
@@ -333,7 +331,7 @@ class DeathZergling(Effect):
         self.print_x, self.print_y = x, y
         self.img_now = [42, 88]  # 스프라이트 좌표
         self.cur_frame = 0  # 100이 되면 저글링 시체 사라짐
-        self.start_frame = play_state.frame % self.any_frame_rate
+        self.time = 0
         game_world.objects[FLOOR_EFFECT].append(self)
 
     def x_move(self, x):
@@ -347,9 +345,15 @@ class DeathZergling(Effect):
         DeathZergling.img = load_image("resource\\zergling\\death_zergling200_80.png")
 
 
+from obj_class.bullet import ZergBomb
+
+
 class BombZergling(Zergling):
     img = None
+    speed = 3.5
+    anger_speed = 4.5
 
+    collision_type = 2 # 남을 밀어냄
     def __init__(self, x, y):
         super().__init__(x, y)
         # self.img = BombZergling.img
@@ -373,7 +377,7 @@ class BombZergling(Zergling):
                     self.collision = False
                     return
             else:
-                if r < 65:
+                if r < 60:
                     self.hp = 0
                     self.exist = False
                     self.collision = False
@@ -394,7 +398,7 @@ class BombZergling(Zergling):
 
     def die(self, i=0):
         # if self.hp > 0:
-            #if self.state == LOCK_ON:
+        # if self.state == LOCK_ON:
         if self.hp <= 0:
             self.x = self.stand_x
             self.y = self.stand_y
@@ -406,7 +410,6 @@ class BombZergling(Zergling):
         # else:
         #     dz = DieZergling(self.stand_x, self.stand_y)
         #     game_world.ground_obj.insert(i + 1, dz)
-
 
     @staticmethod
     def load_resource():

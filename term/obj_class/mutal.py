@@ -1,7 +1,7 @@
 import game_world
 import play_state
 from obj_class.obj import *
-
+from obj_class.bullet import MutalBullet
 AUTO, LOCK_ON, ATTACK, WAIT = range(4)
 
 
@@ -29,11 +29,14 @@ class Mutal(FlyObj):
     hit_sound = None
 
     start_pos = None
+
     def __init__(self, x, y):
         self.img_now = [56, 1100]  ##86, 84 씩 옮겨야 함
         self.print_x = x
         self.print_y = y
         self.hp = Mutal.hp
+        self.AD = 3
+        self.bullet_speed = 15
         self.max_speed = Mutal.max_speed
         self.cur_speed = 0
         self.accel = Mutal.accel
@@ -50,9 +53,9 @@ class Mutal(FlyObj):
         self.cos = None
         self.sin = None
 
-
     @staticmethod
     def play_hit_sound():
+        Mutal.hit_sound.play()
         pass
 
     def stop(self):
@@ -68,7 +71,7 @@ class Mutal(FlyObj):
             if self.time % 3 == 0:
                 self.move_frame = (self.move_frame + 1) % 5
 
-    def suffer(self, damage):#피격당하면 해줄것
+    def suffer(self, damage):  # 피격당하면 해줄것
         self.hp -= damage
         if self.hp <= 0:
             self.exist = False  # 마지막에 한번에 삭제해줄 것이고 지금은 아님
@@ -104,6 +107,7 @@ class Mutal(FlyObj):
             if r > 0:
                 if r < 300:
                     self.state = ATTACK
+                    self.attack_frame = 0
                     return
         if self.rad == None:
             self.dir_adjust()
@@ -118,22 +122,22 @@ class Mutal(FlyObj):
         self.x_move(self.cos * self.cur_speed)
         self.y_move(self.sin * self.cur_speed)
         self.img_now = 56 + 256 * self.face_dir, 1100 - 256 * self.move_frame
+
     def attack(self):
-        self.img_now = 56 + 256 * self.face_dir, 1100 - 256 * self.move_frame
-        if self.attack_frame == 1:
-            #play_state.sound.Mutal_hit = True
-            #play_state.player.hp -= 1
-            pass
-        elif self.attack_frame > 3:  # 여기서는 0, 1, 2, 3 ,4 동안 머물고 5가 되면 나감
-            self.state = WAIT
+        if self.time % 4 == 0:
+            self.img_now = 56 + 256 * self.face_dir, 1100 - 256 * self.attack_frame
+            if self.attack_frame == 0:
+                play_state.sound.Mutal_hit = True
+            elif self.attack_frame > 4:  # 여기서는 0, 1, 2, 3 ,4 동안 머물고 5가 되면 나감
+                MutalBullet(self, play_state.player.hit_x(), play_state.player.hit_y())
+                self.state = WAIT
 
     def wait(self):
-        self.img_now = 56 + 256 * self.face_dir, 1100  - 256 * self.move_frame
-        if self.attack_frame > 10:
+        self.img_now = 56 + 256 * self.face_dir, 1100 - 256 * self.move_frame
+        if self.attack_frame > 30:
             self.state = LOCK_ON
             self.attack_frame = 0
             self.move_frame = 0
-            self.dir = None
 
     @staticmethod
     def get_face_dir(rad):
@@ -147,7 +151,7 @@ class Mutal(FlyObj):
                     return 2
                 elif rad < 1.3844:
                     return 1
-                else: # rad < 1.8:
+                else:  # rad < 1.8:
                     return 0
             else:
                 if rad < 2.0898:
@@ -168,7 +172,7 @@ class Mutal(FlyObj):
                     return 6
                 elif rad > -1.2044:
                     return 7
-                else:# rad > -1.9371:
+                else:  # rad > -1.9371:
                     return 8
             else:
                 if rad > -2.4398:
@@ -193,19 +197,21 @@ class Mutal(FlyObj):
                 mutal = Mutal(-200, random.randint(Mutal.start_pos, play_state.window_size[1] + 100))
                 game_world.fly_obj.append(mutal)
             elif pos == 1:
-                mutal = Mutal(play_state.window_size[0] + 200, random.randint(Mutal.start_pos, play_state.window_size[1] + 100))
+                mutal = Mutal(play_state.window_size[0] + 200,
+                              random.randint(Mutal.start_pos, play_state.window_size[1] + 100))
                 game_world.fly_obj.append(mutal)
             else:
                 mutal = Mutal(random.randint(-200, play_state.window_size[0] + 200), play_state.window_size[1] + 200)
                 game_world.fly_obj.append(mutal)
+
     @staticmethod
     def load_resource():
         Mutal.start_pos = play_state.window_size[1] // 3 * 2
         Mutal.img = load_image("resource\\mutal\\mutal200x2_red.png")
         Mutal.shadow = load_image("resource\\mutal\\mutal_shad200x2_30.png")
-        #Mutal.hit_sound = load_wav('resource\\mutal\\zulhit00.wav')
-        #Sound.list.append(mutal.hit_sound)
-        #Sound.volume_list.append(6)
+        Mutal.hit_sound = load_wav('resource\\mutal\\zmufir00.wav')
+        Sound.list.append(Mutal.hit_sound)
+        Sound.volume_list.append(6)
         DieMutal.load_resource()
 
 
@@ -227,7 +233,7 @@ class DieMutal(Effect):
         self.print_x, self.print_y = x - 4, y - 16
         self.img_now = [3, 20]  # 스프라이트 좌표
         self.cur_frame = 0  # 100이 되면 저글링 시체 사라짐
-        self.start_frame = play_state.frame % self.any_frame_rate
+        self.time = 0
         play_state.sound.Mutal_die = True
 
     def die(self, i=0):
