@@ -520,7 +520,8 @@ class MutalBullet:
             #여기서 충돌
             if bullet_crash(self, play_state.player):
                 play_state.player.suffer(self.AD)
-                ZergSpark(self.x, self.y)
+                ZergSpark(play_state.player.hit_x(), play_state.player.hit_y())
+            MutalHitEffect(self.x, self.y)
             #이펙트 추가
             self.exist = False
 
@@ -531,7 +532,7 @@ class MutalBullet:
     @staticmethod
     def load_resource():
         MutalBullet.img = load_image('resource\\bullet\\mutalbull200.png')
-
+        MutalHitEffect.load_resource()
 
 class ZergBomb(Bomb):
     img = None
@@ -591,6 +592,31 @@ class ZergBomb(Bomb):
         ZergBomb.bomb_sound = load_wav('resource\\bullet\\hit_sound\\explo1_short.wav')
         Sound.list.append(ZergBomb.bomb_sound)
         Sound.volume_list.append(12)
+
+
+class MutalHitEffect(Effect):
+    img = None
+
+    print_sx = 88  # 그려줄 스프라이트 시트에서 얼마나 잘라다가 쓸꺼냐
+    print_sy = 88
+    anim_direction = 'w'  # 스프라이트 이미지 재생 방향
+    next_gap = 88     # 스프라이트에서 어느 만큼씩 옮길건지
+    max_frame = 12  # 몇개의 이미지로 되어있는 이펙트인가
+    any_frame_rate = 4  # 몇프레임마다 재생할것인가
+
+    def __init__(self, x, y, layer=GROUND_CRASH_EFFECT):
+        self.print_x = x
+        self.print_y = y
+        self.img_now = [0, 0]  # 1120  # 스프라이트 좌표
+        self.cur_frame = 0
+        self.time = 0
+        self.exist = True
+        game_world.objects[layer].append(self)
+
+    @staticmethod
+    def load_resource():
+        pass
+        MutalHitEffect.img = load_image('resource\\bullet\\mutal_hit_effect200_70.png')
 
 class ZergSpark(Effect):
     img = None
