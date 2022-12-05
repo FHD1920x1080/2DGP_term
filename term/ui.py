@@ -13,17 +13,35 @@ class UI:
     terran_portrait_frame_g = None  # 재생하는 변수가 아니라, 이미지임
     protoss_portrait_frame = None
     warning = None
+    skill_icon = None
+    black_50 = None
+    black_30 = None
+    infinite = None
     font64 = None
+    font32 = None
     font22 = None
     font16 = None
+    font_korean22 = None
     hp_bar_max = 250
-    sub = 0.8
+    sub = 0.8 # 항상 일정한 값 계산중이라서 최종적으론 다 상수로 대체할 예정
 
     warning_frame = 0
     warning_img_now = 0
+
+
+    @staticmethod
+    def show():
+        play_state.player.show_main_ui()
+        UI.show_sub_portrait(68, 352, play_state.sub_unit1)
+        UI.show_sub_hp_bar(126, 302, play_state.sub_unit1)
+        UI.show_sub_portrait(68, 222, play_state.sub_unit2)
+        UI.show_sub_hp_bar(126, 172, play_state.sub_unit2)
+        UI.show_main_portrait(80, 82, play_state.player)
+        UI.show_main_hp_bar(150, 20, play_state.player)
+
     @staticmethod
     def show_main_portrait(x, y, unit):
-        unit.portrait.clip_draw(unit.portrait_frame * 60, unit.portrait_state * 56, 60, 56, x, y, 126, 117)
+        unit.portrait.clip_draw(unit.portrait_frame * 60, unit.portrait_state * 56, 60, 56, x, y, 124, 115)
         if unit.unit_type == 0:
             UI.terran_portrait_frame.draw(x, y, 130, 128)
         elif unit.unit_type == 1:
@@ -34,7 +52,11 @@ class UI:
 
     @staticmethod
     def show_sub_portrait(x, y, unit):
-        unit.portrait.clip_draw(unit.portrait_frame * 60, unit.portrait_state * 56, 60, 56, x, y, 126 * UI.sub, 117 * UI.sub +1)
+        unit.portrait.clip_draw(unit.portrait_frame * 60, unit.portrait_state * 56, 60, 56, x, y, 124 * UI.sub, 115 * UI.sub)
+        if play_state.cur_change_character_cool_time > 0:
+            UI.black_30.draw_to_origin(x - (124 * UI.sub)//2, y - (115 * UI.sub)//2, 124 * UI.sub, 115 * UI.sub)
+            UI.black_50.draw_to_origin(x - (124 * UI.sub)//2, y - (115 * UI.sub)//2, 124 * UI.sub, play_state.cur_change_character_cool_time / play_state.change_character_cool_time * 115 * UI.sub)
+            UI.font32.draw(x - (124 * UI.sub)//2 + 22, y - (115 * UI.sub)//2 + 40, f'{play_state.cur_change_character_cool_time*0.01:1.1f}', (255, 255, 255))
         if unit.unit_type == 0:
             UI.terran_portrait_frame.draw(x, y, 130 * UI.sub, 128 * UI.sub)
         elif unit.unit_type == 1:
@@ -115,14 +137,19 @@ class UI:
         UI.deep_red = load_image('resource\\ui\\deep_red.png')
         UI.hp_bar_frame = load_image('resource\\ui\\hp_bar_frame.png')
         UI.warning = load_image('resource\\ui\\warning.png')
-
+        UI.infinite = load_image('resource\\ui\\infinite_white.png')
+        UI.skill_icon = load_image('resource\\ui\\skill_icon_v3.png')
+        UI.black_50 = load_image('resource\\ui\\black_a50.png')
+        UI.black_30 = load_image('resource\\ui\\black_a30.png')
         UI.terran_portrait_frame = load_image('resource\\ui\\terran_portrait_frame.png')
         UI.terran_portrait_frame_g = load_image('resource\\ui\\terran_portrait_frame_green.png')
         UI.protoss_portrait_frame = load_image('resource\\ui\\protoss_portrait_frame.png')
 
         UI.font64 = load_font('resource\\ui\\DOSIyagiBoldface.ttf', 64)
+        UI.font32 = load_font('resource\\ui\\DOSIyagiBoldface.ttf', 32)
         UI.font22 = load_font('resource\\ui\\DOSIyagiBoldface.ttf', 22)
         UI.font16 = load_font('resource\\ui\\DOSIyagiBoldface.ttf', 16)
+        UI.font_korean22 = load_font('resource\\ui\\NeoDunggeunmoPro-Regular.ttf', 16)
 
 class Cursor:
     img = None

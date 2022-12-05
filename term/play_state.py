@@ -25,6 +25,8 @@ player = None
 sub_unit1 = None
 sub_unit2 = None
 
+change_character_cool_time = 300
+cur_change_character_cool_time = 0
 
 def enter():
     global frame, sound, cursor, player, sub_unit1, sub_unit2
@@ -47,7 +49,7 @@ def enter():
 
 
 def handle_events():
-    global player
+    global player, cur_change_character_cool_time
     for event in get_events():
         if event.type == SDL_QUIT:
             game_framework.quit()
@@ -57,14 +59,17 @@ def handle_events():
             if event.key == SDLK_ESCAPE:
                 game_framework.quit()
             elif event.key == SDLK_1:
-                if player.unit_type != 0:
+                if player.unit_type != 0 and cur_change_character_cool_time == 0:
                     change_character(1)
+                    cur_change_character_cool_time = change_character_cool_time
             elif event.key == SDLK_2:
-                if player.unit_type != 1:
+                if player.unit_type != 1 and cur_change_character_cool_time == 0:
                     change_character(2)
+                    cur_change_character_cool_time = change_character_cool_time
             elif event.key == SDLK_3:
-                if player.unit_type != 2:
+                if player.unit_type != 2 and cur_change_character_cool_time == 0:
                     change_character(3)
+                    cur_change_character_cool_time = change_character_cool_time
             elif event.key == SDLK_o:
                 Zergling.zm = 0.01
                 BombZergling.zm = 0.002
@@ -80,6 +85,8 @@ def handle_events():
                 game_world.Marine.nfs = 3
                 game_world.Marine.n_shot = 1
                 game_world.Marine.speed = 4
+                game_world.Marine.drag_bull_size = 2.0
+                game_world.Marine.drag_bull_cool_time = 100
                 #game_world.Dragoon.speed = 6
                 game_world.Dragoon.bull_size = 5
                 game_world.Dragoon.AD = 30
@@ -102,6 +109,15 @@ def update():
     game_world.update_game_world()
     game_world.clean_objects()
 
+    global cur_change_character_cool_time
+    cur_change_character_cool_time = max(cur_change_character_cool_time - 1, 0)
+    game_world.Marine.cur_dash_cool_time = max(game_world.Marine.cur_dash_cool_time - 1, 0)
+    game_world.Marine.cur_drag_bull_cool_time = max(game_world.Marine.cur_drag_bull_cool_time - 1, 0)
+    if game_world.Goliath.cur_save_missile < game_world.Goliath.max_save_missile:
+        game_world.Goliath.missile_charge_time -= 1
+        if game_world.Goliath.missile_charge_time == 0:
+            game_world.Goliath.missile_charge_time = game_world.Goliath.max_missile_charge_time
+            game_world.Goliath.cur_save_missile = min(game_world.Goliath.cur_save_missile + 1, game_world.Goliath.max_save_missile)
     global frame
     if frame % 40 == 0:
         player.hp += 1
@@ -111,19 +127,14 @@ def update():
         sub_unit1.hp = clamp(0, sub_unit1.hp, sub_unit1.max_hp)
         sub_unit2.hp += 1
         sub_unit2.hp = clamp(0, sub_unit2.hp, sub_unit2.max_hp)
-    #camera.moving()
+    camera.moving()
 
 
 def draw_world():
     for obj in game_world.all_objects():
         obj.show()
 
-    UI.show_sub_portrait(68, 352, sub_unit1)
-    UI.show_sub_hp_bar(126, 302, sub_unit1)
-    UI.show_sub_portrait(68, 222, sub_unit2)
-    UI.show_sub_hp_bar(126, 172, sub_unit2)
-    UI.show_main_portrait(80, 82, player)
-    UI.show_main_hp_bar(150, 20, player)
+    UI.show()
     cursor.show()
 
 
@@ -132,6 +143,10 @@ def draw():
     global sound
     clear_canvas()
     draw_world()
+
+    if passive_cursor(cursor):
+        player.show_passive()
+
     update_canvas()
 
     animation(frame)  # 애니메이션 재생 출력은 아님 상태값만 변경
@@ -146,7 +161,6 @@ def draw():
 def animation(frame):
     if frame % 10 == 0:
         cursor.frame = (cursor.frame + 1) % 5  # 커서 프레임
-
 
 
 

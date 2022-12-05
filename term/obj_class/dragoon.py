@@ -69,6 +69,26 @@ class Dragoon(GroundObj):
         self.cur_portrait_max_frame = self.portrait_max_frame[self.portrait_state]
         pass
 
+
+    def show_passive(self):
+        UI.font22.draw(550, 90, '폭발형 저글링과 뮤탈에게', (255, 255, 255))
+        UI.font22.draw(550, 65, '절반의 피해만 입는다.', (255, 255, 255))
+
+    def show_main_ui(self):
+        UI.skill_icon.clip_draw_to_origin(88 * 4, 88 * 11 + 13, 84, 84, 450, 50)
+        UI.font22.draw(450, 30, 'PASSIVE', (255, 255, 255))
+
+        UI.skill_icon.clip_draw_to_origin(1, 88 * 14 + 17, 84, 84, play_state.window_size[0] - 300, 50)
+        UI.font22.draw(play_state.window_size[0] - 300, 30, '미구현', (255, 255, 255))
+
+
+        UI.skill_icon.clip_draw_to_origin(88 * 7 - 2, 88 * 12 + 13, 84, 84, play_state.window_size[0] - 160, 48)
+        #UI.font22.draw(play_state.window_size[0] - 300, 30, 'LEFT', (255, 255, 255))
+        UI.infinite.draw_to_origin(play_state.window_size[0] - 70, 75, 50, 30)
+
+    def show_sub_ui(self):
+        pass
+
     @staticmethod
     def play_shoot_sound():
         i = random.randint(0, 1)

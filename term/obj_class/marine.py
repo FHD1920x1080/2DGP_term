@@ -1,7 +1,7 @@
 import play_state
 from obj_class.obj import *
 
-from obj_class.bullet import Bullet32
+from obj_class.bullet import Bullet32, DragBullMarine
 
 IDLE, MOVE, DASH, SHOOT, WAIT = range(5)
 #첫째 아들이지만 전혀 객체 지향적이지 않은 막코드, 특히 상태 관련
@@ -61,8 +61,11 @@ class Marine(GroundObj):
         self.rad = None
         self.cos = None
         self.sin = None
+        self.drag_bull_size = 1.0
+        self.drag_bull_cool_time = 300
+        self.cur_drag_bull_cool_time = 0
         self.dash_state = False
-        self.dash_cool_time = 50  #
+        self.dash_cool_time = 100  #
         self.cur_dash_cool_time = 0
         self.dash_frame = 0
         self.dash_dir = 0  # 16방향
@@ -90,6 +93,31 @@ class Marine(GroundObj):
         self.portrait_state = random.randint(0, 3)
         self.cur_portrait_max_frame = self.portrait_max_frame[self.portrait_state]
 
+    def show_passive(self):
+        UI.font22.draw(550, 90, '쿨타임이 1초인 대시', (255, 255, 255))
+
+    def show_main_ui(self):
+        UI.skill_icon.clip_draw_to_origin(1, 88 * 13 + 15, 84, 84, 450, 48)
+        UI.font22.draw(462, 30, 'SPACE', (255, 255, 255))
+        if self.cur_dash_cool_time > 0:
+            UI.black_50.draw_to_origin(450, 48, 84, 84)
+            UI.black_50.draw_to_origin(450, 48, 84, self.cur_dash_cool_time / self.dash_cool_time * 84)
+            UI.font22.draw(475, 90, f'0.{self.cur_dash_cool_time // 10}', (255, 255, 255))
+
+
+        UI.skill_icon.clip_draw_to_origin(1, 2, 84, 84, play_state.window_size[0] - 300, 50)
+        UI.font22.draw(play_state.window_size[0] - 300, 30, 'RIGHT', (255, 255, 255))
+        if self.cur_drag_bull_cool_time > 0:
+            UI.black_50.draw_to_origin(play_state.window_size[0] - 300, 48, 84, 84)
+            UI.black_50.draw_to_origin(play_state.window_size[0] - 300, 48, 84, self.cur_drag_bull_cool_time / self.drag_bull_cool_time * 84)
+            UI.font22.draw(play_state.window_size[0] - 275, 90, f'{(self.cur_drag_bull_cool_time*0.01):1.1f}', (255, 255, 255))
+
+
+        UI.skill_icon.clip_draw_to_origin(88 * 7 - 2, 88 * 8 + 11, 84, 84, play_state.window_size[0] - 160, 50)
+        #UI.font22.draw(play_state.window_size[0] - 300, 30, 'LEFT', (255, 255, 255))
+        UI.infinite.draw_to_origin(play_state.window_size[0] - 70, 75, 50, 30)
+    def show_sub_ui(self):
+        UI.skill_icon.clip_draw_to_origin(200, 200,84,84, 200,200)
 
     @staticmethod
     def play_shoot_sound():
@@ -114,6 +142,7 @@ class Marine(GroundObj):
         else:
             self.move()
             self.shoot()
+            self.shoot_drag_bull()
             self.shoot_frame += 1
         if not self.magazine_gun:
             if self.shoot_idle:
@@ -132,16 +161,13 @@ class Marine(GroundObj):
         else:
             if play_state.frame % 4 == 0:
                 self.move_frame = (self.move_frame + 1) % 8
-        self.cur_dash_cool_time -= 1
-        if self.cur_dash_cool_time < 0:
-            self.cur_dash_cool_time = 0
 
     def handle_events(self, event):
         if event.type == SDL_MOUSEBUTTONDOWN:
             if event.button == SDL_BUTTON_LEFT:
                 if self.magazine_gun:
-                    self.shoot_frame = 0
                     self.shoot_able = True
+                    self.shoot_frame = 0
                     if not self.moving_attack:
                         self.move_able = False
                 else:
@@ -159,6 +185,7 @@ class Marine(GroundObj):
                 else:
                     User_input.left_button = False
             if event.button == SDL_BUTTON_RIGHT:
+                self.img_now = 30 + (160 * self.face_dir), 1780  # 견착 이미지
                 User_input.right_button = False
         if event.type == SDL_KEYDOWN:
             if event.key == SDLK_SPACE:
@@ -474,12 +501,12 @@ class Marine(GroundObj):
                 # 여기에 사운드
                 # self.play_shoot_sound()
                 play_state.sound.Marine_shoot = True
+                a = get_rad(self.stand_x, self.stand_y, play_state.cursor.x, play_state.cursor.y)
+                self.face_dir = self.get_face_dir(a)  # 각도를 가지고 마린이 바라볼 방향 정함.
+                x2, y2 = play_state.cursor.x + random.randint(-self.accuracy,
+                                                              self.accuracy), play_state.cursor.y + random.randint(
+                    -self.accuracy, self.accuracy)
                 for i in range(self.n_shot):
-                    a = get_rad(self.stand_x, self.stand_y, play_state.cursor.x, play_state.cursor.y)
-                    self.face_dir = self.get_face_dir(a)  # 각도를 가지고 마린이 바라볼 방향 정함.
-                    x2, y2 = play_state.cursor.x + random.randint(-self.accuracy,
-                                                                  self.accuracy), play_state.cursor.y + random.randint(
-                        -self.accuracy, self.accuracy)
                     Bullet32(self, x2, y2)  # x1==x2 and y1==y2 일 때 False 반환
                 self.shoot_idle = False
                 self.idle = False
@@ -489,9 +516,21 @@ class Marine(GroundObj):
         else:
             self.shoot_idle = True
 
+    def shoot_drag_bull(self):
+        if User_input.right_button:
+            if self.cur_drag_bull_cool_time == 0:
+                a = get_rad(self.stand_x, self.stand_y, play_state.cursor.x, play_state.cursor.y)
+                self.face_dir = self.get_face_dir(a)  # 각도를 가지고 마린이 바라볼 방향 정함.
+                self.shoot_idle = False
+                self.idle = False
+                DragBullMarine(self)
+                self.cur_drag_bull_cool_time = self.drag_bull_cool_time
+        if self.cur_drag_bull_cool_time > self.drag_bull_cool_time - 10:
+            self.img_now = 30 + (160 * self.face_dir), 1620  # 격발 이미지
+
     @staticmethod
     def load_resource():
-        Marine.img = load_image('resource\\marine\\marine250x2_blue.png')
+        Marine.img = load_image('resource\\marine\\marine250x2_blue_blue.png')
         Marine.portrait = load_image('resource\\marine\\marine_portrait.png')
         Marine.shoot_sound00 = load_wav('resource\\marine\\shoot_sound\\00.wav')
         Marine.shoot_sound01 = load_wav('resource\\marine\\shoot_sound\\01.wav')

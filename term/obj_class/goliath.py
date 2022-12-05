@@ -57,13 +57,32 @@ class Goliath(GroundObj):
         self.state = IDLE
         self.shoot_state = False
         self.shoot_missile_state = False
-        self.accuracy = 0.125
+        self.max_save_missile = 5
+        self.cur_save_missile = self.max_save_missile
+        self.max_missile_charge_time = 50
+        self.missile_charge_time = self.max_missile_charge_time
+        self.accuracy = 0.125 #탄퍼짐 라디안값
         self.accuracy2 = self.accuracy * 2.0
         self.Wmove_able = False
         self.Hmove_able = False
         self.portrait_state = 0
         self.portrait_frame = 0
         self.cur_portrait_max_frame = 9
+
+    def update(self):
+        self.head_trace()
+        if self.state == MOVE:
+            self.move()
+            if play_state.frame % 5 == 0:
+                self.move_frame = (self.move_frame + 1) % 8
+        else:
+            self.leg_img_now[1] = 1367
+        if self.shoot_state:
+            self.shoot()
+        else:
+            self.head_img_now[1] = 1823 - 152 * self.move_frame
+        if self.shoot_missile_state:
+            self.shoot_missile()
 
     def head_x(self):
         return self.stand_x
@@ -97,24 +116,26 @@ class Goliath(GroundObj):
         self.cur_portrait_max_frame = self.portrait_max_frame[self.portrait_state]
         pass
 
+    def show_passive(self):
+        UI.font22.draw(550, 90, '움직이면서 공격 가능', (255, 255, 255))
+
+    def show_main_ui(self):
+        UI.skill_icon.clip_draw_to_origin(88 * 7 - 1, 88 * 1 + 1, 82, 82, 450, 50)
+        UI.font22.draw(450, 30, 'PASSIVE', (255, 255, 255))
+
+        UI.skill_icon.clip_draw_to_origin(88 * 4, 88 * 3 + 5, 84, 84, play_state.window_size[0] - 300, 50)
+        UI.font22.draw(play_state.window_size[0] - 300, 30, 'RIGHT', (255, 255, 255))
+        UI.font22.draw(play_state.window_size[0] - 210, 90, f'{self.cur_save_missile}/{self.max_save_missile}', (255, 255, 255))
+
+        UI.skill_icon.clip_draw_to_origin(88 * 1 + 1, 88 * 6 + 9, 84, 84, play_state.window_size[0] - 160, 50)
+        #UI.font22.draw(play_state.window_size[0] - 300, 30, 'LEFT', (255, 255, 255))
+        UI.infinite.draw_to_origin(play_state.window_size[0] - 70, 75, 50, 30)
+
+
     @staticmethod
     def play_shoot_sound():
         pass
 
-    def update(self):
-        self.head_trace()
-        if self.state == MOVE:
-            self.move()
-            if play_state.frame % 5 == 0:
-                self.move_frame = (self.move_frame + 1) % 8
-        else:
-            self.leg_img_now[1] = 1367
-        if self.shoot_state:
-            self.shoot()
-        else:
-            self.head_img_now[1] = 1823 - 152 * self.move_frame
-        if self.shoot_missile_state:
-            self.shoot_missile()
 
     def handle_events(self, event):
         if event.type == SDL_MOUSEBUTTONDOWN:
@@ -324,10 +345,12 @@ class Goliath(GroundObj):
 
     def shoot_missile(self):
         if self.shoot_missile_frame % self.nfs_m == 0:  # 몇프레임마다 쏠건지 1이 가장 빠름
-            Goliath.shoot_sound2.play()
-            for i in range(self.n_shot_m):
-                Missile(self)  # x1==x2 and y1==y2 일 때 False 반환
-                self.shoulder = (self.shoulder + 1) % 2  # 오른손 왼손 변경
+            if self.cur_save_missile > 0:
+                self.cur_save_missile -= 1
+                Goliath.shoot_sound2.play()
+                for i in range(self.n_shot_m):
+                    Missile(self)  # x1==x2 and y1==y2 일 때 False 반환
+                    self.shoulder = (self.shoulder + 1) % 2  # 오른손 왼손 변경
         self.shoot_missile_frame += 1
 
     @staticmethod

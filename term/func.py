@@ -40,7 +40,16 @@ def bullet_crash(bullet, obj):
         return False
 
     return True
-
+def passive_cursor(bullet):
+    if bullet.x < 450:
+        return False
+    if bullet.x > 534:
+        return False
+    if bullet.y < 50:
+        return False
+    if bullet.y > 134:
+        return False
+    return True
 
 def tir_rect_crash(bullet, unit):
     if unit.collision == False:

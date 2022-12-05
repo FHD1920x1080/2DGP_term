@@ -80,8 +80,8 @@ class Bomb(Effect):
 
 
 class Bullet32:
-    img = []  # 얘는 좀 특이하게 스프라이트 시트가 아니고 하나씩 잘라놈
-
+    orange_img = []  # 얘는 좀 특이하게 스프라이트 시트가 아니고 하나씩 잘라놈
+    blue_img = []
     hit_sound = None
 
     def __init__(self, player, x2, y2):
@@ -97,7 +97,7 @@ class Bullet32:
             return
         self.cur_speed = self.speed / self.r
         self.num = self.get_bullet_num(get_rad(self.x1, self.y1, self.x2, self.y2))
-        self.img = Bullet32.img[self.num]
+        self.img = Bullet32.blue_img[self.num]
         # self.sx, self.sy = self.get_bullet_size(self.num)
         self.exist = True  # 충돌 gn False로 바꿔줄 존재 변수
         game_world.ground_bullet.append(self)
@@ -252,7 +252,8 @@ class Bullet32:
     @staticmethod
     def load_resource():
         for i in range(0, 32):
-            Bullet32.img.append(load_image("resource\\bullet\\" + str(i) + ".png"))
+            Bullet32.orange_img.append(load_image("resource\\bullet\\bullet32_orange\\" + str(i) + ".png"))
+            Bullet32.blue_img.append(load_image("resource\\bullet\\bullet32_blue\\" + str(i) + ".png"))
         Bullet32_Effect.load_resource()
         Bullet32.hit_sound = load_wav('resource\\bullet\\hit_sound\\06.wav')
         Sound.list.append(Bullet32.hit_sound)
@@ -272,7 +273,7 @@ class Bullet32Gol(Bullet32):
         self.cos = math.cos(rad)
         self.sin = math.sin(rad)
         num = self.get_bullet_num(rad)
-        self.img = Bullet32.img[num]
+        self.img = Bullet32.orange_img[num]
         self.exist = True
         game_world.ground_bullet.append(self)
 
@@ -306,7 +307,7 @@ class Bullet32Gol(Bullet32):
                         Bullet32_Effect(self.x, self.y)
                         self.exist = False
                         obj.suffer(self.AD)
-                        break
+                        return
 
 
 class Bullet32_Effect(Effect):
@@ -407,6 +408,68 @@ class DragBull:
     def load_resource():
         DragBull.img = load_image('resource\\bullet\\dragbull.png')
         DragBullEffect.load_resource()
+
+class DragBullMarine(DragBull):
+    def __init__(self, player):
+        self.x, self.y = player.print_x(), player.print_y()  # x1, y1  # 시작 좌표
+        self.cur_size = player.drag_bull_size * 1.5
+        self.speed = 20
+        self.AD = player.AD * 2
+        self.t = 0
+        rad = get_rad(self.x, self.y, play_state.cursor.x, play_state.cursor.y)  # 두 점 사이의 거리
+        self.cos = math.cos(rad)
+        self.sin = math.sin(rad)
+        play_state.sound.Dragoon_shoot = True
+        self.img_now_x = 0
+        self.frame = 0
+        self.exist = True
+        game_world.objects[GROUND_BULLET].append(self)
+
+    def show(self):
+        self.img.clip_draw(self.img_now_x, 0, 20, 18, self.x, self.y, 40, 36)
+
+    def x_move(self, x):
+        self.x += x
+
+    def y_move(self, y):
+        self.y += y
+
+    def update(self):
+        self.move()
+        self.crash_check()
+        if play_state.frame % 10 == 0:
+            self.anim()
+
+    def die(self):
+        pass
+
+    def move(self):
+        self.x_move(self.cos * self.speed)
+        self.y_move(self.sin * self.speed)
+
+    def anim(self):
+        self.img_now_x = self.frame * 20
+        self.frame = (self.frame + 1) % 5
+
+    def crash_check(self):
+        if self.y > play_state.window_size[1] + 60 or self.y < - 60 or self.x > play_state.window_size[
+            0] + 60 or self.x < - 60:  # 지금은 화면 밖인데 나중에 벽으로 바꿀 예정, 화면 밖 멀리에 벽을 둘 예정, 또 벽에 충돌하면 먼지 이펙트같은것도 추가 예정
+            self.exist = False
+        else:
+            for obj in game_world.ground_obj:
+                if obj != play_state.player:
+                    if bullet_crash(self, obj):
+                        DragBullEffect(self)
+                        play_state.sound.Bullet32_hit = True
+                        self.exist = False
+                        return
+            for obj in game_world.fly_obj:
+                if obj != play_state.player:
+                    if bullet_crash(self, obj):
+                        DragBullEffect(self)
+                        play_state.sound.Bullet32_hit = True
+                        self.exist = False
+                        return
 
 class DragBullEffect(Bomb):
     img = None

@@ -1,10 +1,12 @@
 from pico2d import *
 from func import *
 from sound import *
+from ui import *
 import random
 import math
 import game_world
 import play_state
+
 
 # 레이어
 MAP_FLOOR, FLOOR_EFFECT, GROUND_BULLET, GROUND_OBJ, BOMB_EFFECT, GROUND_CRASH_EFFECT, AIR_BULLET, FLY_OBJ, AIR_CRASH_EFFECT = range(
