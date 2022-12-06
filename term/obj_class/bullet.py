@@ -30,6 +30,7 @@ class Bomb(Effect):
     rect_sy[2] = None  # 0,1번 사각형의 중간 값
 
     def __init__(self, bullet):
+        self.owner = bullet.owner
         self.collision = False
         self.exist = True  # 존재함
         self.print_x = bullet.x + self.print_x_gap
@@ -67,17 +68,16 @@ class Bomb(Effect):
                     if obj != play_state.player:
                         if tir_rect_crash(self, obj):
                             Bullet32_Effect(obj.stand_x, obj.stand_y, 1)
-                            obj.suffer(self.AD)
+                            obj.suffer(self.AD, 1, self.owner)
                 for obj in game_world.fly_obj:
                     if tir_rect_crash(self, obj):
                         Bullet32_Effect(obj.print_x, obj.print_y, 1, AIR_CRASH_EFFECT)
-                        obj.suffer(self.AD // 2)
+                        obj.suffer(self.AD, 1, self.owner)
         else:
             self.exist = False
 
     # def die(self):
     #     pass
-
 
 class Bullet32:
     orange_img = []  # 얘는 좀 특이하게 스프라이트 시트가 아니고 하나씩 잘라놈
@@ -85,6 +85,7 @@ class Bullet32:
     hit_sound = None
 
     def __init__(self, player, x2, y2):
+        self.owner = player
         self.x1, self.y1 = self.get_start_point(player)  # x1, y1  # 시작 좌표
         self.x2, self.y2 = x2, y2  # 가야할 좌표, 지나치고 계속 가도 됨.
         self.x, self.y = self.x1, self.y1  # 현재 좌표
@@ -236,14 +237,14 @@ class Bullet32:
                         play_state.sound.Bullet32_hit = True
                         Bullet32_Effect(self.x, self.y, 1)
                         self.exist = False
-                        obj.suffer(self.AD)
+                        obj.suffer(self.AD, 0, self.owner)
                         break  # 이제 사라진 불릿이기 때문에 다른 저글링이랑 체크 할 필요 없음
             for obj in game_world.fly_obj:
                 if bullet_crash(self, obj):
                     play_state.sound.Bullet32_hit = True
                     Bullet32_Effect(self.x, self.y, 1)
                     self.exist = False
-                    obj.suffer(self.AD)
+                    obj.suffer(self.AD, 0, self.owner)
                     break  # 이제 사라진 불릿이기 때문에 다른 저글링이랑 체크 할 필요 없음
 
     def die(self):
@@ -263,9 +264,9 @@ class Bullet32:
         Missile.load_resource()
         ZergBomb.load_resource()
 
-
 class Bullet32Gol(Bullet32):
     def __init__(self, player):
+        self.owner = player
         self.x, self.y = player.shoot_point
         self.speed = player.bullet_speed
         self.AD = player.AD
@@ -306,9 +307,8 @@ class Bullet32Gol(Bullet32):
                         play_state.sound.Bullet32_hit = True
                         Bullet32_Effect(self.x, self.y)
                         self.exist = False
-                        obj.suffer(self.AD)
+                        obj.suffer(self.AD, 0, self.owner)
                         return
-
 
 class Bullet32_Effect(Effect):
     img_red = None
@@ -343,8 +343,8 @@ class Bullet32_Effect(Effect):
 
 class DragBull:
     img = None
-
     def __init__(self, player):
+        self.owner = player
         self.x1, self.y1 = player.print_x(), player.print_y() + 5  # x1, y1  # 시작 좌표
         self.x2, self.y2 = player.bull_x2, player.bull_y2  # 가야할 좌표, 지나치고 계속 가도 됨.
         self.x, self.y = self.x1, self.y1  # 현재 좌표
@@ -397,7 +397,7 @@ class DragBull:
         if self.y > play_state.window_size[1] + 60 or self.y < - 60 or self.x > play_state.window_size[
             0] + 60 or self.x < - 60:  # 지금은 화면 밖인데 나중에 벽으로 바꿀 예정, 화면 밖 멀리에 벽을 둘 예정, 또 벽에 충돌하면 먼지 이펙트같은것도 추가 예정
             self.exist = False
-        elif self.t > 0.99:
+        elif self.t > 0.999:
             self.exist = False
 
     def anim(self):
@@ -411,6 +411,7 @@ class DragBull:
 
 class DragBullMarine(DragBull):
     def __init__(self, player):
+        self.owner = player
         self.x, self.y = player.print_x(), player.print_y()  # x1, y1  # 시작 좌표
         self.cur_size = player.drag_bull_size * 1.5
         self.speed = 20
@@ -419,7 +420,6 @@ class DragBullMarine(DragBull):
         rad = get_rad(self.x, self.y, play_state.cursor.x, play_state.cursor.y)  # 두 점 사이의 거리
         self.cos = math.cos(rad)
         self.sin = math.sin(rad)
-        play_state.sound.Dragoon_shoot = True
         self.img_now_x = 0
         self.frame = 0
         self.exist = True
@@ -508,11 +508,11 @@ class DragBullEffect(Bomb):
                     if obj != play_state.player:
                         if tir_rect_crash(self, obj):
                             Bullet32_Effect(obj.stand_x, obj.stand_y, 1)
-                            obj.suffer(self.AD, 1)
+                            obj.suffer(self.AD, 0, self.owner)
                 for obj in game_world.fly_obj:
                     if tir_rect_crash(self, obj):
                         Bullet32_Effect(obj.print_x, obj.print_y, 1, AIR_CRASH_EFFECT)
-                        obj.suffer(self.AD, 1)
+                        obj.suffer(self.AD, 0, self.owner)
         else:
             self.exist = False
 
@@ -530,11 +530,11 @@ class DragBullEffect(Bomb):
         Sound.list.append(DragBullEffect.bomb_sound)
         Sound.volume_list.append(26)
 
-
 class MutalBullet:
     img = None
 
     def __init__(self, player, x2, y2):
+        self.owner = player
         self.x1, self.y1 = player.print_x, player.print_y  # x1, y1  # 시작 좌표
         self.x2, self.y2 = x2, y2  # 가야할 좌표, 지나치고 계속 가도 됨.
         self.x, self.y = self.x1, self.y1  # 현재 좌표
@@ -579,10 +579,10 @@ class MutalBullet:
         if self.y > play_state.window_size[1] + 60 or self.y < - 60 or self.x > play_state.window_size[
             0] + 60 or self.x < - 60:  # 지금은 화면 밖인데 나중에 벽으로 바꿀 예정, 화면 밖 멀리에 벽을 둘 예정, 또 벽에 충돌하면 먼지 이펙트같은것도 추가 예정
             self.exist = False
-        elif self.t > 0.99:
+        elif self.t > 0.999:
             #여기서 충돌
             if bullet_crash(self, play_state.player):
-                play_state.player.suffer(self.AD, 1)
+                play_state.player.suffer(self.AD, 0, self.owner)
                 ZergSpark(play_state.player.hit_x(), play_state.player.hit_y())
             MutalHitEffect(self.x, self.y)
             #이펙트 추가
@@ -631,14 +631,13 @@ class ZergBomb(Bomb):
         if self.cur_frame < self.max_frame:
             self.img_now[0] += self.next_gap
             if self.cur_frame == 1:
-                ZergBomb.bomb_sound.play()
+                play_state.sound.Zerg_Bomb = True
             elif self.cur_frame == 3:
                 for obj in game_world.ground_obj:
                     if tir_rect_crash(self, obj):
                         ZergSpark(obj.stand_x, obj.stand_y)
-                        obj.suffer(self.AD, 1)
+                        obj.suffer(self.AD, 0, play_state.player)
                         #ZergBomb.bomb_sound.play()
-
         else:
             self.exist = False
 
@@ -647,6 +646,7 @@ class ZergBomb(Bomb):
 
     @staticmethod
     def play_bomb_sound():
+        ZergBomb.bomb_sound.play()
         pass
 
     @staticmethod
@@ -655,7 +655,6 @@ class ZergBomb(Bomb):
         ZergBomb.bomb_sound = load_wav('resource\\bullet\\hit_sound\\explo1_short.wav')
         Sound.list.append(ZergBomb.bomb_sound)
         Sound.volume_list.append(12)
-
 
 class MutalHitEffect(Effect):
     img = None
@@ -713,6 +712,7 @@ class Missile:
     max_speed = 27
 
     def __init__(self, player):
+        self.owner = player
         self.x, self.y = player.head_x(), player.head_y()
         self.x2 = play_state.cursor.x
         self.y2 = play_state.cursor.y
@@ -904,7 +904,7 @@ class Missile:
                 self.exist = False
                 Missile.hit_sound.play()
                 MissileHitEffect(self.x, self.y)
-                self.lock_on_obj.suffer(self.AD)
+                self.lock_on_obj.suffer(self.AD, 0, self.owner)
         self.time += 1
 
     def die(self):

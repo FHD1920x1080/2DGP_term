@@ -22,10 +22,10 @@ class Dragoon(GroundObj):
     hit_y_gap = 18
     exist = True  # 존재 변수 삭제 할지 판정
     collision = True  # 충돌체크 함.
-    shoot_sound1 = None
-    shoot_sound2 = None
+    shoot_sound = None
 
     def __init__(self):
+        self.kill = 0
         self.stand_x = play_state.window_size[0] / 2
         self.stand_y = 100
         self.hp = 300  # 체력
@@ -41,7 +41,7 @@ class Dragoon(GroundObj):
         self.wait_frame = 0
         self.shoot_frame = 0
         self.die_frame = 0
-        self.speed = 4
+        self.speed = 3.5
         self.state = IDLE
         self.Wmove_able = False
         self.Hmove_able = False
@@ -95,7 +95,7 @@ class Dragoon(GroundObj):
     def show_sub_ui(self):
         pass
 
-    def suffer(self, damage, attack_type=0):  # 피격당하면 해줄것
+    def suffer(self, damage, attack_type=0, owner=None):  # 피격당하면 해줄것
         if attack_type == 1: # 폭발형은 절반
             self.hp -= damage / 2
         else:
@@ -103,13 +103,12 @@ class Dragoon(GroundObj):
         if self.hp <= 0:
             pass
 
+    def add_kill(self):
+        self.kill += 1
+
     @staticmethod
     def play_shoot_sound():
-        i = random.randint(0, 1)
-        if i == 0:
-            Dragoon.shoot_sound1.play()
-        else:
-            Dragoon.shoot_sound2.play()
+        Dragoon.shoot_sound.play()
 
     def update(self):
         if self.state == MOVE:
@@ -160,15 +159,16 @@ class Dragoon(GroundObj):
             elif event.key == SDLK_s:
                 User_input.down_key = True
                 self.state = MOVE
-            elif event.key == SDLK_r:
+            elif event.key == SDLK_p:
+                self.AD += 1
+            elif event.key == SDLK_o:
+                self.AD = max(self.AD - 1, 0)
+            elif event.key == SDLK_l:
                 self.bull_size += 0.1
-            elif event.key == SDLK_f:
+            elif event.key == SDLK_k:
                 self.bull_size -= 0.1
                 if self.bull_size < 0.1:
                     self.bull_size = 0.1
-            elif event.key == SDLK_t:
-                self.bull_size = 12
-                self.AD = 20
         elif event.type == SDL_KEYUP:
             if event.key == SDLK_a:
                 User_input.left_key = False
@@ -310,9 +310,6 @@ class Dragoon(GroundObj):
     def load_resource():
         Dragoon.img = load_image('resource\\dragoon\\dragoon200_green.png')
         Dragoon.portrait = load_image('resource\\dragoon\\dragoon_portrait.png')
-        Dragoon.shoot_sound1 = load_wav('resource\\dragoon\\sound\\dragbull.wav')
-        Dragoon.shoot_sound2 = load_wav('resource\\dragoon\\sound\\tphfi201.wav')
-        Sound.list.append(Dragoon.shoot_sound1)
-        Sound.volume_list.append(10)
-        Sound.list.append(Dragoon.shoot_sound2)
+        Dragoon.shoot_sound = load_wav('resource\\dragoon\\sound\\dragbull.wav')
+        Sound.list.append(Dragoon.shoot_sound)
         Sound.volume_list.append(10)

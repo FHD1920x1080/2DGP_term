@@ -25,13 +25,12 @@ class Marine(GroundObj):
     exist = True  # 존재 변수 삭제 할지 판정
     collision = True  # 충돌체크 함.
 
-    hit_sound = None
-    shoot_sound00 = None
-    shoot_sound01 = None
-    shoot_sound02 = None
-    shoot_sound03 = None
+    shoot_sound = None
+    shoot_sound2 = None
+
 
     def __init__(self):
+        self.kill = 0
         self.stand_x = play_state.window_size[0] / 2  # 마린이 서있는 좌표
         self.stand_y = 100
         self.face_dir = 0  # 얼굴 방향
@@ -126,25 +125,34 @@ class Marine(GroundObj):
         UI.skill_icon.clip_draw_to_origin(88 * 7 - 2, 88 * 8 + 11, 84, 84, play_state.window_size[0] - 160, 50)
         #UI.font22.draw(play_state.window_size[0] - 300, 30, 'LEFT', (255, 255, 255))
         UI.infinite.draw_to_origin(play_state.window_size[0] - 70, 75, 50, 30)
+
     def show_sub_ui(self):
-        UI.skill_icon.clip_draw_to_origin(200, 200,84,84, 200,200)
+        pass
+
+    def suffer(self, damage, attack_type=0, owner=None):  # 피격당하면 해줄것
+        self.hp -= damage
+        if self.hp <= 0:
+            pass
+
+    def add_kill(self):
+        self.kill += 1
 
     @staticmethod
     def play_shoot_sound():
-        i = random.randint(0, 3)
-        if i == 0:
-            Marine.shoot_sound00.play()
-        elif i == 1:
-            Marine.shoot_sound01.play()
-        elif i == 2:
-            Marine.shoot_sound02.play()
-        elif i == 3:
-            Marine.shoot_sound03.play()
+        Marine.shoot_sound.play()
+        # i = random.randint(0, 3)
+        # if i == 0:
+        #     Marine.shoot_sound00.play()
+        # elif i == 1:
+        #     Marine.shoot_sound01.play()
+        # elif i == 2:
+        #     Marine.shoot_sound02.play()
+        # elif i == 3:
+        #     Marine.shoot_sound03.play()
+    @staticmethod
+    def play_shoot2_sound():
+        Marine.shoot_sound2.play()
 
-    # def x_move(self, x):
-    #     self.stand_x += x
-    #
-    # def y_move(self, y):
     def update(self):
         self.check_magazine()
         if self.dash_state:
@@ -208,16 +216,28 @@ class Marine(GroundObj):
                 User_input.up_key = True
             elif event.key == SDLK_s:
                 User_input.down_key = True
-            elif event.key == SDLK_e:
-                self.bullet_speed += 1
-            elif event.key == SDLK_q:
-                self.bullet_speed -= 1
-            elif event.key == SDLK_r:
-                self.nfs -= 1
-                if self.nfs <= 0:
-                    self.nfs = 1
-            elif event.key == SDLK_f:
-                self.nfs += 1
+            elif event.key == SDLK_p:
+                self.AD += 1
+            elif event.key == SDLK_o:
+                self.AD = max(self.AD - 1, 0)
+            elif event.key == SDLK_l:
+                if self.magazine_gun:
+                    self.nfs -= 2
+                    self.nfs = max(self.nfs - 2, 2)
+                else:
+                    self.nfs -= 1
+                    self.nfs = max(self.nfs - 1, 1)
+            elif event.key == SDLK_k:
+                if self.magazine_gun:
+                    self.nfs += 2
+                    self.nfs = min(self.nfs + 2, 40)
+                else:
+                    self.nfs += 1
+                    self.nfs = min(self.nfs + 1, 20)
+            elif event.key == SDLK_m:
+                self.n_shot = min(self.n_shot + 1, 5)
+            elif event.key == SDLK_n:
+                self.n_shot = max(self.n_shot - 1, 1)
             elif event.key == SDLK_g:
                 if self.moving_attack:
                     self.moving_attack = False
@@ -513,10 +533,10 @@ class Marine(GroundObj):
                 play_state.sound.Marine_shoot = True
                 a = get_rad(self.stand_x, self.stand_y, play_state.cursor.x, play_state.cursor.y)
                 self.face_dir = self.get_face_dir(a)  # 각도를 가지고 마린이 바라볼 방향 정함.
-                x2, y2 = play_state.cursor.x + random.randint(-self.accuracy,
-                                                              self.accuracy), play_state.cursor.y + random.randint(
-                    -self.accuracy, self.accuracy)
                 for i in range(self.n_shot):
+                    x2, y2 = play_state.cursor.x + random.randint(-self.accuracy,
+                                                                  self.accuracy), play_state.cursor.y + random.randint(
+                        -self.accuracy, self.accuracy)
                     Bullet32(self, x2, y2)  # x1==x2 and y1==y2 일 때 False 반환
                 self.shoot_idle = False
                 self.idle = False
@@ -534,6 +554,7 @@ class Marine(GroundObj):
                 self.shoot_idle = False
                 self.idle = False
                 DragBullMarine(self)
+                play_state.sound.Marine_shoot2 = True
                 self.cur_drag_bull_cool_time = self.drag_bull_cool_time
         if self.cur_drag_bull_cool_time > self.drag_bull_cool_time - 5:
             self.img_now = 30 + (160 * self.face_dir), 1620  # 격발 이미지
@@ -542,15 +563,9 @@ class Marine(GroundObj):
     def load_resource():
         Marine.img = load_image('resource\\marine\\marine250x2_blue_blue.png')
         Marine.portrait = load_image('resource\\marine\\marine_portrait.png')
-        Marine.shoot_sound00 = load_wav('resource\\marine\\shoot_sound\\00.wav')
-        Marine.shoot_sound01 = load_wav('resource\\marine\\shoot_sound\\01.wav')
-        Marine.shoot_sound02 = load_wav('resource\\marine\\shoot_sound\\02.wav')
-        Marine.shoot_sound03 = load_wav('resource\\marine\\shoot_sound\\03.wav')
-        Sound.list.append(Marine.shoot_sound00)
+        Marine.shoot_sound = load_wav('resource\\marine\\shoot_sound\\laserhit.wav')
+        Marine.shoot_sound2 = load_wav('resource\\marine\\shoot_sound\\lasrhit3v2.wav')
+        Sound.list.append(Marine.shoot_sound)
         Sound.volume_list.append(16)
-        Sound.list.append(Marine.shoot_sound01)
-        Sound.volume_list.append(16)
-        Sound.list.append(Marine.shoot_sound02)
-        Sound.volume_list.append(16)
-        Sound.list.append(Marine.shoot_sound03)
+        Sound.list.append(Marine.shoot_sound2)
         Sound.volume_list.append(16)

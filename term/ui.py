@@ -1,4 +1,6 @@
 from pico2d import*
+
+import game_world
 import play_state
 
 class UI:
@@ -32,10 +34,11 @@ class UI:
     @staticmethod
     def show():
         play_state.player.show_main_ui()
-        UI.show_sub_portrait(68, 352, play_state.sub_unit1)
-        UI.show_sub_hp_bar(126, 302, play_state.sub_unit1)
-        UI.show_sub_portrait(68, 222, play_state.sub_unit2)
-        UI.show_sub_hp_bar(126, 172, play_state.sub_unit2)
+        UI.font22.draw(20, 450, f'Total:{game_world.Marine.kill + game_world.Goliath.kill + game_world.Dragoon.kill}', (255, 255, 255))
+        UI.show_sub_portrait(68, 352, play_state.sub_unit2)
+        UI.show_sub_hp_bar(126, 302, play_state.sub_unit2)
+        UI.show_sub_portrait(68, 222, play_state.sub_unit1)
+        UI.show_sub_hp_bar(126, 172, play_state.sub_unit1)
         UI.show_main_portrait(80, 82, play_state.player)
         UI.show_main_hp_bar(150, 20, play_state.player)
 
@@ -68,6 +71,8 @@ class UI:
     @staticmethod
     def show_main_hp_bar(x, y, unit):
         UI.hp_bar_frame.draw_to_origin(x, y, 259, 38)
+        UI.font22.draw(x + 10, y + 60, f'Kill:{unit.kill:}', (255, 255, 255))
+
         hp = unit.hp/unit.max_hp
         if hp > 0.3:
             if hp > 0.85:
@@ -92,6 +97,8 @@ class UI:
     @staticmethod
     def show_sub_hp_bar(x, y, unit):
         UI.hp_bar_frame.draw_to_origin(x, y, 259 * UI.sub, 38 * UI.sub)
+        UI.font16.draw(x + 10, y + 50, f'Kill:{unit.kill:}', (255, 255, 255))
+
         hp = unit.hp / unit.max_hp
         if hp > 0.85:
             UI.green.draw_to_origin(x + 4, y + 4, UI.hp_bar_max * hp * UI.sub, 30 * UI.sub)

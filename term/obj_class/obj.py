@@ -75,7 +75,7 @@ class GroundObj:
     def update(self):
         pass
 
-    def suffer(self, damage, attack_type=0):  # 피격당하면 해줄것
+    def suffer(self, damage, owner=None, attack_type=0): #attack_type 0 : 일반, 1 : 폭발
         self.hp -= damage
         pass
 

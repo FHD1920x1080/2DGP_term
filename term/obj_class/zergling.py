@@ -97,11 +97,12 @@ class Zergling(GroundObj):
                 self.move_frame = (self.move_frame + 1) % 7
                 self.cur_speed = Zergling.get_speed(self)
 
-    def suffer(self, damage, attack_type=0):  # 피격당하면 해줄것
+    def suffer(self, damage, attack_type=0, owner=None):  # 피격당하면 해줄것
         self.hp -= damage
         if self.hp <= 0:
             self.exist = False  # 마지막에 한번에 삭제해줄 것이고 지금은 아님
             self.collision = False  # 충돌체크 안함
+            owner.add_kill()
             return
         if self.state != 1:
             self.state = 1
@@ -405,6 +406,7 @@ class BombZergling(Zergling):
             self.y = self.stand_y
             self.cur_size = 1.0
             self.index = i
+            self.owner = self
             ZergBomb(self)
             # dz = DieZergling(self.stand_x, self.stand_y)
             # game_world.ground_obj.insert(i + 1, dz)

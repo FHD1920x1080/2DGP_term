@@ -5,15 +5,13 @@ from obj_class.bullet import *
 from obj_class.zergling import *
 from obj_class.zealot import *
 from obj_class.mutal import *
-from map import Map
-from cursor import Cursor
 from ui import UI
 from sound import Sound
 import camera # 얘는 객체가 아님
 
 import game_world
 import game_framework
-
+import pause_state
 
 # 1. 게임 초기화
 window_size = [1920, 1080]
@@ -29,7 +27,7 @@ change_character_cool_time = 300
 cur_change_character_cool_time = 0
 
 def enter():
-    global frame, sound, cursor, player, sub_unit1, sub_unit2
+    global frame, sound, player, sub_unit1, sub_unit2
     sound = Sound()
     Sound.volume_set_up()
     frame = 0
@@ -45,6 +43,7 @@ def enter():
     BombZergling.zm = 0.002
     Zealot.zm = 0.004
     Mutal.zm = 0.0015
+    Sound.music[random.randint(0, 1)].repeat_play()
     # UnitState.red = load_image('red.png')
 
 
@@ -57,7 +56,7 @@ def handle_events():
             cursor.x, cursor.y = event.x, window_size[1] - 1 - event.y
         if event.type == SDL_KEYDOWN:
             if event.key == SDLK_ESCAPE:
-                game_framework.quit()
+                game_framework.push_state(pause_state)
             elif event.key == SDLK_1:
                 if player.unit_type != 0 and cur_change_character_cool_time == 0:
                     change_character(1)
@@ -70,12 +69,14 @@ def handle_events():
                 if player.unit_type != 2 and cur_change_character_cool_time == 0:
                     change_character(3)
                     cur_change_character_cool_time = change_character_cool_time
-            elif event.key == SDLK_o:
+            elif event.key == SDLK_9:
                 Zergling.zm = 0.01
                 BombZergling.zm = 0.002
                 Zealot.zm = 0.004
                 Mutal.zm = 0.0015
-            elif event.key == SDLK_p:
+                game_world.Marine.dash_cool_time = 100
+                game_world.Marine.drag_bull_cool_time = 300
+            elif event.key == SDLK_0:
                 Zergling.zm = 0.1
                 BombZergling.zm = 0.02
                 Zealot.zm = 0.04
@@ -86,6 +87,7 @@ def handle_events():
                 game_world.Marine.n_shot = 1
                 game_world.Marine.speed = 4
                 game_world.Marine.drag_bull_size = 2.0
+                game_world.Marine.dash_cool_time = 50
                 game_world.Marine.drag_bull_cool_time = 100
                 #game_world.Dragoon.speed = 6
                 game_world.Dragoon.bull_size = 5
@@ -127,7 +129,7 @@ def update():
         sub_unit1.hp = clamp(0, sub_unit1.hp, sub_unit1.max_hp)
         sub_unit2.hp += 1
         sub_unit2.hp = clamp(0, sub_unit2.hp, sub_unit2.max_hp)
-    camera.moving()
+    #camera.moving()
 
 
 def draw_world():

@@ -77,12 +77,13 @@ class Zealot(GroundObj):
             self.x_move_point(play_state.window_size[0] - self.stand_sx)
             self.direction = random.randrange(1, 3)
 
-    def suffer(self, damage, attack_type=0):#피격당하면 해줄것
+    def suffer(self, damage, attack_type=0, owner=None):#피격당하면 해줄것
         self.hp -= damage
         pass
         if self.hp <= 0:
             self.exist = False  # 마지막에 한번에 삭제해줄 것이고 지금은 아님
             self.collision = False  # 충돌체크 안함
+            owner.add_kill()
             return
         if self.state != 1:
             self.state = 1

@@ -23,10 +23,12 @@ class Goliath(GroundObj):
     head_gap = 40
     exist = True  # 존재 변수 삭제 할지 판정
     collision = True  # 충돌체크 함.
-    shoot_sound1 = None
+
+    shoot_sound = [None, None, None, None, None, None]
     shoot_sound2 = None
 
     def __init__(self):
+        self.kill = 0
         self.stand_x = play_state.window_size[0] / 2
         self.stand_y = 100
         self.hand = 0
@@ -138,11 +140,24 @@ class Goliath(GroundObj):
         #UI.font22.draw(play_state.window_size[0] - 300, 30, 'LEFT', (255, 255, 255))
         UI.infinite.draw_to_origin(play_state.window_size[0] - 70, 75, 50, 30)
 
+    def show_sub_ui(self):
+        pass
+
+    def suffer(self, damage, attack_type=0, owner=None):  # 피격당하면 해줄것
+        self.hp -= damage
+        if self.hp <= 0:
+            pass
+
+    def add_kill(self):
+        self.kill += 1
 
     @staticmethod
     def play_shoot_sound():
-        pass
-
+        i = random.randint(0, 5)
+        Goliath.shoot_sound[i].play()
+    @staticmethod
+    def play_shoot2_sound():
+        Goliath.shoot_sound2.play()
 
     def handle_events(self, event):
         if event.type == SDL_MOUSEBUTTONDOWN:
@@ -180,6 +195,24 @@ class Goliath(GroundObj):
             elif event.key == SDLK_s:
                 User_input.down_key = True
                 self.state = MOVE
+            elif event.key == SDLK_p:
+                self.AD += 1
+            elif event.key == SDLK_o:
+                self.AD = max(self.AD - 1, 0)
+            elif event.key == SDLK_l:
+                self.nfs -= 1
+                self.nfs = max(self.nfs - 1, 2)
+            elif event.key == SDLK_k:
+                self.nfs += 1
+                self.nfs = min(self.nfs + 1, 20)
+            elif event.key == SDLK_m:
+                self.n_shot = min(self.n_shot + 1, 8)
+            elif event.key == SDLK_n:
+                self.n_shot = max(self.n_shot - 1, 1)
+            elif event.key == SDLK_PERIOD:
+                self.n_shot_m = min(self.n_shot_m + 1, 8)
+            elif event.key == SDLK_COMMA:
+                self.n_shot_m = max(self.n_shot_m - 1, 1)
         elif event.type == SDL_KEYUP:
             if event.key == SDLK_a:
                 User_input.left_key = False
@@ -329,7 +362,7 @@ class Goliath(GroundObj):
 
     def shoot(self):
         if self.shoot_frame % self.nfs == 0:  # 몇프레임마다 쏠건지 1이 가장 빠름
-            play_state.sound.Marine_shoot = True
+            play_state.sound.Goliath_shoot = True
             if self.hand == 0:
                 self.shoot_point = self.right_hand[self.face_dir].copy()
                 self.head_img_now = [14 + 152 * self.face_dir, 1823 - 152 * 11]
@@ -354,7 +387,7 @@ class Goliath(GroundObj):
         if self.shoot_missile_frame % self.nfs_m == 0:  # 몇프레임마다 쏠건지 1이 가장 빠름
             if self.cur_save_missile > 0:
                 self.cur_save_missile -= 1
-                Goliath.shoot_sound2.play()
+                play_state.sound.Goliath_shoot2 = True
                 for i in range(self.n_shot_m):
                     Missile(self)  # x1==x2 and y1==y2 일 때 False 반환
                     self.shoulder = (self.shoulder + 1) % 2  # 오른손 왼손 변경
@@ -417,10 +450,24 @@ class Goliath(GroundObj):
         Goliath.head_img = load_image('resource\\goliath\\goliath_head200x2v2_eva.png')
         Goliath.leg_img = load_image('resource\\goliath\\goliath_leg200x2_eva.png')
         Goliath.portrait = load_image('resource\\goliath\\goliath_portrait.png')
-        # Goliath.portrait = load_image('resource\\goliath\\goliath_portrait.png')
-        #Goliath.shoot_sound1 = load_wav('resource\\goliath\\sound\\dragbull.wav')
-        # Sound.list.append(Goliath.shoot_sound1)
-        # Sound.volume_list.append(10)
-        Goliath.shoot_sound2 = load_wav('resource\\goliath\\pinlau001.wav')
+        Goliath.shoot_sound[0] = load_wav('resource\\goliath\\shoot_sound\\00.wav')
+        Goliath.shoot_sound[1] = load_wav('resource\\goliath\\shoot_sound\\01.wav')
+        Goliath.shoot_sound[2] = load_wav('resource\\goliath\\shoot_sound\\02.wav')
+        Goliath.shoot_sound[3] = load_wav('resource\\goliath\\shoot_sound\\03.wav')
+        Goliath.shoot_sound[4] = load_wav('resource\\goliath\\shoot_sound\\04.wav')
+        Goliath.shoot_sound[5] = load_wav('resource\\goliath\\shoot_sound\\05.wav')
+        Sound.list.append(Goliath.shoot_sound[0])
+        Sound.volume_list.append(16)
+        Sound.list.append(Goliath.shoot_sound[1])
+        Sound.volume_list.append(16)
+        Sound.list.append(Goliath.shoot_sound[2])
+        Sound.volume_list.append(16)
+        Sound.list.append(Goliath.shoot_sound[3])
+        Sound.volume_list.append(16)
+        Sound.list.append(Goliath.shoot_sound[4])
+        Sound.volume_list.append(16)
+        Sound.list.append(Goliath.shoot_sound[5])
+        Sound.volume_list.append(16)
+        Goliath.shoot_sound2 = load_wav('resource\\goliath\\shoot_sound\\pinlau001.wav')
         Sound.list.append(Goliath.shoot_sound2)
         Sound.volume_list.append(10)

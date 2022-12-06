@@ -27,7 +27,7 @@ class Mutal(FlyObj):
     accel = 0.05
     zm = 0.002
 
-    hit_sound = None
+    shoot_sound = None
 
     start_pos = None
 
@@ -55,8 +55,8 @@ class Mutal(FlyObj):
         self.sin = None
 
     @staticmethod
-    def play_hit_sound():
-        Mutal.hit_sound.play()
+    def play_shoot_sound():
+        Mutal.shoot_sound.play()
         pass
 
     def stop(self):
@@ -72,7 +72,7 @@ class Mutal(FlyObj):
             if self.time % 3 == 0:
                 self.move_frame = (self.move_frame + 1) % 5
 
-    def suffer(self, damage, attack_type=0):  # 피격당하면 해줄것
+    def suffer(self, damage, attack_type=0, owner=None):  # 피격당하면 해줄것
         if attack_type == 1: # 폭발형은 절반
             self.hp -= damage / 2
         else:
@@ -80,6 +80,7 @@ class Mutal(FlyObj):
         if self.hp <= 0:
             self.exist = False  # 마지막에 한번에 삭제해줄 것이고 지금은 아님
             self.collision = False  # 충돌체크 안함
+            owner.add_kill()
         pass
 
     def update(self):
@@ -131,7 +132,7 @@ class Mutal(FlyObj):
         if self.time % 4 == 0:
             self.img_now = 56 + 256 * self.face_dir, 1100 - 256 * self.attack_frame
             if self.attack_frame == 0:
-                play_state.sound.Mutal_hit = True
+                play_state.sound.Mutal_shoot = True
             elif self.attack_frame > 4:  # 여기서는 0, 1, 2, 3 ,4 동안 머물고 5가 되면 나감
                 MutalBullet(self, play_state.player.hit_x(), play_state.player.hit_y())
                 self.state = WAIT
@@ -213,8 +214,8 @@ class Mutal(FlyObj):
         Mutal.start_pos = play_state.window_size[1] // 3 * 2
         Mutal.img = load_image("resource\\mutal\\mutal200x2_red.png")
         Mutal.shadow = load_image("resource\\mutal\\mutal_shad200x2_30.png")
-        Mutal.hit_sound = load_wav('resource\\mutal\\zmufir00.wav')
-        Sound.list.append(Mutal.hit_sound)
+        Mutal.shoot_sound = load_wav('resource\\mutal\\zmufir160.wav')
+        Sound.list.append(Mutal.shoot_sound)
         Sound.volume_list.append(6)
         DieMutal.load_resource()
 
@@ -250,6 +251,6 @@ class DieMutal(Effect):
     @staticmethod
     def load_resource():
         DieMutal.img = load_image("resource\\mutal\\die_mutal200_80.png")
-        DieMutal.sound = load_wav('resource\\mutal\\zmudth00.wav')
+        DieMutal.sound = load_wav('resource\\mutal\\zmudth11.wav')
         Sound.list.append(DieMutal.sound)
         Sound.volume_list.append(8)

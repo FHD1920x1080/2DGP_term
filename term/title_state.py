@@ -6,6 +6,7 @@ import obj_class.zergling
 import obj_class.zealot
 import obj_class.mutal
 import ui
+import sound
 import map
 
 
@@ -19,6 +20,7 @@ def load_resource():
     obj_class.mutal.Mutal.load_resource()
     ui.UI.load_resource()
     map.Map.load_resource()
+    sound.Sound.load_resource()
 
 
 from pico2d import *
