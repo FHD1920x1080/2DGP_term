@@ -20,10 +20,10 @@ class Zergling(GroundObj):
 
     exist = True  # 존재 변수 삭제 할지 판정
     collision = True  # 충돌체크 함.s
-    hp = 6
+    hp = 12
     speed = 3
     anger_speed = 4
-    AD = 1
+    AD = 2
     speed_sup = speed / 3  # 저글링은 프레임마다 속도가 달라서 만들어준 변수 기본속도가 3이라고 가정하고 만듦
     zm = 0.01
     rd = 500
@@ -97,7 +97,7 @@ class Zergling(GroundObj):
                 self.move_frame = (self.move_frame + 1) % 7
                 self.cur_speed = Zergling.get_speed(self)
 
-    def suffer(self, damage):  # 피격당하면 해줄것
+    def suffer(self, damage, attack_type=0):  # 피격당하면 해줄것
         self.hp -= damage
         if self.hp <= 0:
             self.exist = False  # 마지막에 한번에 삭제해줄 것이고 지금은 아님
@@ -352,12 +352,13 @@ class BombZergling(Zergling):
     img = None
     speed = 3.5
     anger_speed = 4.5
+    zm = 0.002
 
     collision_type = 2 # 남을 밀어냄
     def __init__(self, x, y):
         super().__init__(x, y)
         # self.img = BombZergling.img
-        self.AD = 10
+        self.AD = 20
 
     def lock_on_move(self):
         # if self.move_frame % 4 == 0:

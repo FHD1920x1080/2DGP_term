@@ -30,7 +30,7 @@ class Dragoon(GroundObj):
         self.stand_y = 100
         self.hp = 300  # 체력
         self.max_hp = 300
-        self.AD = 6
+        self.AD = 12
         self.img = Dragoon.img
         self.state = IDLE
         self.img_now = [0, 1344]
@@ -71,15 +71,21 @@ class Dragoon(GroundObj):
 
 
     def show_passive(self):
-        UI.font22.draw(550, 90, '폭발형 저글링과 뮤탈에게', (255, 255, 255))
-        UI.font22.draw(550, 65, '절반의 피해만 입는다.', (255, 255, 255))
-
+        UI.font16.draw(550, 115, '폭발형 저글링과 뮤탈에게', (255, 255, 255))
+        UI.font16.draw(550, 90, '절반의 피해만 입는다.', (255, 255, 255))
+        UI.font16.draw(550, 65, '드라군의 공격은 공중 유닛에게 절반의 피해만 준다.', (255, 255, 255))
+    def show_right(self):
+        UI.font16.draw(play_state.window_size[0] - 280, 150, '미구현', (255, 255, 255))
+    def show_left(self):
+        UI.font16.draw(play_state.window_size[0] - 200, 200, '가속을 받아 날아가며,', (255, 255, 255))
+        UI.font16.draw(play_state.window_size[0] - 200, 175, '지정한 위치에서 폭발', (255, 255, 255))
+        UI.font16.draw(play_state.window_size[0] - 160, 150, f'피해량:{self.AD}', (255, 255, 255))
     def show_main_ui(self):
         UI.skill_icon.clip_draw_to_origin(88 * 4, 88 * 11 + 13, 84, 84, 450, 50)
         UI.font22.draw(450, 30, 'PASSIVE', (255, 255, 255))
 
         UI.skill_icon.clip_draw_to_origin(1, 88 * 14 + 17, 84, 84, play_state.window_size[0] - 300, 50)
-        UI.font22.draw(play_state.window_size[0] - 300, 30, '미구현', (255, 255, 255))
+        UI.font22.draw(play_state.window_size[0] - 288, 30, 'RIGHT', (255, 255, 255))
 
 
         UI.skill_icon.clip_draw_to_origin(88 * 7 - 2, 88 * 12 + 13, 84, 84, play_state.window_size[0] - 160, 48)
@@ -88,6 +94,14 @@ class Dragoon(GroundObj):
 
     def show_sub_ui(self):
         pass
+
+    def suffer(self, damage, attack_type=0):  # 피격당하면 해줄것
+        if attack_type == 1: # 폭발형은 절반
+            self.hp -= damage / 2
+        else:
+            self.hp -= damage
+        if self.hp <= 0:
+            pass
 
     @staticmethod
     def play_shoot_sound():

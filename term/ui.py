@@ -87,7 +87,7 @@ class UI:
                 UI.deep_red.draw_to_origin(x + 4, y + 4, UI.hp_bar_max * hp, 30)
             UI.warning.clip_draw_to_origin(UI.warning_img_now * 320, 0, 320, 180, 0, 0, 1920, 1080)
             UI.warning_anim()
-        UI.font22.draw(x+170, y+19, f'{unit.hp:3d}/{unit.max_hp}', (255, 255, 255))
+        UI.font22.draw(x+170, y+19, f'{unit.hp:3.0f}/{unit.max_hp}', (255, 255, 255))
 
     @staticmethod
     def show_sub_hp_bar(x, y, unit):
@@ -105,7 +105,7 @@ class UI:
             UI.red.draw_to_origin(x + 4, y + 4, UI.hp_bar_max * hp * UI.sub, 30 * UI.sub)
         else:
             UI.deep_red.draw_to_origin(x + 4, y + 4, UI.hp_bar_max * hp * UI.sub, 30 * UI.sub)
-        UI.font16.draw(x + 140, y + 15, f'{unit.hp:3d}/{unit.max_hp}', (255, 255, 255))
+        UI.font16.draw(x + 140, y + 15, f'{unit.hp:3.0f}/{unit.max_hp}', (255, 255, 255))
 
 
     @staticmethod

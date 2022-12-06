@@ -40,14 +40,34 @@ def bullet_crash(bullet, obj):
         return False
 
     return True
-def passive_cursor(bullet):
-    if bullet.x < 450:
+def passive_cursor(cursor):
+    if cursor.x < 450:
         return False
-    if bullet.x > 534:
+    if cursor.x > 534:
         return False
-    if bullet.y < 50:
+    if cursor.y < 50:
         return False
-    if bullet.y > 134:
+    if cursor.y > 134:
+        return False
+    return True
+def right_cursor(cursor):
+    if cursor.x < play_state.window_size[0] - 300:
+        return False
+    if cursor.x > play_state.window_size[0] - 216:
+        return False
+    if cursor.y < 50:
+        return False
+    if cursor.y > 134:
+        return False
+    return True
+def left_cursor(cursor):
+    if cursor.x < play_state.window_size[0] - 160:
+        return False
+    if cursor.x > play_state.window_size[0] - 76:
+        return False
+    if cursor.y < 50:
+        return False
+    if cursor.y > 134:
         return False
     return True
 

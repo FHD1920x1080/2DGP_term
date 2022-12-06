@@ -234,14 +234,14 @@ class Bullet32:
                 if obj != play_state.player:  # 주인공은 지 몸땡이에서 총알 쏴서 충돌체크 하면 안됨.
                     if bullet_crash(self, obj):
                         play_state.sound.Bullet32_hit = True
-                        Bullet32_Effect(self.x, self.y)
+                        Bullet32_Effect(self.x, self.y, 1)
                         self.exist = False
                         obj.suffer(self.AD)
                         break  # 이제 사라진 불릿이기 때문에 다른 저글링이랑 체크 할 필요 없음
             for obj in game_world.fly_obj:
                 if bullet_crash(self, obj):
                     play_state.sound.Bullet32_hit = True
-                    Bullet32_Effect(self.x, self.y)
+                    Bullet32_Effect(self.x, self.y, 1)
                     self.exist = False
                     obj.suffer(self.AD)
                     break  # 이제 사라진 불릿이기 때문에 다른 저글링이랑 체크 할 필요 없음
@@ -508,11 +508,11 @@ class DragBullEffect(Bomb):
                     if obj != play_state.player:
                         if tir_rect_crash(self, obj):
                             Bullet32_Effect(obj.stand_x, obj.stand_y, 1)
-                            obj.suffer(self.AD)
+                            obj.suffer(self.AD, 1)
                 for obj in game_world.fly_obj:
                     if tir_rect_crash(self, obj):
                         Bullet32_Effect(obj.print_x, obj.print_y, 1, AIR_CRASH_EFFECT)
-                        obj.suffer(self.AD // 2)
+                        obj.suffer(self.AD, 1)
         else:
             self.exist = False
 
@@ -582,7 +582,7 @@ class MutalBullet:
         elif self.t > 0.99:
             #여기서 충돌
             if bullet_crash(self, play_state.player):
-                play_state.player.suffer(self.AD)
+                play_state.player.suffer(self.AD, 1)
                 ZergSpark(play_state.player.hit_x(), play_state.player.hit_y())
             MutalHitEffect(self.x, self.y)
             #이펙트 추가
@@ -636,7 +636,7 @@ class ZergBomb(Bomb):
                 for obj in game_world.ground_obj:
                     if tir_rect_crash(self, obj):
                         ZergSpark(obj.stand_x, obj.stand_y)
-                        obj.suffer(self.AD)
+                        obj.suffer(self.AD, 1)
                         #ZergBomb.bomb_sound.play()
 
         else:

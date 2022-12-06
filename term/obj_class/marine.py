@@ -37,7 +37,7 @@ class Marine(GroundObj):
         self.face_dir = 0  # 얼굴 방향
         self.hp = 200  # 체력
         self.max_hp = 200
-        self.AD = 3  # 공격력
+        self.AD = 6  # 공격력
         self.img = Marine.img
         self.img_now = [30, 2180 - 80 - 320]  # 스프라이트 좌표
         self.speed = 2.5  # 이동속도w
@@ -94,7 +94,17 @@ class Marine(GroundObj):
         self.cur_portrait_max_frame = self.portrait_max_frame[self.portrait_state]
 
     def show_passive(self):
-        UI.font22.draw(550, 90, '쿨타임이 1초인 대시', (255, 255, 255))
+        UI.font16.draw(550, 115, 'TAB키를 이용해 발사모드를 변경할 수 있다.', (255, 255, 255))
+        UI.font16.draw(550, 90, '점사모드는의 연사력이 두배 빠르다.', (255, 255, 255))
+        UI.font16.draw(550, 65, '마린의 공격은 지상과 공중 구분이 없다.', (255, 255, 255))
+        UI.font16.draw(550, 40, 'SPACE: 쿨타임이 1초인 대쉬', (255, 255, 255))
+    def show_right(self):
+        UI.font16.draw(play_state.window_size[0] - 340, 175, '충돌 시 폭발 하는 로켓', (255, 255, 255))
+        UI.font16.draw(play_state.window_size[0] - 300, 150, f'피해량:{self.AD*2}', (255, 255, 255))
+    def show_left(self):
+        UI.font16.draw(play_state.window_size[0] - 195, 200, '가까이 조준 할수록', (255, 255, 255))
+        UI.font16.draw(play_state.window_size[0] - 185, 175, '집탄률이 떨어짐', (255, 255, 255))
+        UI.font16.draw(play_state.window_size[0] - 155, 150, f'피해량:{self.AD}', (255, 255, 255))
 
     def show_main_ui(self):
         UI.skill_icon.clip_draw_to_origin(1, 88 * 13 + 15, 84, 84, 450, 48)
@@ -106,7 +116,7 @@ class Marine(GroundObj):
 
 
         UI.skill_icon.clip_draw_to_origin(1, 2, 84, 84, play_state.window_size[0] - 300, 50)
-        UI.font22.draw(play_state.window_size[0] - 300, 30, 'RIGHT', (255, 255, 255))
+        UI.font22.draw(play_state.window_size[0] - 288, 30, 'RIGHT', (255, 255, 255))
         if self.cur_drag_bull_cool_time > 0:
             UI.black_50.draw_to_origin(play_state.window_size[0] - 300, 48, 84, 84)
             UI.black_50.draw_to_origin(play_state.window_size[0] - 300, 48, 84, self.cur_drag_bull_cool_time / self.drag_bull_cool_time * 84)
@@ -213,7 +223,7 @@ class Marine(GroundObj):
                     self.moving_attack = False
                 else:
                     self.moving_attack = True
-            elif event.key == SDLK_t:
+            elif event.key == SDLK_TAB:
                 if self.magazine_gun:
                     self.magazine_gun = False
                     self.nfs //= 2
@@ -525,7 +535,7 @@ class Marine(GroundObj):
                 self.idle = False
                 DragBullMarine(self)
                 self.cur_drag_bull_cool_time = self.drag_bull_cool_time
-        if self.cur_drag_bull_cool_time > self.drag_bull_cool_time - 10:
+        if self.cur_drag_bull_cool_time > self.drag_bull_cool_time - 5:
             self.img_now = 30 + (160 * self.face_dir), 1620  # 격발 이미지
 
     @staticmethod

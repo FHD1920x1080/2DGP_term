@@ -37,8 +37,8 @@ class Goliath(GroundObj):
         self.leg_dir = 0  # 다리 방향
         self.rad = None  # 머리 각도
         self.max_hp = 250
-        self.AD = 1
-        self.AD2 = 5
+        self.AD = 2
+        self.AD2 = 10
         self.nfs = 12  # 몇프레임당 공격이 나갈건지
         self.n_shot = 3 # 산탄량
         self.nfs_m = 24  # 몇프레임당 공격이 나갈건지
@@ -117,14 +117,21 @@ class Goliath(GroundObj):
         pass
 
     def show_passive(self):
-        UI.font22.draw(550, 90, '움직이면서 공격 가능', (255, 255, 255))
-
+        UI.font16.draw(550, 115, '걸으면서 공격 가능', (255, 255, 255))
+        UI.font16.draw(550, 90, '골리앗의 기관총은 공중 유닛에게 맞지 않음', (255, 255, 255))
+        UI.font16.draw(550, 65, '골리앗의 미사일은 지상 유닛에게 맞지 않음', (255, 255, 255))
+    def show_right(self):
+        UI.font16.draw(play_state.window_size[0] - 330, 175, '충전식 유도 미사일', (255, 255, 255))
+        UI.font16.draw(play_state.window_size[0] - 330, 150, f'피해량:{self.AD2}, 산탄량:{self.n_shot_m}', (255, 255, 255))
+    def show_left(self):
+        UI.font16.draw(play_state.window_size[0] - 210, 175, '양손 벌갈아 쏘는 산탄총', (255, 255, 255))
+        UI.font16.draw(play_state.window_size[0] - 190, 150, f'피해량:{self.AD}, 산탄량:{self.n_shot}', (255, 255, 255))
     def show_main_ui(self):
         UI.skill_icon.clip_draw_to_origin(88 * 7 - 1, 88 * 1 + 1, 82, 82, 450, 50)
         UI.font22.draw(450, 30, 'PASSIVE', (255, 255, 255))
 
         UI.skill_icon.clip_draw_to_origin(88 * 4, 88 * 3 + 5, 84, 84, play_state.window_size[0] - 300, 50)
-        UI.font22.draw(play_state.window_size[0] - 300, 30, 'RIGHT', (255, 255, 255))
+        UI.font22.draw(play_state.window_size[0] - 288, 30, 'RIGHT', (255, 255, 255))
         UI.font22.draw(play_state.window_size[0] - 210, 90, f'{self.cur_save_missile}/{self.max_save_missile}', (255, 255, 255))
 
         UI.skill_icon.clip_draw_to_origin(88 * 1 + 1, 88 * 6 + 9, 84, 84, play_state.window_size[0] - 160, 50)

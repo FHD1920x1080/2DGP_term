@@ -76,10 +76,10 @@ def handle_events():
                 Zealot.zm = 0.004
                 Mutal.zm = 0.0015
             elif event.key == SDLK_p:
-                Zergling.zm = 0.2
-                BombZergling.zm = 0.04
-                Zealot.zm = 0.08
-                Mutal.zm = 0.045
+                Zergling.zm = 0.1
+                BombZergling.zm = 0.02
+                Zealot.zm = 0.04
+                Mutal.zm = 0.03
                 game_world.Marine.magazine_gun = True
                 game_world.Marine.AD = 10
                 game_world.Marine.nfs = 3
@@ -146,6 +146,10 @@ def draw():
 
     if passive_cursor(cursor):
         player.show_passive()
+    elif right_cursor(cursor):
+        player.show_right()
+    elif left_cursor(cursor):
+        player.show_left()
 
     update_canvas()
 

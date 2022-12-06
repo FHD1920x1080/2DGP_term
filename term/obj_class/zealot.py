@@ -20,10 +20,10 @@ class Zealot(GroundObj):
 
     exist = True  # 존재 변수 삭제 할지 판정
     collision = True  # 충돌체크 함.
-    hp = 10
+    hp = 24
     speed = 2.5
     anger_speed = 3.5
-    AD = 2
+    AD = 4
     zm = 0.004
     rd = 600
     hit_sound = None
@@ -77,7 +77,7 @@ class Zealot(GroundObj):
             self.x_move_point(play_state.window_size[0] - self.stand_sx)
             self.direction = random.randrange(1, 3)
 
-    def suffer(self, damage):#피격당하면 해줄것
+    def suffer(self, damage, attack_type=0):#피격당하면 해줄것
         self.hp -= damage
         pass
         if self.hp <= 0:

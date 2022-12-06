@@ -21,7 +21,8 @@ class Mutal(FlyObj):
 
     exist = True  # 존재 변수 삭제 할지 판정
     collision = True  # 충돌 함
-    hp = 9
+    hp = 18
+    AD = 6
     max_speed = 5
     accel = 0.05
     zm = 0.002
@@ -35,7 +36,7 @@ class Mutal(FlyObj):
         self.print_x = x
         self.print_y = y
         self.hp = Mutal.hp
-        self.AD = 3
+        self.AD = Mutal.AD
         self.bullet_speed = 15
         self.max_speed = Mutal.max_speed
         self.cur_speed = 0
@@ -71,8 +72,11 @@ class Mutal(FlyObj):
             if self.time % 3 == 0:
                 self.move_frame = (self.move_frame + 1) % 5
 
-    def suffer(self, damage):  # 피격당하면 해줄것
-        self.hp -= damage
+    def suffer(self, damage, attack_type=0):  # 피격당하면 해줄것
+        if attack_type == 1: # 폭발형은 절반
+            self.hp -= damage / 2
+        else:
+            self.hp -= damage
         if self.hp <= 0:
             self.exist = False  # 마지막에 한번에 삭제해줄 것이고 지금은 아님
             self.collision = False  # 충돌체크 안함
