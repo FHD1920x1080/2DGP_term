@@ -508,11 +508,11 @@ class DragBullEffect(Bomb):
                     if obj != play_state.player:
                         if tir_rect_crash(self, obj):
                             Bullet32_Effect(obj.stand_x, obj.stand_y, 1)
-                            obj.suffer(self.AD, 0, self.owner)
+                            obj.suffer(self.AD, 1, self.owner)
                 for obj in game_world.fly_obj:
                     if tir_rect_crash(self, obj):
                         Bullet32_Effect(obj.print_x, obj.print_y, 1, AIR_CRASH_EFFECT)
-                        obj.suffer(self.AD, 0, self.owner)
+                        obj.suffer(self.AD, 1, self.owner)
         else:
             self.exist = False
 

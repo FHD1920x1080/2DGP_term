@@ -2,6 +2,7 @@ import game_world
 import play_state
 from obj_class.obj import *
 from obj_class.bullet import MutalBullet
+
 AUTO, LOCK_ON, ATTACK, WAIT = range(4)
 
 
@@ -73,7 +74,7 @@ class Mutal(FlyObj):
                 self.move_frame = (self.move_frame + 1) % 5
 
     def suffer(self, damage, attack_type=0, owner=None):  # 피격당하면 해줄것
-        if attack_type == 1: # 폭발형은 절반
+        if attack_type == 1:  # 폭발형은 절반
             self.hp -= damage / 2
         else:
             self.hp -= damage
